@@ -51,6 +51,12 @@ loading a photo.
 - **Lens order** — a lab order (Rx + lens spec + PD + frame/fitting).
 - Annotated PNG, re-openable study JSON, and a printable report.
 
+## Languages
+The interface (page names and clinical concepts) is available in **English**, **Spanish**
+and **Japanese** — pick a language from the header (EN / ES / 日本語); the choice is
+remembered. The underlying data model and exported documents stay in canonical English so
+records are portable across languages.
+
 ## Keyboard
 `V` select · `H` pan · `1` disc center · `2` fovea · `3` disc · `4` cup ·
 `5` lesion · `6` measure · `Space` pan (hold) · `F` fit · `Del` delete selected.

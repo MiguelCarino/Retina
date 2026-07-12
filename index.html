@@ -40,6 +40,11 @@
     .clock-tz{font-family:var(--mono);font-size:.58rem;font-weight:700;color:#050505;background:var(--accent);padding:2px 5px;border-radius:3px}
     .brand-greeting{font-family:var(--mono);font-size:.68rem;color:var(--text-muted)}
     .social-row{display:flex;gap:8px}
+    .lang-row{display:flex;gap:4px;border-right:1px solid var(--border);padding-right:10px;margin-right:2px}
+    .lang-row button{background:transparent;border:1px solid var(--border);color:var(--text-muted);font-family:var(--mono);font-size:.6rem;font-weight:700;letter-spacing:.06em;padding:5px 8px;border-radius:4px;cursor:pointer;transition:.2s;white-space:nowrap}
+    .lang-row button:hover{border-color:var(--accent);color:var(--accent)}
+    .lang-row button.active{background:var(--accent);color:#050505;border-color:var(--accent)}
+    @media (max-width:700px){.lang-row{display:none}}
     .icon-btn{width:32px;height:32px;border:1px solid var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:.2s;text-decoration:none;background:transparent;cursor:pointer}
     .icon-btn:hover{border-color:var(--accent);color:#050505;background:var(--accent);transform:translateY(-2px);box-shadow:0 4px 12px var(--accent-glow)}
     .icon-btn svg{width:15px;height:15px}
@@ -193,6 +198,11 @@
       </div>
     </div>
     <div class="header-right">
+      <div class="lang-row" id="langRow" title="Language / Idioma / 言語">
+        <button data-lang="en">EN</button>
+        <button data-lang="es">ES</button>
+        <button data-lang="ja">日本語</button>
+      </div>
       <div class="social-row">
         <a href="https://github.com/MiguelCarino/Carino-Ophthalmology" target="_blank" rel="noopener" class="icon-btn" title="GitHub" aria-label="GitHub">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
@@ -227,11 +237,11 @@
         </div>
         <div class="vp-chip"><label>Disc Ø</label><input id="discDia" type="number" step="0.1" min="0.5" max="4" value="1.5"><span>mm</span></div>
         <div class="lesion-pick">
-          <select id="lesionType" title="Lesion type for the pin tool">
-            <option>Microaneurysm</option><option>Dot/blot hemorrhage</option><option>Flame hemorrhage</option>
-            <option>Hard exudate</option><option>Cotton-wool spot</option><option>Drusen</option>
-            <option>Neovascularization (NVD/NVE)</option><option>Laser scar</option>
-            <option>Pigment / RPE change</option><option>Aneurysm</option><option>Other finding</option>
+          <select id="lesionType" class="i18n-opts" title="Lesion type for the pin tool">
+            <option value="Microaneurysm">Microaneurysm</option><option value="Dot/blot hemorrhage">Dot/blot hemorrhage</option><option value="Flame hemorrhage">Flame hemorrhage</option>
+            <option value="Hard exudate">Hard exudate</option><option value="Cotton-wool spot">Cotton-wool spot</option><option value="Drusen">Drusen</option>
+            <option value="Neovascularization (NVD/NVE)">Neovascularization (NVD/NVE)</option><option value="Laser scar">Laser scar</option>
+            <option value="Pigment / RPE change">Pigment / RPE change</option><option value="Aneurysm">Aneurysm</option><option value="Other finding">Other finding</option>
           </select>
         </div>
       </div>
@@ -245,7 +255,7 @@
 
       <div class="empty-hint" id="emptyHint">
         <h2>No image loaded</h2>
-        <p>Drop a fundus / anterior-segment photo here, or load one, to mark the disc, cup and fovea for an automatic cup-to-disc ratio. Prefer to just refract or dispense? Switch to the <b>Refraction</b> or <b>Dispensing</b> tab — no image needed. Everything stays in your browser; nothing is uploaded.</p>
+        <p data-i18n-html="emptyP">Drop a fundus / anterior-segment photo here, or load one, to mark the disc, cup and fovea for an automatic cup-to-disc ratio. Prefer to just refract or dispense? Switch to the <b>Refraction</b> or <b>Dispensing</b> tab — no image needed. Everything stays in your browser; nothing is uploaded.</p>
         <div style="display:flex;gap:10px" class="pointer-on">
           <button class="btn" id="loadBtn">Load image…</button>
           <button class="btn ghost" id="sampleBtn">Load sample fundus</button>
@@ -357,7 +367,7 @@
             <div class="field"><label>Pachymetry (µm)</label><input class="cl" data-f="pachy" type="number" step="1" placeholder="545"></div>
           </div>
           <div class="field"><label>Lens status</label>
-            <select class="cl" data-f="lens"><option value="">—</option><option>Phakic</option><option>Pseudophakic</option><option>Aphakic</option></select>
+            <select class="cl i18n-opts" data-f="lens"><option value="">—</option><option value="Phakic">Phakic</option><option value="Pseudophakic">Pseudophakic</option><option value="Aphakic">Aphakic</option></select>
           </div>
           <div class="field"><label>Diagnosis / impression</label><input class="cl" data-f="dx" placeholder="e.g. POAG, presbyopia"></div>
           <div class="field"><label>Notes</label><textarea class="cl" data-f="notes" placeholder="Free text…"></textarea></div>
@@ -368,7 +378,7 @@
       <div class="mod hidden" id="mod-dispensing">
         <div class="sec">
           <h3>Dispensing &amp; optics</h3>
-          <div class="note-box">Runs entirely from the <b>final Rx</b> — no photo required. Load a face photo only if you want to estimate PD from it.</div>
+          <div class="note-box" data-i18n-html="dispNote1">Runs entirely from the <b>final Rx</b> — no photo required. Load a face photo only if you want to estimate PD from it.</div>
 
           <div class="subhead">Interpupillary distance <span class="hint">binocular, mm</span></div>
           <div class="row2">
@@ -382,7 +392,7 @@
           </div>
 
           <div class="subhead">PD from photo <span class="hint">optional · estimate only</span></div>
-          <div class="note-box">Load a face photo with a <b>card</b> (ID-1, 85.6 mm) held to the brow. Draw a <b>ruler</b> across the card's long edge, then across pupil-to-pupil.</div>
+          <div class="note-box" data-i18n-html="dispNote2">Load a face photo with a <b>card</b> (ID-1, 85.6 mm) held to the brow. Draw a <b>ruler</b> across the card's long edge, then across pupil-to-pupil.</div>
           <div class="field"><label>Reference width (mm)</label><input id="pdRefMm" type="number" step="0.1" value="85.6"></div>
           <button class="mini-btn" id="pdSetScale" style="margin-bottom:6px"><span class="n">1</span>Selected ruler = reference width</button>
           <button class="mini-btn" id="pdSetPd"><span class="n">2</span>Selected ruler → PD distance</button>
@@ -392,17 +402,17 @@
           <div class="row2">
             <div class="field"><label>Amount (Δ)</label><input class="dp" data-f="prism" placeholder="2.0"></div>
             <div class="field"><label>Base</label>
-              <select class="dp" data-f="base"><option value="">—</option><option>Base up</option><option>Base down</option><option>Base in</option><option>Base out</option></select>
+              <select class="dp i18n-opts" data-f="base"><option value="">—</option><option value="Base up">Base up</option><option value="Base down">Base down</option><option value="Base in">Base in</option><option value="Base out">Base out</option></select>
             </div>
           </div>
 
           <div class="subhead">Lens <span class="hint">binocular</span></div>
           <div class="field"><label>Lens type</label>
-            <select class="gd" data-f="lensType"><option value="">—</option><option>Single vision</option><option>Bifocal</option><option>Trifocal</option><option>Progressive</option><option>Office / occupational</option></select>
+            <select class="gd i18n-opts" data-f="lensType"><option value="">—</option><option value="Single vision">Single vision</option><option value="Bifocal">Bifocal</option><option value="Trifocal">Trifocal</option><option value="Progressive">Progressive</option><option value="Office / occupational">Office / occupational</option></select>
           </div>
           <div class="row2">
             <div class="field"><label>Material</label>
-              <select class="gd" data-f="material"><option value="">—</option><option>CR-39 (1.50)</option><option>Trivex</option><option>Polycarbonate</option><option>Hi-index 1.60</option><option>Hi-index 1.67</option><option>Hi-index 1.74</option></select>
+              <select class="gd i18n-opts" data-f="material"><option value="">—</option><option value="CR-39 (1.50)">CR-39 (1.50)</option><option value="Trivex">Trivex</option><option value="Polycarbonate">Polycarbonate</option><option value="Hi-index 1.60">Hi-index 1.60</option><option value="Hi-index 1.67">Hi-index 1.67</option><option value="Hi-index 1.74">Hi-index 1.74</option></select>
             </div>
             <div class="field"><label>Tint</label><input class="gd" data-f="tint" placeholder="Clear / 80% grey"></div>
           </div>
@@ -484,6 +494,142 @@
 
   const stage=$('stage'), img=$('fundus'), svg=$('overlay'), gMarks=$('marks'), viewport=$('viewport');
   const E=()=>study.eyes[eye];
+
+  // ---------- i18n (UI labels & concepts; data model stays canonical English) ----------
+  const I18N={
+    es:{
+      // header / tabs
+      'Fundus, refraction & dispensing':'Fondo de ojo, refracción y óptica',
+      'Imaging':'Imagen','Refraction':'Refracción','Dispensing':'Óptica',
+      // section headers
+      'Patient / encounter':'Paciente / consulta','Disc analysis':'Análisis del disco',
+      'Findings':'Hallazgos','Legend':'Leyenda','Refraction —':'Refracción —',
+      'Dispensing & optics':'Óptica y montaje','Export':'Exportar',
+      // subheads
+      'Visual acuity':'Agudeza visual','Autorefraction / retinoscopy':'Autorrefracción / retinoscopía',
+      'Subjective — final Rx':'Subjetivo — Rx final','Keratometry':'Queratometría',
+      'Pressures & anterior segment':'Presiones y segmento anterior','Interpupillary distance':'Distancia interpupilar',
+      'Monocular PD':'DIP monocular','PD from photo':'DIP desde foto','Prism':'Prisma','Lens':'Lente',
+      'Frame':'Montura','Fitting':'Ajuste','Contact lens':'Lente de contacto',
+      // labels
+      'Patient ID':'ID del paciente','Exam date':'Fecha de examen','Name / initials':'Nombre / iniciales',
+      'Date of birth':'Fecha de nacimiento','Provider / clinic':'Profesional / clínica','Chief complaint / reason':'Motivo de consulta',
+      'Distance UC':'Lejos SC','Distance CC':'Lejos CC','Near':'Cerca','Add':'Adición','Prva / dominance':'Ojo dominante',
+      'Axis':'Eje','IOP (mmHg)':'PIO (mmHg)','Pachymetry (µm)':'Paquimetría (µm)','Lens status':'Estado del cristalino',
+      'Diagnosis / impression':'Diagnóstico / impresión','Notes':'Notas','PD distance':'DIP lejos','PD near':'DIP cerca',
+      'Mono distance':'Mono lejos','Mono near':'Mono cerca','Reference width (mm)':'Ancho de referencia (mm)','Amount (Δ)':'Cantidad (Δ)',
+      'Base':'Base','Lens type':'Tipo de lente','Material':'Material','Tint':'Tinte','Coatings / options':'Tratamientos / opciones',
+      'A (eye)':'A (aro)','B (vert)':'B (vert)','DBL':'DBL','ED':'ED','Seg / fit height':'Altura seg / montaje',
+      'OC / fit height':'Altura CO / montaje','Panto (°)':'Pantoscópico (°)','Vertex (mm)':'Vértice (mm)','Wrap (°)':'Envolvente (°)',
+      'Brand / design':'Marca / diseño','Power':'Potencia','Disc Ø':'Ø disco',
+      // metrics
+      'Vertical CDR':'CDR vertical','Horizontal CDR':'CDR horizontal','Disc diameter':'Diámetro del disco',
+      'Disc area':'Área del disco','Disc → fovea':'Disco → fóvea',
+      // legend / concepts
+      'Disc center':'Centro del disco','Fovea center':'Centro de la fóvea','Disc margin':'Borde del disco',
+      'Cup margin':'Borde de la excavación','Lesion pin':'Marca de lesión','Measurement':'Medición',
+      // buttons
+      'Study PDF':'PDF del estudio','Study DICOM':'DICOM del estudio','Spectacle Rx':'Receta óptica','Lens order':'Pedido de lentes',
+      'Load image':'Cargar imagen','Sample':'Ejemplo','Save PNG':'Guardar PNG','Save JSON':'Guardar JSON','Open JSON':'Abrir JSON',
+      'Print report':'Imprimir informe',"Clear this eye's marks":'Borrar marcas de este ojo','Load image…':'Cargar imagen…',
+      'Load sample fundus':'Cargar fondo de ejemplo',
+      // eye switch / mini / states
+      'OD · Right':'OD · Derecho','OS · Left':'OS · Izquierdo',
+      'Selected ruler = reference width':'Regla seleccionada = ancho de referencia','Selected ruler → PD distance':'Regla seleccionada → DIP lejos',
+      'No photo scale set':'Sin escala de foto','No image loaded':'Sin imagen cargada',
+      // tool titles
+      'Select / move (V)':'Seleccionar / mover (V)','Pan / hand (H)':'Desplazar / mano (H)','Optic disc center (1)':'Centro del disco óptico (1)',
+      'Fovea center (2)':'Centro de la fóvea (2)','Optic disc margin (3)':'Borde del disco óptico (3)','Optic cup margin (4)':'Borde de la excavación (4)',
+      'Lesion / finding pin (5)':'Marca de lesión / hallazgo (5)','Measure distance (6)':'Medir distancia (6)',
+      'Lesion type for the pin tool':'Tipo de lesión para la herramienta','Zoom in':'Acercar','Zoom out':'Alejar','Fit to view':'Ajustar a la vista',
+      // select options
+      'Phakic':'Fáquico','Pseudophakic':'Pseudofáquico','Aphakic':'Afáquico',
+      'Single vision':'Monofocal','Bifocal':'Bifocal','Trifocal':'Trifocal','Progressive':'Progresivo','Office / occupational':'Ocupacional',
+      'Polycarbonate':'Policarbonato','Hi-index 1.60':'Alto índice 1.60','Hi-index 1.67':'Alto índice 1.67','Hi-index 1.74':'Alto índice 1.74',
+      'Base up':'Base superior','Base down':'Base inferior','Base in':'Base nasal','Base out':'Base temporal',
+      'Microaneurysm':'Microaneurisma','Dot/blot hemorrhage':'Hemorragia punto/mancha','Flame hemorrhage':'Hemorragia en llama',
+      'Hard exudate':'Exudado duro','Cotton-wool spot':'Mancha algodonosa','Drusen':'Drusas',
+      'Neovascularization (NVD/NVE)':'Neovascularización (NVD/NVE)','Laser scar':'Cicatriz de láser',
+      'Pigment / RPE change':'Cambio de pigmento / EPR','Aneurysm':'Aneurisma','Other finding':'Otro hallazgo',
+      // dynamic
+      'Optic disc center':'Centro del disco óptico','Optic disc margin':'Borde del disco óptico','Optic cup margin':'Borde de la excavación',
+      'No marks yet.':'Sin marcas todavía.','Lesion':'Lesión','point':'punto','lesion pin':'marca de lesión',
+      'right eye (OD)':'ojo derecho (OD)','left eye (OS)':'ojo izquierdo (OS)',
+      // html blocks
+      emptyP:'Arrastra aquí una foto de fondo de ojo o segmento anterior, o cárgala, para marcar el disco, la excavación y la fóvea y obtener la relación excavación/disco automática. ¿Solo quieres refractar o montar lentes? Cambia a la pestaña <b>Refracción</b> u <b>Óptica</b> — no hace falta imagen. Todo permanece en tu navegador; no se sube nada.',
+      dispNote1:'Funciona por completo con la <b>Rx final</b> — sin foto. Carga una foto del rostro solo si quieres estimar la DIP a partir de ella.',
+      dispNote2:'Carga una foto del rostro con una <b>tarjeta</b> (ID-1, 85,6 mm) junto a la ceja. Traza una <b>regla</b> sobre el lado largo de la tarjeta y luego de pupila a pupila.'
+    },
+    ja:{
+      'Fundus, refraction & dispensing':'眼底・屈折・調製',
+      'Imaging':'画像','Refraction':'屈折検査','Dispensing':'調製',
+      'Patient / encounter':'患者 / 診察','Disc analysis':'視神経乳頭の解析',
+      'Findings':'所見','Legend':'凡例','Refraction —':'屈折 —','Dispensing & optics':'調製と光学','Export':'書き出し',
+      'Visual acuity':'視力','Autorefraction / retinoscopy':'オートレフ / 検影法','Subjective — final Rx':'自覚的 — 最終処方',
+      'Keratometry':'角膜曲率(ケラト)','Pressures & anterior segment':'眼圧・前眼部','Interpupillary distance':'瞳孔間距離(PD)',
+      'Monocular PD':'片眼PD','PD from photo':'写真からPD','Prism':'プリズム','Lens':'レンズ','Frame':'フレーム',
+      'Fitting':'フィッティング','Contact lens':'コンタクトレンズ',
+      'Patient ID':'患者ID','Exam date':'検査日','Name / initials':'氏名 / イニシャル','Date of birth':'生年月日',
+      'Provider / clinic':'担当医 / 施設','Chief complaint / reason':'主訴 / 来院理由','Distance UC':'遠見 裸眼','Distance CC':'遠見 矯正',
+      'Near':'近見','Add':'加入度(ADD)','Prva / dominance':'優位眼','Axis':'軸','IOP (mmHg)':'眼圧 (mmHg)','Pachymetry (µm)':'角膜厚 (µm)',
+      'Lens status':'水晶体の状態','Diagnosis / impression':'診断 / 印象','Notes':'メモ','PD distance':'PD 遠用','PD near':'PD 近用',
+      'Mono distance':'片眼 遠用','Mono near':'片眼 近用','Reference width (mm)':'基準幅 (mm)','Amount (Δ)':'量 (Δ)','Base':'基底方向',
+      'Lens type':'レンズ種類','Material':'素材','Tint':'カラー(染色)','Coatings / options':'コーティング / オプション',
+      'A (eye)':'A (玉型)','B (vert)':'B (縦)','DBL':'DBL(鼻幅)','ED':'ED(有効径)','Seg / fit height':'セグ / フィッティング高',
+      'OC / fit height':'光学中心 / 高さ','Panto (°)':'前傾角 (°)','Vertex (mm)':'頂点間距離 (mm)','Wrap (°)':'そり角 (°)',
+      'Brand / design':'ブランド / デザイン','Power':'度数','Disc Ø':'乳頭径 Ø',
+      'Vertical CDR':'垂直C/D比','Horizontal CDR':'水平C/D比','Disc diameter':'乳頭径','Disc area':'乳頭面積','Disc → fovea':'乳頭→中心窩',
+      'Disc center':'乳頭中心','Fovea center':'中心窩','Disc margin':'乳頭辺縁','Cup margin':'陥凹辺縁','Lesion pin':'病変ピン','Measurement':'計測',
+      'Study PDF':'検査PDF','Study DICOM':'検査DICOM','Spectacle Rx':'眼鏡処方','Lens order':'レンズ発注','Load image':'画像を読み込む',
+      'Sample':'サンプル','Save PNG':'PNG保存','Save JSON':'JSON保存','Open JSON':'JSONを開く','Print report':'レポート印刷',
+      "Clear this eye's marks":'この眼のマークを消去','Load image…':'画像を読み込む…','Load sample fundus':'サンプル眼底を読み込む',
+      'OD · Right':'OD · 右','OS · Left':'OS · 左',
+      'Selected ruler = reference width':'選択した定規 = 基準幅','Selected ruler → PD distance':'選択した定規 → PD遠用',
+      'No photo scale set':'写真スケール未設定','No image loaded':'画像がありません',
+      'Select / move (V)':'選択 / 移動 (V)','Pan / hand (H)':'移動 / ハンド (H)','Optic disc center (1)':'視神経乳頭中心 (1)',
+      'Fovea center (2)':'中心窩 (2)','Optic disc margin (3)':'乳頭辺縁 (3)','Optic cup margin (4)':'陥凹辺縁 (4)',
+      'Lesion / finding pin (5)':'病変 / 所見ピン (5)','Measure distance (6)':'距離を計測 (6)',
+      'Lesion type for the pin tool':'ピンツールの病変種別','Zoom in':'拡大','Zoom out':'縮小','Fit to view':'全体表示',
+      'Phakic':'有水晶体','Pseudophakic':'偽水晶体(IOL)','Aphakic':'無水晶体',
+      'Single vision':'単焦点','Bifocal':'二重焦点','Trifocal':'三重焦点','Progressive':'累進','Office / occupational':'中近 / オフィス',
+      'Polycarbonate':'ポリカーボネート','Hi-index 1.60':'高屈折 1.60','Hi-index 1.67':'高屈折 1.67','Hi-index 1.74':'高屈折 1.74',
+      'Base up':'基底上方(BU)','Base down':'基底下方(BD)','Base in':'基底内方(BI)','Base out':'基底外方(BO)',
+      'Microaneurysm':'毛細血管瘤','Dot/blot hemorrhage':'点状・斑状出血','Flame hemorrhage':'火炎状出血',
+      'Hard exudate':'硬性白斑','Cotton-wool spot':'軟性白斑','Drusen':'ドルーゼン',
+      'Neovascularization (NVD/NVE)':'新生血管 (NVD/NVE)','Laser scar':'レーザー瘢痕',
+      'Pigment / RPE change':'色素 / RPE変化','Aneurysm':'動脈瘤','Other finding':'その他の所見',
+      'Optic disc center':'視神経乳頭中心','Optic disc margin':'乳頭辺縁','Optic cup margin':'陥凹辺縁',
+      'No marks yet.':'まだマークがありません。','Lesion':'病変','point':'点','lesion pin':'病変ピン',
+      'right eye (OD)':'右眼 (OD)','left eye (OS)':'左眼 (OS)',
+      emptyP:'眼底または前眼部の写真をここにドロップするか読み込むと、乳頭・陥凹・中心窩をマークして自動でC/D比を算出できます。屈折検査や眼鏡調製だけなら<b>屈折検査</b>または<b>調製</b>タブへ — 画像は不要です。すべてブラウザ内で処理され、何もアップロードされません。',
+      dispNote1:'<b>最終処方</b>だけで完結します — 写真は不要です。PDを写真から推定したい場合のみ顔写真を読み込んでください。',
+      dispNote2:'眉の位置に<b>カード</b>(ID-1、85.6mm)を当てた顔写真を読み込みます。カードの長辺に<b>定規</b>を引き、次に瞳孔間に引きます。'
+    }
+  };
+  let lang=localStorage.getItem('carino_lang')||'en';
+  function t(k){if(lang==='en'||!k)return k;const d=I18N[lang];return (d&&d[k]!=null)?d[k]:k;}
+  const I18N_SEL=['#greeting','.pmod button','.sec h3','.subhead','.field label','.metric .k','.legend div','.btn','.eye-switch button','.vp-chip label','.mini-btn','.empty-hint h2','#pdPhotoState'];
+  const I18N_TITLE_SEL=['.tool','#lesionType','.vp-zoom button'];
+  const i18nReg=[], i18nTitleReg=[]; let i18nCollected=false;
+  function firstTextNode(el){for(const n of el.childNodes){if(n.nodeType===3&&n.nodeValue.trim())return n;}return null;}
+  function i18nCollect(){
+    I18N_SEL.forEach(s=>document.querySelectorAll(s).forEach(el=>{const n=firstTextNode(el);if(n)i18nReg.push({n,base:n.nodeValue.trim(),pad:n.nodeValue});}));
+    I18N_TITLE_SEL.forEach(s=>document.querySelectorAll(s).forEach(el=>{if(el.title)i18nTitleReg.push({el,base:el.title});}));
+    i18nCollected=true;
+  }
+  function refreshEyeLabels(){document.querySelectorAll('.clinEye').forEach(el=>el.textContent=t(eye==='OD'?'right eye (OD)':'left eye (OS)'));}
+  function applyLang(l){
+    lang=(I18N[l]||l==='en')?l:'en'; localStorage.setItem('carino_lang',lang); document.documentElement.lang=lang;
+    if(!i18nCollected)i18nCollect();
+    i18nReg.forEach(r=>{r.n.nodeValue=r.pad.replace(r.base,t(r.base));});
+    i18nTitleReg.forEach(r=>{r.el.title=t(r.base);});
+    document.querySelectorAll('[data-i18n-html]').forEach(el=>{if(el.__enHtml==null)el.__enHtml=el.innerHTML;
+      el.innerHTML=(lang==='en')?el.__enHtml:((I18N[lang]&&I18N[lang][el.dataset.i18nHtml])||el.__enHtml);});
+    document.querySelectorAll('select.i18n-opts option').forEach(o=>{const v=o.getAttribute('value');o.textContent=(v==='')?'—':t(v);});
+    document.querySelectorAll('.lang-row button').forEach(b=>b.classList.toggle('active',b.dataset.lang===lang));
+    refreshEyeLabels(); if(typeof renderFindings==='function')renderFindings();
+  }
+  document.querySelectorAll('.lang-row button').forEach(b=>b.addEventListener('click',()=>applyLang(b.dataset.lang)));
 
   // ---------- Persistence ----------
   function save(){try{localStorage.setItem(STORE,JSON.stringify(study));}catch(e){}}
@@ -617,15 +763,15 @@
   function renderFindings(){
     const box=$('findings'),ms=E().marks;
     $('findCount').textContent=ms.length;
-    if(!ms.length){box.innerHTML='<div class="no-findings">No marks yet.</div>';return;}
+    if(!ms.length){box.innerHTML='<div class="no-findings">'+t('No marks yet.')+'</div>';return;}
     box.innerHTML='';
     ms.forEach(m=>{
       const div=document.createElement('div');div.className='finding'+(m.id===selectedId?' sel':'');
       const c=COLORS[m.kind]||'#fff';
       let title,sub;
-      if(m.kind==='lesion'){title=m.ltype||'Lesion';sub=m.note?m.note:'lesion pin';}
-      else if(m.kind==='ruler'){title='Measurement';sub=fmtLen(Math.hypot(m.x2-m.x1,m.y2-m.y1));}
-      else{title=NAMES[m.kind];sub=(m.kind==='disc'||m.kind==='cup')?('Ø '+fmtLen(2*m.rx)+' × '+fmtLen(2*m.ry)):'point';}
+      if(m.kind==='lesion'){title=t(m.ltype||'Lesion');sub=m.note?m.note:t('lesion pin');}
+      else if(m.kind==='ruler'){title=t('Measurement');sub=fmtLen(Math.hypot(m.x2-m.x1,m.y2-m.y1));}
+      else{title=t(NAMES[m.kind]);sub=(m.kind==='disc'||m.kind==='cup')?('Ø '+fmtLen(2*m.rx)+' × '+fmtLen(2*m.ry)):t('point');}
       div.innerHTML='<span class="dot" style="background:'+c+'"></span><div class="txt"><div class="t"></div><div class="s"></div></div><button class="del" title="Delete">×</button>';
       div.querySelector('.t').textContent=title;div.querySelector('.s').textContent=sub;
       div.addEventListener('click',ev=>{if(ev.target.classList.contains('del'))return;selectedId=m.id;focusMark(m);renderMarks();renderFindings();});
@@ -771,8 +917,7 @@
     eye=v;selectedId=null;
     document.querySelectorAll('#eyeSwitch button').forEach(b=>b.classList.toggle('active',b.dataset.eye===v));
     $('eyeBadge').textContent=v;$('discBadge').textContent=v;
-    const long=v==='OD'?'right eye (OD)':'left eye (OS)';
-    document.querySelectorAll('.clinEye').forEach(el=>el.textContent=long);
+    refreshEyeLabels();
     document.querySelectorAll('.clinEye2,.clinEye3,.clinEye4,.clinEye5,.clinEye6').forEach(el=>el.textContent=v);
     $('discDia').value=E().discDiaMm;
     applyEyeImage();writeForm();fitToView();afterChange();
@@ -1229,10 +1374,11 @@
     switchEye('OD');      // switchEye → writeForm() populates all meta/clinical/disp/dispense fields
     setTool('select');
     computeMetrics();renderFindings();
+    applyLang(lang);      // localize UI to saved/default language
   }
   boot();
   // expose a little for debugging/testing
-  window.__ophtha={study,setImage,makeSampleFundus,switchEye,setTool,setMod,E,metricsFor,generateStudyPdf,generateRxPdf,generateOrderPdf,dicomEncapsulatedPdf,renderEyePngBytes};
+  window.__ophtha={study,setImage,makeSampleFundus,switchEye,setTool,setMod,applyLang,E,metricsFor,generateStudyPdf,generateRxPdf,generateOrderPdf,dicomEncapsulatedPdf,renderEyePngBytes};
 })();
 </script>
 </body>
