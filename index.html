@@ -5,6 +5,52 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Carino Retina — Eye examination & dispensing suite</title>
+  <!-- ===== Diagnostics =====
+       Runs early (before the app) so it captures init errors too. If something looks
+       wrong, open the console (F12), run  carinoDebug()  and paste the printed block. -->
+  <script>
+  (function(){
+    window.__carinoErrors=[];
+    function push(o){window.__carinoErrors.push(o);if(window.__carinoErrors.length>30)window.__carinoErrors.shift();}
+    window.addEventListener('error',function(e){push({type:'error',msg:e.message,src:(e.filename||'').split('/').pop(),line:e.lineno,col:e.colno});});
+    window.addEventListener('unhandledrejection',function(e){push({type:'promise',reason:String(e.reason&&e.reason.message||e.reason)});});
+    function css(sel,props){var el=document.querySelector(sel);if(!el)return null;var c=getComputedStyle(el),o={};props.forEach(function(p){o[p]=c[p];});return o;}
+    window.carinoDebug=function(){
+      var o=window.__ophtha, s=o&&o.study, rep;
+      try{
+        rep={
+          when:new Date().toISOString(),
+          ua:navigator.userAgent,
+          url:location.href,
+          lang:document.documentElement.lang,
+          mode:(document.querySelector('main')||{}).getAttribute&&document.querySelector('main').getAttribute('data-mode'),
+          appLoaded:typeof window.__ophtha,
+          eye:o?o.E&&(o.study.eyes.OD===o.E()?'OD':'OS'):null,
+          marks:s?{OD:s.eyes.OD.marks.length,OS:s.eyes.OS.marks.length}:null,
+          lesionTypes:s?s.eyes.OD.marks.concat(s.eyes.OS.marks).filter(function(m){return m.kind==='lesion';}).map(function(m){return m.ltype;}):null,
+          clinicalOD:s?s.eyes.OD.clinical:null,
+          clinicalOS:s?s.eyes.OS.clinical:null,
+          dispense:s?s.dispense:null,
+          duoGrids:document.querySelectorAll('.duo').length,
+          dataEyeFields:document.querySelectorAll('[data-eye]').length,
+          lesionPickHidden:(function(){var el=document.getElementById('lesionPick');return el?el.classList.contains('hidden'):'missing';})(),
+          panelEyeVisible:(function(){var el=document.querySelector('.panel-eye');return el?getComputedStyle(el).display!=='none':'missing';})(),
+          sampleStepBg:css('.duo input.step',['backgroundImage','backgroundRepeat','backgroundSize','backgroundPosition','paddingRight']),
+          localStorage:(function(){try{return Object.keys(localStorage);}catch(e){return 'blocked: '+e.message;}})(),
+          errors:window.__carinoErrors.slice(-10)
+        };
+      }catch(e){rep={debugError:e.message,errors:window.__carinoErrors.slice(-10)};}
+      var out='===== CARINO RETINA DEBUG =====\n'+JSON.stringify(rep,null,2)+'\n===== END =====';
+      try{console.log('%cCarino debug (copied to clipboard if allowed):','color:#eab308;font-weight:bold');}catch(e){}
+      console.log(out);
+      try{navigator.clipboard&&navigator.clipboard.writeText(out);}catch(e){}
+      return out;
+    };
+    window.addEventListener('load',function(){setTimeout(function(){
+      try{console.info('Carino Retina — for support, run  carinoDebug()  in the console and paste the output.'+(window.__carinoErrors.length?(' ('+window.__carinoErrors.length+' error(s) captured)'):''));}catch(e){}
+    },300);});
+  })();
+  </script>
   <script src="carino-clock.js" defer></script>
   <script src="vendor/pdf-lib.min.js" defer></script>
   <link href="fonts.css" rel="stylesheet">
@@ -80,9 +126,12 @@
     main:not([data-mode="imaging"]) .panel{width:auto;flex:1;border-left:none}
     /* keep fields readable on wide screens (cap width, align left) */
     main:not([data-mode="imaging"]) .panel>*{max-width:1180px}
-    main:not([data-mode="imaging"]) #mod-exam>.sec{columns:290px;column-gap:24px;padding:18px 22px}
-    main:not([data-mode="imaging"]) #mod-exam>.sec>h3{column-span:all}
-    #mod-exam>.sec>h3.grp2{margin-top:22px;padding-top:14px;border-top:1px solid var(--border)}
+    main:not([data-mode="imaging"]) #mod-exam .sec{columns:290px;column-gap:24px;padding:18px 22px}
+    main:not([data-mode="imaging"]) #mod-exam .sec>h3{column-span:all}
+    /* Exam has its own Export tab; the Imaging load/export panel is hidden here */
+    main:not([data-mode="imaging"]) #exportData{display:none}
+    #examTabs .ex-tab{flex:0 0 auto;color:var(--accent);border-color:var(--border-glow)}
+    #examTabs .ex-tab:hover{background:var(--accent);color:#050505}
     .subsec{break-inside:avoid;display:block;margin-bottom:6px}
     .subsec:first-child .subhead{margin-top:0}
 
@@ -129,14 +178,16 @@
     .vp-zoom{position:absolute;right:12px;bottom:12px;display:flex;flex-direction:column;gap:6px;z-index:5}
     .vp-zoom button{width:34px;height:34px;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-md);color:var(--text-dim);cursor:pointer;font-size:1.1rem;transition:.15s;display:flex;align-items:center;justify-content:center}
     .vp-zoom button:hover{border-color:var(--accent);color:var(--accent)}
+    .vp-zoom button svg{width:16px;height:16px}
+    .vp-zoom .zsep{width:22px;height:1px;background:var(--border);margin:2px auto}
     .zoom-label{font-family:var(--mono);font-size:.6rem;color:var(--text-muted);text-align:center}
 
     .hud{position:absolute;left:12px;bottom:12px;font-family:var(--mono);font-size:.66rem;color:var(--text-muted);background:rgba(0,0,0,.6);border:1px solid var(--border);border-radius:var(--r-sm);padding:4px 8px;z-index:5;pointer-events:none}
 
     /* ---------- Right panel ---------- */
     .panel{width:344px;flex-shrink:0;background:var(--surface);border-left:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column}
-    .sec{border-bottom:1px solid var(--border);padding:16px}
-    .sec h3{font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+    .sec{border-bottom:1px solid var(--border);padding:12px 14px}
+    .sec h3{font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;display:flex;align-items:center;gap:8px}
     .sec h3 .badge{margin-left:auto;font-size:.6rem;color:var(--accent)}
 
     .metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -147,7 +198,7 @@
     .metric .u{font-size:.6rem;color:var(--text-muted);font-weight:400}
     .metric.wide{grid-column:1 / -1}
 
-    .field{margin-bottom:10px}
+    .field{margin-bottom:8px}
     .field label{display:block;font-family:var(--mono);font-size:.58rem;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px}
     .field input,.field select,.field textarea{width:100%;background:#000;border:1px solid var(--border);color:var(--text);border-radius:var(--r-sm);padding:7px 9px;font-family:var(--font);font-size:.82rem;transition:.15s}
     .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent)}
@@ -172,6 +223,19 @@
     .rxgrid .rl{font-family:var(--mono);font-size:.66rem;font-weight:700;color:var(--accent)}
     .rxgrid input{width:100%;background:#000;border:1px solid var(--border);color:var(--text);border-radius:var(--r-sm);padding:6px 4px;font-family:var(--mono);font-size:.74rem;text-align:center}
     .rxgrid input:focus{border-color:var(--accent)}
+    /* Merged OD/OS grid used across the Exam workspace (both eyes at once) */
+    .duo{display:grid;gap:5px 6px;align-items:center;margin-bottom:6px}
+    .duo .h{font-family:var(--mono);font-size:.52rem;letter-spacing:.05em;text-transform:uppercase;color:var(--text-muted);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .duo .rl{font-family:var(--mono);font-size:.66rem;font-weight:700;color:var(--accent)}
+    .duo input,.duo select{width:100%;min-width:0;background:#000;border:1px solid var(--border);color:var(--text);border-radius:var(--r-sm);padding:6px 4px;font-family:var(--mono);font-size:.74rem;text-align:center}
+    .duo select{text-align:left}
+    .duo input:focus,.duo select:focus{border-color:var(--accent)}
+    /* these merged fields are too narrow for the stepper arrow glyph — hide it
+       (scroll / drag / arrow-key adjustment still works) so the value stays legible */
+    .duo input.step{background-image:none!important;padding-right:4px!important}
+    /* Exam is merged for both eyes — no per-eye toggle or per-eye badge there */
+    main:not([data-mode="imaging"]) .panel-eye{display:none!important}
+    main:not([data-mode="imaging"]) #eyeBadge{display:none}
 
     /* Panel module tabs */
     .pmod{display:flex;gap:4px;padding:10px 12px;background:var(--surface-solid);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:6}
@@ -206,8 +270,11 @@
     .btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
     .btn.ghost{background:transparent;color:var(--text-dim);border:1px solid var(--border)}
     .btn.ghost:hover{border-color:var(--accent);color:var(--accent);transform:none}
-    .btn.wide{width:100%}
-    .btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .btn.wide{width:100%;max-width:320px}
+    .btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;max-width:320px}
+    /* compact action buttons inside the settings modal (no full-width stretch) */
+    .modal-body .btn.wide{width:auto;max-width:100%}
+    .modal-body .btn{padding:8px 14px}
 
     .hidden{display:none!important}
     .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface-solid);border:1px solid var(--accent);color:var(--text);font-size:.82rem;padding:10px 18px;border-radius:var(--r-md);opacity:0;transition:.25s;z-index:500;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.5)}
@@ -296,6 +363,7 @@
     .vp-textedit{position:absolute;z-index:8;background:rgba(6,6,6,.9);border:1px solid var(--accent);border-radius:5px;color:#fff;font-family:var(--mono);font-size:14px;padding:5px 9px;min-width:96px;max-width:60%;box-shadow:0 6px 20px rgba(0,0,0,.55),0 0 0 3px var(--accent-glow);outline:none;caret-color:var(--accent)}
     .vp-textedit::placeholder{color:var(--text-muted)}
     .vp-textedit.hidden{display:none}
+    #vpLesionEdit{min-width:210px}
 
     /* Date inputs — visible picker on dark theme */
     input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.85);opacity:.7;cursor:pointer}
@@ -404,7 +472,7 @@
           <button data-view="both">2 eyes</button>
         </div>
         <div class="vp-chip"><label>Disc Ø</label><input id="discDia" type="number" step="0.1" min="0.5" max="4" value="1.5"><span>mm</span></div>
-        <div class="lesion-pick">
+        <div class="lesion-pick hidden" id="lesionPick">
           <select id="lesionType" class="i18n-opts" title="Lesion type for the pin tool">
             <option value="Microaneurysm">Microaneurysm</option><option value="Dot/blot hemorrhage">Dot/blot hemorrhage</option><option value="Flame hemorrhage">Flame hemorrhage</option>
             <option value="Hard exudate">Hard exudate</option><option value="Cotton-wool spot">Cotton-wool spot</option><option value="Drusen">Drusen</option>
@@ -416,6 +484,14 @@
 
       <div id="otherPane"><img id="otherImg" alt="other eye"><div class="cmp-empty hidden" id="otherEmpty">No image</div></div>
       <input class="vp-textedit hidden" id="vpTextEdit" spellcheck="false" placeholder="Type…" autocomplete="off">
+      <!-- pin-time lesion type: pick from the list or type a custom one -->
+      <input class="vp-textedit hidden" id="vpLesionEdit" list="lesionTypeList" spellcheck="false" placeholder="Lesion type — pick or type…" autocomplete="off">
+      <datalist id="lesionTypeList">
+        <option value="Microaneurysm"></option><option value="Dot/blot hemorrhage"></option><option value="Flame hemorrhage"></option>
+        <option value="Hard exudate"></option><option value="Cotton-wool spot"></option><option value="Drusen"></option>
+        <option value="Neovascularization (NVD/NVE)"></option><option value="Laser scar"></option>
+        <option value="Pigment / RPE change"></option><option value="Aneurysm"></option><option value="Other finding"></option>
+      </datalist>
       <div class="pane-tag left" id="tagOD">OD · Right</div>
       <div class="pane-tag right" id="tagOS">OS · Left</div>
 
@@ -441,6 +517,9 @@
         <div class="zoom-label" id="zoomLabel">100%</div>
         <button id="zoomOut" title="Zoom out">−</button>
         <button id="zoomFit" title="Fit to view" style="font-size:.7rem">FIT</button>
+        <div class="zsep"></div>
+        <button id="loadBtn3" title="Load image…" aria-label="Load image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/><path d="M12 3v13M7 8l5-5 5 5"/></svg></button>
+        <button id="cameraBtn3" title="Take photo…" aria-label="Take photo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
       </div>
       <div class="hud" id="hud">—</div>
     </div>
@@ -485,83 +564,113 @@
         <div class="sec">
           <h3>Findings <span class="badge" id="findCount">0</span></h3>
           <div class="findings" id="findings"><div class="no-findings">No marks yet.</div></div>
-        </div>
-        <div class="sec">
-          <h3>Legend</h3>
-          <div class="legend">
-            <div><span class="sw" style="background:var(--c-dcenter)"></span>Disc center</div>
-            <div><span class="sw" style="background:var(--c-fovea)"></span>Fovea center</div>
-            <div><span class="sw" style="background:var(--c-disc)"></span>Disc margin</div>
-            <div><span class="sw" style="background:var(--c-cup)"></span>Cup margin</div>
-            <div><span class="sw" style="background:var(--c-lesion)"></span>Lesion pin</div>
-            <div><span class="sw" style="background:var(--c-ruler)"></span>Measurement</div>
-          </div>
+          <button class="btn ghost hidden" id="clearEye" style="margin-top:10px;border-color:var(--err);color:var(--err)">Clear this eye's marks</button>
         </div>
       </div>
 
       <!-- ==================== EXAM MODULE (refraction + dispensing) ==================== -->
       <div class="mod hidden" id="mod-exam">
+        <div class="pmod" id="examTabs">
+          <button data-etab="refraction" class="active">Refraction</button>
+          <button data-etab="dispensing">Dispensing &amp; optics</button>
+          <button data-action="export" class="ex-tab" title="Export report">Export ↗</button>
+        </div>
+        <div class="esub" id="esub-refraction">
         <div class="sec">
-          <h3>Refraction — <span class="clinEye">right eye (OD)</span></h3>
+          <h3>Refraction — <span class="i18n">both eyes</span></h3>
 
           <div class="subsec">
             <div class="subhead">Visual acuity</div>
-            <div class="row3">
-              <div class="field"><label>Distance UC</label><input class="cl" data-f="vaUC" placeholder="20/40"></div>
-              <div class="field"><label>Distance CC</label><input class="cl" data-f="vaCC" placeholder="20/20"></div>
-              <div class="field"><label>Near</label><input class="cl" data-f="vaNear" placeholder="J1 / N5"></div>
+            <div class="duo" style="grid-template-columns:24px 1fr 1fr 1fr">
+              <div class="h"></div><div class="h">Dist UC</div><div class="h">Dist CC</div><div class="h">Near</div>
+              <div class="rl">OD</div>
+                <input class="cl" data-eye="OD" data-f="vaUC" placeholder="20/40">
+                <input class="cl" data-eye="OD" data-f="vaCC" placeholder="20/20">
+                <input class="cl" data-eye="OD" data-f="vaNear" placeholder="J1">
+              <div class="rl">OS</div>
+                <input class="cl" data-eye="OS" data-f="vaUC" placeholder="20/40">
+                <input class="cl" data-eye="OS" data-f="vaCC" placeholder="20/20">
+                <input class="cl" data-eye="OS" data-f="vaNear" placeholder="J1">
             </div>
           </div>
 
           <div class="subsec">
             <div class="subhead">Autorefraction / retinoscopy</div>
-            <div class="rx-line">
-              <input class="cl" data-f="arSph" data-step="0.25" data-fmt="dpt" placeholder="Sph −1.25">
-              <input class="cl" data-f="arCyl" data-step="0.25" data-fmt="dpt" placeholder="Cyl −0.50">
-              <input class="cl" data-f="arAxis" data-step="1" data-fmt="axis" data-min="1" data-max="180" data-wrap placeholder="Ax 90">
+            <div class="duo" style="grid-template-columns:24px 1fr 1fr 1fr">
+              <div class="h"></div><div class="h">Sph</div><div class="h">Cyl</div><div class="h">Axis</div>
+              <div class="rl">OD</div>
+                <input class="cl" data-eye="OD" data-f="arSph" data-step="0.25" data-fmt="dpt" placeholder="−1.25">
+                <input class="cl" data-eye="OD" data-f="arCyl" data-step="0.25" data-fmt="dpt" placeholder="−0.50">
+                <input class="cl" data-eye="OD" data-f="arAxis" data-step="1" data-fmt="axis" data-min="1" data-max="180" data-wrap placeholder="90">
+              <div class="rl">OS</div>
+                <input class="cl" data-eye="OS" data-f="arSph" data-step="0.25" data-fmt="dpt" placeholder="−1.25">
+                <input class="cl" data-eye="OS" data-f="arCyl" data-step="0.25" data-fmt="dpt" placeholder="−0.50">
+                <input class="cl" data-eye="OS" data-f="arAxis" data-step="1" data-fmt="axis" data-min="1" data-max="180" data-wrap placeholder="90">
             </div>
           </div>
 
           <div class="subsec">
             <div class="subhead">Subjective — final Rx</div>
-            <div class="rx-line">
-              <input class="cl" data-f="sph" data-step="0.25" data-fmt="dpt" placeholder="Sph −1.25">
-              <input class="cl" data-f="cyl" data-step="0.25" data-fmt="dpt" placeholder="Cyl −0.50">
-              <input class="cl" data-f="axis" data-step="1" data-fmt="axis" data-min="1" data-max="180" data-wrap placeholder="Ax 90">
+            <div class="duo" style="grid-template-columns:24px 1fr 1fr 1fr 1fr">
+              <div class="h"></div><div class="h">Sph</div><div class="h">Cyl</div><div class="h">Axis</div><div class="h">Add</div>
+              <div class="rl">OD</div>
+                <input class="cl" data-eye="OD" data-f="sph" data-step="0.25" data-fmt="dpt" placeholder="−1.25">
+                <input class="cl" data-eye="OD" data-f="cyl" data-step="0.25" data-fmt="dpt" placeholder="−0.50">
+                <input class="cl" data-eye="OD" data-f="axis" data-step="1" data-fmt="axis" data-min="1" data-max="180" data-wrap placeholder="90">
+                <input class="cl" data-eye="OD" data-f="add" data-step="0.25" data-fmt="dpt" data-min="0" placeholder="+2.00">
+              <div class="rl">OS</div>
+                <input class="cl" data-eye="OS" data-f="sph" data-step="0.25" data-fmt="dpt" placeholder="−1.25">
+                <input class="cl" data-eye="OS" data-f="cyl" data-step="0.25" data-fmt="dpt" placeholder="−0.50">
+                <input class="cl" data-eye="OS" data-f="axis" data-step="1" data-fmt="axis" data-min="1" data-max="180" data-wrap placeholder="90">
+                <input class="cl" data-eye="OS" data-f="add" data-step="0.25" data-fmt="dpt" data-min="0" placeholder="+2.00">
             </div>
-            <div class="row2" style="margin-top:6px">
-              <div class="field"><label>Add</label><input class="cl" data-f="add" data-step="0.25" data-fmt="dpt" data-min="0" placeholder="+2.00"></div>
-              <div class="field"><label>Prva / dominance</label><input class="cl" data-f="dom" placeholder="OD dominant"></div>
-            </div>
+            <div class="field" style="margin-top:6px"><label>Dominant eye</label><input class="gd" data-f="dom" placeholder="OD dominant"></div>
           </div>
 
           <div class="subsec">
             <div class="subhead">Keratometry</div>
-            <div class="row3">
-              <div class="field"><label>K1</label><input class="cl" data-f="k1" data-step="0.25" data-fmt="k" data-min="30" data-max="60" placeholder="43.25"></div>
-              <div class="field"><label>K2</label><input class="cl" data-f="k2" data-step="0.25" data-fmt="k" data-min="30" data-max="60" placeholder="44.00"></div>
-              <div class="field"><label>Axis</label><input class="cl" data-f="kAxis" data-step="1" data-fmt="axis" data-min="1" data-max="180" data-wrap placeholder="180"></div>
+            <div class="duo" style="grid-template-columns:24px 1fr 1fr 1fr">
+              <div class="h"></div><div class="h">K1</div><div class="h">K2</div><div class="h">Axis</div>
+              <div class="rl">OD</div>
+                <input class="cl" data-eye="OD" data-f="k1" data-step="0.25" data-fmt="k" data-min="30" data-max="60" placeholder="43.25">
+                <input class="cl" data-eye="OD" data-f="k2" data-step="0.25" data-fmt="k" data-min="30" data-max="60" placeholder="44.00">
+                <input class="cl" data-eye="OD" data-f="kAxis" data-step="1" data-fmt="axis" data-min="1" data-max="180" data-wrap placeholder="180">
+              <div class="rl">OS</div>
+                <input class="cl" data-eye="OS" data-f="k1" data-step="0.25" data-fmt="k" data-min="30" data-max="60" placeholder="43.25">
+                <input class="cl" data-eye="OS" data-f="k2" data-step="0.25" data-fmt="k" data-min="30" data-max="60" placeholder="44.00">
+                <input class="cl" data-eye="OS" data-f="kAxis" data-step="1" data-fmt="axis" data-min="1" data-max="180" data-wrap placeholder="180">
             </div>
           </div>
 
           <div class="subsec">
             <div class="subhead">Pressures & anterior segment</div>
-            <div class="row2">
-              <div class="field"><label>IOP (mmHg)</label><input class="cl" data-f="iop" data-step="1" data-fmt="num" data-min="0" data-max="80" inputmode="numeric" placeholder="16"></div>
-              <div class="field"><label>Pachymetry (µm)</label><input class="cl" data-f="pachy" data-step="5" data-fmt="num" data-min="300" data-max="800" inputmode="numeric" placeholder="545"></div>
-            </div>
-            <div class="field"><label>Lens status</label>
-              <select class="cl i18n-opts" data-f="lens"><option value="">—</option><option value="Phakic">Phakic</option><option value="Pseudophakic">Pseudophakic</option><option value="Aphakic">Aphakic</option></select>
+            <div class="duo" style="grid-template-columns:24px 1fr 1fr 1.3fr">
+              <div class="h"></div><div class="h">IOP</div><div class="h">Pachy</div><div class="h">Lens status</div>
+              <div class="rl">OD</div>
+                <input class="cl" data-eye="OD" data-f="iop" data-step="1" data-fmt="num" data-min="0" data-max="80" inputmode="numeric" placeholder="16">
+                <input class="cl" data-eye="OD" data-f="pachy" data-step="5" data-fmt="num" data-min="300" data-max="800" inputmode="numeric" placeholder="545">
+                <select class="cl i18n-opts" data-eye="OD" data-f="lens"><option value="">—</option><option value="Phakic">Phakic</option><option value="Pseudophakic">Pseudophakic</option><option value="Aphakic">Aphakic</option></select>
+              <div class="rl">OS</div>
+                <input class="cl" data-eye="OS" data-f="iop" data-step="1" data-fmt="num" data-min="0" data-max="80" inputmode="numeric" placeholder="16">
+                <input class="cl" data-eye="OS" data-f="pachy" data-step="5" data-fmt="num" data-min="300" data-max="800" inputmode="numeric" placeholder="545">
+                <select class="cl i18n-opts" data-eye="OS" data-f="lens"><option value="">—</option><option value="Phakic">Phakic</option><option value="Pseudophakic">Pseudophakic</option><option value="Aphakic">Aphakic</option></select>
             </div>
           </div>
 
           <div class="subsec">
-            <div class="subhead">Diagnosis</div>
-            <div class="field"><label>Diagnosis / impression</label><input class="cl" data-f="dx" placeholder="e.g. POAG, presbyopia"></div>
-            <div class="field"><label>Notes</label><textarea class="cl" data-f="notes" placeholder="Free text…"></textarea></div>
+            <div class="subhead">Diagnosis / impression</div>
+            <div class="duo" style="grid-template-columns:24px 1fr">
+              <div class="h"></div><div class="h" style="text-align:left">Impression</div>
+              <div class="rl">OD</div><input class="cl" data-eye="OD" data-f="dx" style="text-align:left" placeholder="e.g. POAG">
+              <div class="rl">OS</div><input class="cl" data-eye="OS" data-f="dx" style="text-align:left" placeholder="e.g. normal">
+            </div>
+            <div class="field" style="margin-top:6px"><label>Notes <span class="hint" style="text-transform:none">shared</span></label><textarea id="examNotes" placeholder="Free text…"></textarea></div>
           </div>
 
-          <h3 class="grp2">Dispensing &amp; optics</h3>
+        </div>
+        </div><!-- /esub-refraction -->
+        <div class="esub hidden" id="esub-dispensing">
+        <div class="sec">
           <div class="subsec">
             <div class="note-box" data-i18n-html="dispNote1">Runs entirely from the <b>final Rx</b> — no photo required. Load a face photo only if you want to estimate PD from it.</div>
             <div class="subhead">Interpupillary distance <span class="hint">binocular, mm</span></div>
@@ -569,10 +678,15 @@
               <div class="field"><label>PD distance</label><input class="gd" data-f="pdDist" data-step="0.5" data-fmt="num" data-min="40" data-max="80" inputmode="decimal" placeholder="63"></div>
               <div class="field"><label>PD near</label><input class="gd" data-f="pdNear" data-step="0.5" data-fmt="num" data-min="40" data-max="80" inputmode="decimal" placeholder="60"></div>
             </div>
-            <div class="subhead">Monocular PD <span class="hint"><span class="clinEye2">OD</span>, mm</span></div>
-            <div class="row2">
-              <div class="field"><label>Mono distance</label><input class="dp" data-f="pdMonoDist" data-step="0.5" data-fmt="num" data-min="20" data-max="40" inputmode="decimal" placeholder="31.5"></div>
-              <div class="field"><label>Mono near</label><input class="dp" data-f="pdMonoNear" data-step="0.5" data-fmt="num" data-min="20" data-max="40" inputmode="decimal" placeholder="30"></div>
+            <div class="subhead">Monocular PD <span class="hint">mm</span></div>
+            <div class="duo" style="grid-template-columns:24px 1fr 1fr">
+              <div class="h"></div><div class="h">Mono dist</div><div class="h">Mono near</div>
+              <div class="rl">OD</div>
+                <input class="dp" data-eye="OD" data-f="pdMonoDist" data-step="0.5" data-fmt="num" data-min="20" data-max="40" inputmode="decimal" placeholder="31.5">
+                <input class="dp" data-eye="OD" data-f="pdMonoNear" data-step="0.5" data-fmt="num" data-min="20" data-max="40" inputmode="decimal" placeholder="30">
+              <div class="rl">OS</div>
+                <input class="dp" data-eye="OS" data-f="pdMonoDist" data-step="0.5" data-fmt="num" data-min="20" data-max="40" inputmode="decimal" placeholder="31.5">
+                <input class="dp" data-eye="OS" data-f="pdMonoNear" data-step="0.5" data-fmt="num" data-min="20" data-max="40" inputmode="decimal" placeholder="30">
             </div>
           </div>
 
@@ -586,12 +700,15 @@
           </div>
 
           <div class="subsec">
-            <div class="subhead">Prism <span class="hint"><span class="clinEye3">OD</span></span></div>
-            <div class="row2">
-              <div class="field"><label>Amount (Δ)</label><input class="dp" data-f="prism" data-step="0.25" data-fmt="k" data-min="0" data-max="20" placeholder="2.0"></div>
-              <div class="field"><label>Base</label>
-                <select class="dp i18n-opts" data-f="base"><option value="">—</option><option value="Base up">Base up</option><option value="Base down">Base down</option><option value="Base in">Base in</option><option value="Base out">Base out</option></select>
-              </div>
+            <div class="subhead">Prism</div>
+            <div class="duo" style="grid-template-columns:24px 1fr 1.4fr">
+              <div class="h"></div><div class="h">Amount Δ</div><div class="h">Base</div>
+              <div class="rl">OD</div>
+                <input class="dp" data-eye="OD" data-f="prism" data-step="0.25" data-fmt="k" data-min="0" data-max="20" placeholder="2.0">
+                <select class="dp i18n-opts" data-eye="OD" data-f="base"><option value="">—</option><option value="Base up">Base up</option><option value="Base down">Base down</option><option value="Base in">Base in</option><option value="Base out">Base out</option></select>
+              <div class="rl">OS</div>
+                <input class="dp" data-eye="OS" data-f="prism" data-step="0.25" data-fmt="k" data-min="0" data-max="20" placeholder="2.0">
+                <select class="dp i18n-opts" data-eye="OS" data-f="base"><option value="">—</option><option value="Base up">Base up</option><option value="Base down">Base down</option><option value="Base in">Base in</option><option value="Base out">Base out</option></select>
             </div>
           </div>
 
@@ -621,11 +738,16 @@
 
           <div class="subsec">
             <div class="subhead">Fitting</div>
-            <div class="row2">
-              <div class="field"><label>Seg / fit height <span class="clinEye4">OD</span></label><input class="dp" data-f="segHt" data-step="0.5" data-fmt="num" data-min="0" data-max="50" inputmode="decimal" placeholder="mm"></div>
-              <div class="field"><label>OC / fit height <span class="clinEye5">OD</span></label><input class="dp" data-f="fitHt" data-step="0.5" data-fmt="num" data-min="0" data-max="50" inputmode="decimal" placeholder="mm"></div>
+            <div class="duo" style="grid-template-columns:24px 1fr 1fr">
+              <div class="h"></div><div class="h">Seg ht</div><div class="h">OC ht</div>
+              <div class="rl">OD</div>
+                <input class="dp" data-eye="OD" data-f="segHt" data-step="0.5" data-fmt="num" data-min="0" data-max="50" inputmode="decimal" placeholder="mm">
+                <input class="dp" data-eye="OD" data-f="fitHt" data-step="0.5" data-fmt="num" data-min="0" data-max="50" inputmode="decimal" placeholder="mm">
+              <div class="rl">OS</div>
+                <input class="dp" data-eye="OS" data-f="segHt" data-step="0.5" data-fmt="num" data-min="0" data-max="50" inputmode="decimal" placeholder="mm">
+                <input class="dp" data-eye="OS" data-f="fitHt" data-step="0.5" data-fmt="num" data-min="0" data-max="50" inputmode="decimal" placeholder="mm">
             </div>
-            <div class="row3">
+            <div class="row3" style="margin-top:6px">
               <div class="field"><label>Panto (°)</label><input class="gd" data-f="panto" data-step="0.5" data-fmt="num" data-min="0" data-max="20" inputmode="decimal" placeholder="8"></div>
               <div class="field"><label>Vertex (mm)</label><input class="gd" data-f="vertex" data-step="0.5" data-fmt="num" data-min="5" data-max="20" inputmode="decimal" placeholder="12"></div>
               <div class="field"><label>Wrap (°)</label><input class="gd" data-f="wrap" data-step="1" data-fmt="num" data-min="0" data-max="30" inputmode="decimal" placeholder="5"></div>
@@ -639,19 +761,27 @@
           </div>
 
           <div class="subsec">
-            <div class="subhead">Contact lens <span class="hint"><span class="clinEye6">OD</span></span></div>
-            <div class="field"><label>Brand / design</label><input class="dp" data-f="clBrand" placeholder="e.g. Acuvue Oasys"></div>
-            <div class="row3">
-              <div class="field"><label>BC</label><input class="dp" data-f="clBC" data-step="0.1" data-fmt="num" data-min="8" data-max="10" inputmode="decimal" placeholder="8.4"></div>
-              <div class="field"><label>DIA</label><input class="dp" data-f="clDia" data-step="0.1" data-fmt="num" data-min="13" data-max="15" inputmode="decimal" placeholder="14.0"></div>
-              <div class="field"><label>Power</label><input class="dp" data-f="clPower" data-step="0.25" data-fmt="dpt" placeholder="−1.25"></div>
+            <div class="subhead">Contact lens</div>
+            <div class="duo" style="grid-template-columns:24px 1.5fr 1fr 1fr 1fr">
+              <div class="h"></div><div class="h">Brand</div><div class="h">BC</div><div class="h">DIA</div><div class="h">Power</div>
+              <div class="rl">OD</div>
+                <input class="dp" data-eye="OD" data-f="clBrand" style="text-align:left" placeholder="Oasys">
+                <input class="dp" data-eye="OD" data-f="clBC" data-step="0.1" data-fmt="num" data-min="8" data-max="10" inputmode="decimal" placeholder="8.4">
+                <input class="dp" data-eye="OD" data-f="clDia" data-step="0.1" data-fmt="num" data-min="13" data-max="15" inputmode="decimal" placeholder="14.0">
+                <input class="dp" data-eye="OD" data-f="clPower" data-step="0.25" data-fmt="dpt" placeholder="−1.25">
+              <div class="rl">OS</div>
+                <input class="dp" data-eye="OS" data-f="clBrand" style="text-align:left" placeholder="Oasys">
+                <input class="dp" data-eye="OS" data-f="clBC" data-step="0.1" data-fmt="num" data-min="8" data-max="10" inputmode="decimal" placeholder="8.4">
+                <input class="dp" data-eye="OS" data-f="clDia" data-step="0.1" data-fmt="num" data-min="13" data-max="15" inputmode="decimal" placeholder="14.0">
+                <input class="dp" data-eye="OS" data-f="clPower" data-step="0.25" data-fmt="dpt" placeholder="−1.25">
             </div>
           </div>
         </div>
+        </div><!-- /esub-dispensing -->
       </div>
 
-      <!-- Export & data (always visible) -->
-      <div class="sec">
+      <!-- Export & data (Imaging workspace; hidden in Exam, which has its own Export tab) -->
+      <div class="sec" id="exportData">
         <h3>Export &amp; data</h3>
         <button class="btn wide" id="exportOpen" style="margin-bottom:8px">Export ↗</button>
         <div class="btn-grid">
@@ -660,7 +790,6 @@
           <button class="btn ghost" id="cameraBtn">Camera</button>
           <button class="btn ghost" id="importJson">Open JSON</button>
         </div>
-        <button class="btn wide" id="clearEye" style="margin-top:8px;background:transparent;border:1px solid var(--err);color:var(--err)">Clear this eye's marks</button>
       </div>
     </div>
     </div><!-- /.workarea -->
@@ -819,6 +948,7 @@
   let zoom=1,panX=0,panY=0, selectedId=null, uid=1;
   let drag=null;
   const STORE='carino_ophtha_v1';
+  const SEEN='carino_retina_seen';
 
   const stage=$('stage'), img=$('fundus'), svg=$('overlay'), gMarks=$('marks'), viewport=$('viewport');
   const E=()=>study.eyes[eye];
@@ -1022,12 +1152,22 @@
   function setImage(dataUrl){
     const im=new Image();
     im.onload=()=>{
-      E().img=dataUrl; E().w=im.naturalWidth; E().h=im.naturalHeight;
+      E().img=dataUrl; E().w=im.naturalWidth; E().h=im.naturalHeight; E().imgSample=false;
       applyEyeImage(); fitToView(); save();
       if(viewBoth)updateTwo();
     };
     im.src=dataUrl;
+    try{localStorage.setItem(SEEN,'1');}catch(e){}
   }
+  // Seed a sample fundus into any eye that has no image. Samples are placeholders
+  // for practice/annotation — flagged imgSample so exports can skip un-annotated ones.
+  function loadSampleBoth(){
+    ['OD','OS'].forEach(k=>{const e=study.eyes[k];if(!e.img){e.img=makeSampleFundus(k);e.w=1000;e.h=1000;e.imgSample=true;}});
+    applyEyeImage();if(E().img)fitToView();if(viewBoth)updateTwo();save();
+  }
+  // An eye's fundus is worth exporting only if it's a real (loaded) image or the
+  // sample has been annotated — a bare sample counts as "no data registered".
+  function eyeHasImaging(e){return !!(e.img&&(!e.imgSample||e.marks.length));}
   function applyEyeImage(){
     const e=E();
     if(e.img){img.src=e.img;img.width=e.w;img.height=e.h;
@@ -1159,6 +1299,7 @@
   function renderFindings(){
     const box=$('findings'),ms=E().marks;
     $('findCount').textContent=ms.length;
+    const clr=$('clearEye');if(clr)clr.classList.toggle('hidden',ms.length<2);
     if(!ms.length){box.innerHTML='<div class="no-findings">'+t('No marks yet.')+'</div>';return;}
     box.innerHTML='';
     ms.forEach(m=>{
@@ -1205,8 +1346,9 @@
     }
     if(tool==='lesion'){
       const m={id:newId(),kind:'lesion',x:p.x,y:p.y,ltype:lesionType,note:''};E().marks.push(m);selectedId=m.id;
-      const note=prompt('Note for "'+lesionType+'" (optional):','');if(note!==null)m.note=note;
-      afterChange();return;
+      afterChange();
+      startLesionEdit(m,e.clientX,e.clientY,true);   // pick a type from the list or type one
+      return;
     }
     if(tool==='disc'||tool==='cup'){drag={mode:'ellipse',kind:tool,start:p};return;}
     if(tool==='ruler'){drag={mode:'ruler',start:p};return;}
@@ -1240,10 +1382,36 @@
     else if(e.key==='Escape'){e.preventDefault();const st=textEditState,m=st&&getMark(st.id);textEditState=null;$('vpTextEdit').classList.add('hidden');if(m&&st.isNew&&!m.text)removeMark(m.id);if(tool==='text')setTool('select');}
   });
   $('vpTextEdit').addEventListener('blur',()=>{if(textEditState)commitTextEdit();});
-  // double-click a text mark to edit inline
+
+  // ---------- Inline lesion-type picker (list + free text) ----------
+  let lesionEditState=null;
+  function startLesionEdit(m,clientX,clientY,isNew){
+    const inp=$('vpLesionEdit'),crect=document.querySelector('.center').getBoundingClientRect();
+    inp.style.left=Math.max(4,Math.min(clientX-crect.left,crect.width-210))+'px';
+    inp.style.top=Math.max(4,(clientY-crect.top-14))+'px';
+    inp.value=m.ltype||lesionType||'';inp.classList.remove('hidden');
+    lesionEditState={id:m.id,isNew:!!isNew};
+    setTimeout(()=>{inp.focus();inp.select();},0);
+  }
+  function commitLesionEdit(){
+    if(!lesionEditState)return;const inp=$('vpLesionEdit'),m=getMark(lesionEditState.id),val=inp.value.trim();
+    lesionEditState=null;inp.classList.add('hidden');
+    if(m){const type=val||lesionType||'Other finding';m.ltype=type;lesionType=type;
+      const sel=$('lesionType');if(sel&&[...sel.options].some(o=>o.value===type))sel.value=type;
+      afterChange();}
+    if(tool==='lesion')setTool('lesion');   // stay on the lesion tool to drop more pins
+  }
+  $('vpLesionEdit').addEventListener('keydown',e=>{e.stopPropagation();
+    if(e.key==='Enter'){e.preventDefault();commitLesionEdit();}
+    else if(e.key==='Escape'){e.preventDefault();const st=lesionEditState,m=st&&getMark(st.id);lesionEditState=null;$('vpLesionEdit').classList.add('hidden');
+      if(m&&st.isNew&&!m.ltype)removeMark(m.id);}
+  });
+  $('vpLesionEdit').addEventListener('blur',()=>{if(lesionEditState)commitLesionEdit();});
+  // double-click a text mark to edit inline, or a lesion pin to re-pick its type
   viewport.addEventListener('dblclick',e=>{
     if(!E().img)return;const p=toImg(e),hit=hitTest(e,p);if(!hit)return;const m=getMark(hit.id);
     if(m&&m.kind==='text'){selectedId=m.id;renderMarks();startTextEdit(m,e.clientX,e.clientY,false);}
+    else if(m&&m.kind==='lesion'){selectedId=m.id;renderMarks();startLesionEdit(m,e.clientX,e.clientY,false);}
   });
 
   window.addEventListener('pointermove',e=>{
@@ -1343,7 +1511,9 @@
 
   // ---------- Tools ----------
   function setTool(t){tool=t;document.querySelectorAll('.tool').forEach(b=>b.classList.toggle('active',b.dataset.tool===t));
-    viewport.classList.toggle('pan',t==='pan');}
+    viewport.classList.toggle('pan',t==='pan');
+    // the lesion-type picker is only relevant while the lesion pin tool is active
+    const lp=$('lesionPick');if(lp)lp.classList.toggle('hidden',t!=='lesion');}
   document.querySelectorAll('.tool').forEach(b=>b.addEventListener('click',()=>setTool(b.dataset.tool)));
 
   let spaceDown=false;
@@ -1366,7 +1536,6 @@
     document.querySelectorAll('#eyeSwitch button').forEach(b=>b.classList.toggle('active',b.dataset.eye===v));
     $('eyeBadge').textContent=v;$('discBadge').textContent=v;
     refreshEyeLabels();
-    document.querySelectorAll('.clinEye2,.clinEye3,.clinEye4,.clinEye5,.clinEye6').forEach(el=>el.textContent=v);
     $('discDia').value=E().discDiaMm;
     applyEyeImage();writeForm();
     if(viewBoth)updateTwo();else fitToView();
@@ -1375,15 +1544,22 @@
   }
 
   // ---------- Data binding (meta / clinical / disp / dispense) ----------
+  // Exam fields carry an explicit data-eye so both eyes are edited on one merged screen;
+  // fields without it (e.g. the Imaging disc panel) fall back to the current eye.
+  function eyeOf(el){return el.dataset.eye||eye;}
   function storeFor(el){const c=el.classList;
     if(c.contains('mt'))return study.meta;
     if(c.contains('gd'))return study.dispense;
-    if(c.contains('cl'))return E().clinical;
-    if(c.contains('dp'))return E().disp;
+    if(c.contains('cl'))return study.eyes[eyeOf(el)].clinical;
+    if(c.contains('dp'))return study.eyes[eyeOf(el)].disp;
     return null;}
   document.querySelectorAll('.mt,.gd,.cl,.dp').forEach(el=>el.addEventListener('input',()=>{
     const st=storeFor(el);if(st)st[el.dataset.f]=el.value;save();if(panelMod==='exam')renderLensLayout();}));
-  function writeForm(){document.querySelectorAll('.mt,.gd,.cl,.dp').forEach(el=>{const st=storeFor(el);el.value=st?(st[el.dataset.f]||''):'';});}
+  // Notes are shared across both eyes (entered once)
+  const _notes=$('examNotes');if(_notes)_notes.addEventListener('input',()=>{
+    study.eyes.OD.clinical.notes=study.eyes.OS.clinical.notes=_notes.value;save();});
+  function writeForm(){document.querySelectorAll('.mt,.gd,.cl,.dp').forEach(el=>{const st=storeFor(el);el.value=st?(st[el.dataset.f]||''):'';});
+    const en=$('examNotes');if(en)en.value=study.eyes.OD.clinical.notes||'';}
   const writeClinical=writeForm; // per-eye fields refresh on eye switch
   $('discDia').addEventListener('input',()=>{E().discDiaMm=parseFloat($('discDia').value)||1.5;computeMetrics();renderFindings();save();});
   $('lesionType').addEventListener('change',()=>{lesionType=$('lesionType').value;});
@@ -1455,6 +1631,16 @@
     if(m==='imaging'&&E().img)setTimeout(()=>{if(!viewBoth)fitToView();},0);
     if(m==='exam')renderLensLayout();}
 
+  // ---------- Exam sub-tabs (Refraction | Dispensing & optics) + Export ----------
+  $('examTabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+    if(b.dataset.action==='export'){openExport();return;}
+    if(b.dataset.etab)setExamTab(b.dataset.etab);});
+  function setExamTab(t){
+    document.querySelectorAll('#examTabs button[data-etab]').forEach(b=>b.classList.toggle('active',b.dataset.etab===t));
+    document.querySelectorAll('#mod-exam .esub').forEach(el=>el.classList.toggle('hidden',el.id!=='esub-'+t));
+    if(t==='dispensing')renderLensLayout();
+  }
+
   // ---------- PD from photo (optional estimate) ----------
   function selectedRulerLen(){const m=getMark(selectedId);if(!m||m.kind!=='ruler')return null;return Math.hypot(m.x2-m.x1,m.y2-m.y1);}
   $('pdSetScale').addEventListener('click',()=>{
@@ -1469,7 +1655,7 @@
 
   // ---------- Load / sample ----------
   function pickFile(){$('fileInput').click();}
-  ['loadBtn','loadBtn2'].forEach(id=>$(id).addEventListener('click',pickFile));
+  ['loadBtn','loadBtn2','loadBtn3'].forEach(id=>{const el=$(id);if(el)el.addEventListener('click',pickFile);});
   $('fileInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>setImage(r.result);r.readAsDataURL(f);e.target.value='';});
   ['sampleBtn','sampleBtn2'].forEach(id=>$(id).addEventListener('click',()=>setImage(makeSampleFundus(eye))));
 
@@ -1700,11 +1886,11 @@
     const cdrCol=v=>v==null?P.C.dark:(v>=0.7?P.C.err:(v>=0.6?P.C.warn:P.C.ok));
     for(const key of ['OD','OS']){
       const e=study.eyes[key],c=e.clinical||{},dp=e.disp||{},mt=metricsFor(key);
-      const hasData=e.marks.length||e.img||Object.keys(c).some(k=>c[k])||Object.keys(dp).some(k=>dp[k]);
+      const hasData=eyeHasImaging(e)||Object.keys(c).some(k=>c[k])||Object.keys(dp).some(k=>dp[k]);
       if(!hasData)continue;
       P.ensure(30);P.hr();
       P.line(key==='OD'?'Right eye  (OD)':'Left eye  (OS)',{size:14,bold:true,gap:20});
-      if(e.img){const png=await renderEyePngBytes(key);if(png)await P.image(png.bytes,250);}
+      if(eyeHasImaging(e)){const png=await renderEyePngBytes(key);if(png)await P.image(png.bytes,250);}
       P.sub('Refraction & acuity');
       P.kvRow([['VA distance UC',c.vaUC],['VA distance CC',c.vaCC],['VA near',c.vaNear],['Autorefraction',[c.arSph,c.arCyl,c.arAxis].filter(Boolean).join('  ')]]);
       P.kvRow([['Final Rx',[c.sph,c.cyl,c.axis].filter(Boolean).join('  ')],['Add',c.add],['Keratometry',[c.k1,c.k2].filter(Boolean).join(' / ')+(c.kAxis?' @'+c.kAxis:'')],['Lens status',c.lens]]);
@@ -1839,7 +2025,7 @@
   function studyHasContent(){
     const g=study.dispense;if(Object.keys(g).some(k=>g[k]))return true;
     return ['OD','OS'].some(k=>{const e=study.eyes[k];
-      return e.img||e.marks.length||Object.keys(e.clinical).some(x=>e.clinical[x])||Object.keys(e.disp).some(x=>e.disp[x]);});
+      return eyeHasImaging(e)||Object.keys(e.clinical).some(x=>e.clinical[x])||Object.keys(e.disp).some(x=>e.disp[x]);});
   }
   const fname=(suffix,ext)=>'retina_'+(study.meta.patientId||'study')+(suffix?'_'+suffix:'')+'.'+ext;
   async function runExport(label,fn){
@@ -2358,7 +2544,7 @@
   });
   $('cameraClose').addEventListener('click',closeCamera);
   $('cameraModal').addEventListener('click',e=>{if(e.target.id==='cameraModal')closeCamera();});
-  ['cameraBtn','cameraBtn2'].forEach(id=>{const el=$(id);if(el)el.addEventListener('click',openCamera);});
+  ['cameraBtn','cameraBtn2','cameraBtn3'].forEach(id=>{const el=$(id);if(el)el.addEventListener('click',openCamera);});
   window.addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('exportModal').classList.contains('hidden'))closeExport();if(!$('cameraModal').classList.contains('hidden'))closeCamera();if(!$('testsModal').classList.contains('hidden'))closeTestsModal();}});
 
   // ---------- Boot ----------
@@ -2369,6 +2555,9 @@
     setMod('imaging');
     renderTestGrid();wireRemote();
     initSteppers();       // wire numeric fields before first populate
+    // Each eye starts with a sample fundus so the Imaging workspace is never empty.
+    // (Samples are placeholders — see eyeHasImaging: un-annotated ones are left out of exports.)
+    loadSampleBoth();
     switchEye('OD');      // switchEye → writeForm() populates all meta/clinical/disp/dispense fields
     setTool('select');
     computeMetrics();renderFindings();
@@ -2376,7 +2565,7 @@
   }
   boot();
   // expose a little for debugging/testing
-  window.__ophtha={study,settings,setImage,makeSampleFundus,switchEye,setTool,setMod,setEyeView,renderLensLayout,applyLang,openTest,openSettings,openExport,openCamera,openTestsModal,setEyeView,buildPresentHtml,E,metricsFor,generateStudyPdf,generateRxPdf,generateOrderPdf,dicomEncapsulatedPdf,renderEyePngBytes};
+  window.__ophtha={study,settings,setImage,makeSampleFundus,switchEye,setTool,setMod,setExamTab,setEyeView,renderLensLayout,applyLang,openTest,openSettings,openExport,openCamera,openTestsModal,buildPresentHtml,E,eyeHasImaging,metricsFor,generateStudyPdf,generateRxPdf,generateOrderPdf,dicomEncapsulatedPdf,renderEyePngBytes};
 })();
 </script>
 </body>
