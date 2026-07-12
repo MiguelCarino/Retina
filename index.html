@@ -54,17 +54,18 @@
     /* ---------- Layout ---------- */
     main{flex:1;display:flex;min-height:0}
 
-    /* Workspace nav (left) — primary mode switcher */
-    .worknav{width:92px;flex-shrink:0;background:var(--surface-solid);border-right:1px solid var(--border);display:flex;flex-direction:column;gap:4px;padding:10px 8px;overflow-y:auto}
-    .worknav button{display:flex;flex-direction:column;align-items:center;gap:5px;background:transparent;border:1px solid transparent;border-radius:var(--r-md);color:var(--text-muted);font-family:var(--font);font-size:.66rem;font-weight:600;padding:11px 4px;cursor:pointer;transition:.15s}
-    .worknav button svg{width:20px;height:20px}
-    .worknav button:hover{color:var(--text);background:var(--surface-hover)}
-    .worknav button.active{color:var(--accent);border-color:var(--border-glow);background:var(--accent-faint)}
-    .worknav button.active svg{filter:drop-shadow(0 0 6px var(--accent-glow))}
-    @media (max-width:760px){.worknav{width:60px}.worknav button{font-size:0}.worknav button svg{width:22px;height:22px}}
+    /* Workspace nav (left) — single rail: mode switcher + imaging tools */
+    .worknav{width:64px;flex-shrink:0;background:var(--surface-solid);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 5px;overflow-y:auto}
+    .worknav>button{display:flex;flex-direction:column;align-items:center;gap:4px;width:100%;background:transparent;border:1px solid transparent;border-radius:var(--r-md);color:var(--text-muted);font-family:var(--font);font-size:.55rem;font-weight:600;padding:8px 2px;cursor:pointer;transition:.15s}
+    .worknav>button svg{width:19px;height:19px}
+    .worknav>button:hover{color:var(--text);background:var(--surface-hover)}
+    .worknav>button.active{color:var(--accent);border-color:var(--border-glow);background:var(--accent-faint)}
+    .worknav>button.active svg{filter:drop-shadow(0 0 6px var(--accent-glow))}
+    .wn-tools{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;margin-top:2px}
+    @media (max-width:760px){.worknav>button{font-size:0;gap:0}.worknav>button svg{width:22px;height:22px}}
 
-    /* Canvas + tools are only present in Imaging mode */
-    main:not([data-mode="imaging"]) .toolrail,
+    /* Tools only in Imaging; canvas only in Imaging */
+    main:not([data-mode="imaging"]) .wn-tools{display:none!important}
     main:not([data-mode="imaging"]) .center{display:none!important}
     /* Off-imaging: the working panel takes the reclaimed width and flows in columns */
     main:not([data-mode="imaging"]) .panel{width:auto;flex:1;border-left:none}
@@ -303,10 +304,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 7h20M4 7l1.5 10a2 2 0 0 0 2 1.7h9a2 2 0 0 0 2-1.7L20 7M9 11h6"/></svg>Dispensing</button>
       <button data-mod="tests" title="Eye exam test charts">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 8v8M9 16h6M10.5 8h3" stroke-width="2.4"/></svg>Tests</button>
-    </nav>
-    <!-- Tool rail -->
-    <div class="toolrail" id="toolrail">
-      <button class="tool" data-tool="select" data-key="V" title="Select / move (V)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 2l6 16 2.5-6.5L19 9z"/></svg></button>
+      <!-- Imaging tools (only shown in Imaging mode) -->
+      <div class="wn-tools" id="toolrail">
+        <div class="rail-sep"></div>
+        <button class="tool" data-tool="select" data-key="V" title="Select / move (V)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 2l6 16 2.5-6.5L19 9z"/></svg></button>
       <button class="tool" data-tool="pan" data-key="H" title="Pan / hand (H)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v7M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2a8 8 0 0 1-7-4l-2.5-4a2 2 0 0 1 3.5-2l1.5 2"/></svg></button>
       <div class="rail-sep"></div>
       <button class="tool" data-tool="disc-center" data-key="1" title="Optic disc center (1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></button>
@@ -314,8 +315,9 @@
       <button class="tool" data-tool="disc" data-key="3" title="Optic disc margin (3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="12" rx="9" ry="7"/></svg></button>
       <button class="tool" data-tool="cup" data-key="4" title="Optic cup margin (4)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="12" rx="5" ry="4"/></svg></button>
       <button class="tool" data-tool="lesion" data-key="5" title="Lesion / finding pin (5)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg></button>
-      <button class="tool" data-tool="ruler" data-key="6" title="Measure distance (6)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17L17 3l4 4L7 21z"/><path d="M8 12l2 2M11 9l2 2M14 6l2 2"/></svg></button>
-    </div>
+        <button class="tool" data-tool="ruler" data-key="6" title="Measure distance (6)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17L17 3l4 4L7 21z"/><path d="M8 12l2 2M11 9l2 2M14 6l2 2"/></svg></button>
+      </div>
+    </nav>
 
     <!-- Center viewport -->
     <div class="center">
