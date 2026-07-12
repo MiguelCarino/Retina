@@ -118,6 +118,13 @@
     .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
     .row4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px}
     .rx-line{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+    .rx-line input{width:100%;background:#000;border:1px solid var(--border);color:var(--text);border-radius:var(--r-sm);padding:7px 9px;font-family:var(--mono);font-size:.78rem;transition:.15s}
+    .rx-line input:focus{border-color:var(--accent)}
+    /* numeric steppers: scroll / drag / arrow keys to adjust */
+    input.step{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='16' viewBox='0 0 9 16'%3E%3Cpath d='M4.5 1L8 5H1z' fill='%238a8a8a'/%3E%3Cpath d='M4.5 15L1 11h7z' fill='%238a8a8a'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 7px center;background-size:8px 14px;padding-right:20px!important}
+    input.step:hover{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='16' viewBox='0 0 9 16'%3E%3Cpath d='M4.5 1L8 5H1z' fill='%23eab308'/%3E%3Cpath d='M4.5 15L1 11h7z' fill='%23eab308'/%3E%3C/svg%3E")}
+    input.step.scrubbing{cursor:ns-resize;border-color:var(--accent);user-select:none;background-color:var(--accent-faint)}
+    input.step::-webkit-outer-spin-button,input.step::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
     .subhead{font-family:var(--mono);font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:14px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px}
     .subhead:first-child{margin-top:0}
     .subhead .hint{margin-left:auto;color:var(--text-muted);letter-spacing:.04em;text-transform:none;font-size:.58rem}
@@ -338,33 +345,33 @@
 
           <div class="subhead">Autorefraction / retinoscopy</div>
           <div class="rx-line">
-            <input class="cl" data-f="arSph" placeholder="Sph −1.25">
-            <input class="cl" data-f="arCyl" placeholder="Cyl −0.50">
-            <input class="cl" data-f="arAxis" placeholder="Ax 90">
+            <input class="cl" data-f="arSph" data-step="0.25" data-fmt="dpt" placeholder="Sph −1.25">
+            <input class="cl" data-f="arCyl" data-step="0.25" data-fmt="dpt" placeholder="Cyl −0.50">
+            <input class="cl" data-f="arAxis" data-step="1" data-fmt="axis" data-min="1" data-max="180" data-wrap placeholder="Ax 90">
           </div>
 
           <div class="subhead">Subjective — final Rx</div>
           <div class="rx-line">
-            <input class="cl" data-f="sph" placeholder="Sph −1.25">
-            <input class="cl" data-f="cyl" placeholder="Cyl −0.50">
-            <input class="cl" data-f="axis" placeholder="Ax 90">
+            <input class="cl" data-f="sph" data-step="0.25" data-fmt="dpt" placeholder="Sph −1.25">
+            <input class="cl" data-f="cyl" data-step="0.25" data-fmt="dpt" placeholder="Cyl −0.50">
+            <input class="cl" data-f="axis" data-step="1" data-fmt="axis" data-min="1" data-max="180" data-wrap placeholder="Ax 90">
           </div>
           <div class="row2" style="margin-top:6px">
-            <div class="field"><label>Add</label><input class="cl" data-f="add" placeholder="+2.00"></div>
+            <div class="field"><label>Add</label><input class="cl" data-f="add" data-step="0.25" data-fmt="dpt" data-min="0" placeholder="+2.00"></div>
             <div class="field"><label>Prva / dominance</label><input class="cl" data-f="dom" placeholder="OD dominant"></div>
           </div>
 
           <div class="subhead">Keratometry</div>
           <div class="row3">
-            <div class="field"><label>K1</label><input class="cl" data-f="k1" placeholder="43.25"></div>
-            <div class="field"><label>K2</label><input class="cl" data-f="k2" placeholder="44.00"></div>
-            <div class="field"><label>Axis</label><input class="cl" data-f="kAxis" placeholder="180"></div>
+            <div class="field"><label>K1</label><input class="cl" data-f="k1" data-step="0.25" data-fmt="k" data-min="30" data-max="60" placeholder="43.25"></div>
+            <div class="field"><label>K2</label><input class="cl" data-f="k2" data-step="0.25" data-fmt="k" data-min="30" data-max="60" placeholder="44.00"></div>
+            <div class="field"><label>Axis</label><input class="cl" data-f="kAxis" data-step="1" data-fmt="axis" data-min="1" data-max="180" data-wrap placeholder="180"></div>
           </div>
 
           <div class="subhead">Pressures & anterior segment</div>
           <div class="row2">
-            <div class="field"><label>IOP (mmHg)</label><input class="cl" data-f="iop" type="number" step="1" placeholder="16"></div>
-            <div class="field"><label>Pachymetry (µm)</label><input class="cl" data-f="pachy" type="number" step="1" placeholder="545"></div>
+            <div class="field"><label>IOP (mmHg)</label><input class="cl" data-f="iop" data-step="1" data-fmt="num" data-min="0" data-max="80" inputmode="numeric" placeholder="16"></div>
+            <div class="field"><label>Pachymetry (µm)</label><input class="cl" data-f="pachy" data-step="5" data-fmt="num" data-min="300" data-max="800" inputmode="numeric" placeholder="545"></div>
           </div>
           <div class="field"><label>Lens status</label>
             <select class="cl i18n-opts" data-f="lens"><option value="">—</option><option value="Phakic">Phakic</option><option value="Pseudophakic">Pseudophakic</option><option value="Aphakic">Aphakic</option></select>
@@ -382,13 +389,13 @@
 
           <div class="subhead">Interpupillary distance <span class="hint">binocular, mm</span></div>
           <div class="row2">
-            <div class="field"><label>PD distance</label><input class="gd" data-f="pdDist" type="number" step="0.5" placeholder="63"></div>
-            <div class="field"><label>PD near</label><input class="gd" data-f="pdNear" type="number" step="0.5" placeholder="60"></div>
+            <div class="field"><label>PD distance</label><input class="gd" data-f="pdDist" data-step="0.5" data-fmt="num" data-min="40" data-max="80" inputmode="decimal" placeholder="63"></div>
+            <div class="field"><label>PD near</label><input class="gd" data-f="pdNear" data-step="0.5" data-fmt="num" data-min="40" data-max="80" inputmode="decimal" placeholder="60"></div>
           </div>
           <div class="subhead">Monocular PD <span class="hint"><span class="clinEye2">OD</span>, mm</span></div>
           <div class="row2">
-            <div class="field"><label>Mono distance</label><input class="dp" data-f="pdMonoDist" type="number" step="0.5" placeholder="31.5"></div>
-            <div class="field"><label>Mono near</label><input class="dp" data-f="pdMonoNear" type="number" step="0.5" placeholder="30"></div>
+            <div class="field"><label>Mono distance</label><input class="dp" data-f="pdMonoDist" data-step="0.5" data-fmt="num" data-min="20" data-max="40" inputmode="decimal" placeholder="31.5"></div>
+            <div class="field"><label>Mono near</label><input class="dp" data-f="pdMonoNear" data-step="0.5" data-fmt="num" data-min="20" data-max="40" inputmode="decimal" placeholder="30"></div>
           </div>
 
           <div class="subhead">PD from photo <span class="hint">optional · estimate only</span></div>
@@ -400,7 +407,7 @@
 
           <div class="subhead">Prism <span class="hint"><span class="clinEye3">OD</span></span></div>
           <div class="row2">
-            <div class="field"><label>Amount (Δ)</label><input class="dp" data-f="prism" placeholder="2.0"></div>
+            <div class="field"><label>Amount (Δ)</label><input class="dp" data-f="prism" data-step="0.25" data-fmt="k" data-min="0" data-max="20" placeholder="2.0"></div>
             <div class="field"><label>Base</label>
               <select class="dp i18n-opts" data-f="base"><option value="">—</option><option value="Base up">Base up</option><option value="Base down">Base down</option><option value="Base in">Base in</option><option value="Base out">Base out</option></select>
             </div>
@@ -420,29 +427,29 @@
 
           <div class="subhead">Frame <span class="hint">boxing system, mm</span></div>
           <div class="row4">
-            <div class="field"><label>A (eye)</label><input class="gd" data-f="frameA" placeholder="52"></div>
-            <div class="field"><label>B (vert)</label><input class="gd" data-f="frameB" placeholder="34"></div>
-            <div class="field"><label>DBL</label><input class="gd" data-f="frameDBL" placeholder="18"></div>
-            <div class="field"><label>ED</label><input class="gd" data-f="frameED" placeholder="55"></div>
+            <div class="field"><label>A (eye)</label><input class="gd" data-f="frameA" data-step="0.5" data-fmt="num" data-min="40" data-max="70" inputmode="decimal" placeholder="52"></div>
+            <div class="field"><label>B (vert)</label><input class="gd" data-f="frameB" data-step="0.5" data-fmt="num" data-min="20" data-max="60" inputmode="decimal" placeholder="34"></div>
+            <div class="field"><label>DBL</label><input class="gd" data-f="frameDBL" data-step="0.5" data-fmt="num" data-min="10" data-max="30" inputmode="decimal" placeholder="18"></div>
+            <div class="field"><label>ED</label><input class="gd" data-f="frameED" data-step="0.5" data-fmt="num" data-min="30" data-max="80" inputmode="decimal" placeholder="55"></div>
           </div>
 
           <div class="subhead">Fitting</div>
           <div class="row2">
-            <div class="field"><label>Seg / fit height <span class="clinEye4">OD</span></label><input class="dp" data-f="segHt" placeholder="mm"></div>
-            <div class="field"><label>OC / fit height <span class="clinEye5">OD</span></label><input class="dp" data-f="fitHt" placeholder="mm"></div>
+            <div class="field"><label>Seg / fit height <span class="clinEye4">OD</span></label><input class="dp" data-f="segHt" data-step="0.5" data-fmt="num" data-min="0" data-max="50" inputmode="decimal" placeholder="mm"></div>
+            <div class="field"><label>OC / fit height <span class="clinEye5">OD</span></label><input class="dp" data-f="fitHt" data-step="0.5" data-fmt="num" data-min="0" data-max="50" inputmode="decimal" placeholder="mm"></div>
           </div>
           <div class="row3">
-            <div class="field"><label>Panto (°)</label><input class="gd" data-f="panto" placeholder="8"></div>
-            <div class="field"><label>Vertex (mm)</label><input class="gd" data-f="vertex" placeholder="12"></div>
-            <div class="field"><label>Wrap (°)</label><input class="gd" data-f="wrap" placeholder="5"></div>
+            <div class="field"><label>Panto (°)</label><input class="gd" data-f="panto" data-step="0.5" data-fmt="num" data-min="0" data-max="20" inputmode="decimal" placeholder="8"></div>
+            <div class="field"><label>Vertex (mm)</label><input class="gd" data-f="vertex" data-step="0.5" data-fmt="num" data-min="5" data-max="20" inputmode="decimal" placeholder="12"></div>
+            <div class="field"><label>Wrap (°)</label><input class="gd" data-f="wrap" data-step="1" data-fmt="num" data-min="0" data-max="30" inputmode="decimal" placeholder="5"></div>
           </div>
 
           <div class="subhead">Contact lens <span class="hint"><span class="clinEye6">OD</span></span></div>
           <div class="field"><label>Brand / design</label><input class="dp" data-f="clBrand" placeholder="e.g. Acuvue Oasys"></div>
           <div class="row3">
-            <div class="field"><label>BC</label><input class="dp" data-f="clBC" placeholder="8.4"></div>
-            <div class="field"><label>DIA</label><input class="dp" data-f="clDia" placeholder="14.0"></div>
-            <div class="field"><label>Power</label><input class="dp" data-f="clPower" placeholder="−1.25"></div>
+            <div class="field"><label>BC</label><input class="dp" data-f="clBC" data-step="0.1" data-fmt="num" data-min="8" data-max="10" inputmode="decimal" placeholder="8.4"></div>
+            <div class="field"><label>DIA</label><input class="dp" data-f="clDia" data-step="0.1" data-fmt="num" data-min="13" data-max="15" inputmode="decimal" placeholder="14.0"></div>
+            <div class="field"><label>Power</label><input class="dp" data-f="clPower" data-step="0.25" data-fmt="dpt" placeholder="−1.25"></div>
           </div>
         </div>
       </div>
@@ -937,6 +944,62 @@
   $('discDia').addEventListener('input',()=>{E().discDiaMm=parseFloat($('discDia').value)||1.5;computeMetrics();renderFindings();save();});
   $('lesionType').addEventListener('change',()=>{lesionType=$('lesionType').value;});
 
+  // ---------- Numeric steppers (scroll / drag / arrow keys) ----------
+  function fmtStep(v,fmt){
+    if(v==null||isNaN(v))return '';
+    if(Math.abs(v)<1e-9)v=0;
+    if(fmt==='axis')return String(Math.round(v));
+    if(fmt==='k')return v.toFixed(2);
+    if(fmt==='dpt')return (v>0?'+':'')+v.toFixed(2);          // signed dioptres; 0 -> "0.00"
+    return Number.isInteger(v)?String(v):(+v.toFixed(2)).toString();
+  }
+  function parseStep(str,fmt){
+    if(str==null)return null;const m=String(str).replace(',','.').match(/-?\d*\.?\d+/);
+    if(!m)return null;let v=parseFloat(m[0]);if(isNaN(v))return null;if(fmt==='axis')v=Math.round(v);return v;
+  }
+  function clampStep(v,el){
+    const has=k=>el.dataset[k]!==undefined&&el.dataset[k]!=='';
+    const mn=has('min')?parseFloat(el.dataset.min):null, mx=has('max')?parseFloat(el.dataset.max):null;
+    const wrap=el.hasAttribute('data-wrap');
+    if(wrap&&mn!=null&&mx!=null){const range=mx-mn+1;while(v>mx)v-=range;while(v<mn)v+=range;return v;}
+    if(mn!=null&&v<mn)v=mn;if(mx!=null&&v>mx)v=mx;return v;
+  }
+  function bumpStep(el,dir,coarse){
+    const fmt=el.dataset.fmt||'num',step=parseFloat(el.dataset.step||'1');
+    let v=parseStep(el.value,fmt);if(v==null)v=0;
+    v=v+dir*step*(coarse?4:1);
+    v=Math.round(v/step)*step;               // snap to the step grid
+    v=clampStep(v,el);
+    el.value=fmtStep(v,fmt);
+    el.dispatchEvent(new Event('input',{bubbles:true}));
+  }
+  function initSteppers(){
+    document.querySelectorAll('input[data-step]').forEach(el=>{
+      const fmt=el.dataset.fmt||'num',step=parseFloat(el.dataset.step||'1');
+      el.classList.add('step');
+      el.setAttribute('autocomplete','off');
+      if(!el.title)el.title='Scroll, drag, or ↑/↓ to adjust';
+      el.addEventListener('keydown',e=>{
+        if(e.key==='ArrowUp'){e.preventDefault();bumpStep(el,1,e.shiftKey);}
+        else if(e.key==='ArrowDown'){e.preventDefault();bumpStep(el,-1,e.shiftKey);}
+      });
+      el.addEventListener('wheel',e=>{if(document.activeElement!==el)return;e.preventDefault();bumpStep(el,e.deltaY<0?1:-1,e.shiftKey);},{passive:false});
+      let sc=null;
+      el.addEventListener('pointerdown',e=>{if(e.button!==0)return;sc={y:e.clientY,acc:0,moved:false,pid:e.pointerId};});
+      el.addEventListener('pointermove',e=>{
+        if(!sc)return;let dy=sc.y-e.clientY;
+        if(!sc.moved){if(Math.abs(dy)<4)return;sc.moved=true;el.classList.add('scrubbing');el.blur();try{el.setPointerCapture(sc.pid);}catch(_){}}
+        sc.acc+=dy;sc.y=e.clientY;const PX=6;
+        while(sc.acc>=PX){bumpStep(el,1,e.shiftKey);sc.acc-=PX;}
+        while(sc.acc<=-PX){bumpStep(el,-1,e.shiftKey);sc.acc+=PX;}
+      });
+      const end=e=>{if(sc){if(sc.moved){el.classList.remove('scrubbing');try{el.releasePointerCapture(sc.pid);}catch(_){}}sc=null;}};
+      el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end);
+      el.addEventListener('blur',()=>{const v=parseStep(el.value,fmt);
+        if(v!=null){el.value=fmtStep(clampStep(Math.round(v/step)*step,el),fmt);el.dispatchEvent(new Event('input',{bubbles:true}));}});
+    });
+  }
+
   // ---------- Panel module tabs ----------
   $('pmod').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;setMod(b.dataset.mod);});
   function setMod(m){panelMod=m;
@@ -1371,6 +1434,7 @@
     restore();
     if(!study.meta.date){study.meta.date=new Date().toISOString().slice(0,10);}
     setMod('imaging');
+    initSteppers();       // wire numeric fields before first populate
     switchEye('OD');      // switchEye → writeForm() populates all meta/clinical/disp/dispense fields
     setTool('select');
     computeMetrics();renderFindings();
