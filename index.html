@@ -83,8 +83,6 @@
     main:not([data-mode="imaging"]) #mod-exam>.sec{columns:290px;column-gap:24px;padding:18px 22px}
     main:not([data-mode="imaging"]) #mod-exam>.sec>h3{column-span:all}
     #mod-exam>.sec>h3.grp2{margin-top:22px;padding-top:14px;border-top:1px solid var(--border)}
-    main:not([data-mode="imaging"]) #mod-tests .test-grid{grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
-    main:not([data-mode="imaging"]) #mod-tests .remote{max-width:520px}
     .subsec{break-inside:avoid;display:block;margin-bottom:6px}
     .subsec:first-child .subhead{margin-top:0}
 
@@ -321,6 +319,9 @@
     .export-preview iframe{width:100%;height:100%;border:0;background:#fff}
     .ep-loading{color:#555;font-family:var(--mono);font-size:.82rem;padding:20px;text-align:center}
     .export-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+    /* Tests modal */
+    #testsModal .test-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+    #testsRemoteView .remote{margin-bottom:0}
     /* Camera modal */
     .cam-wrap{background:#000;border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden;margin-bottom:12px;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center}
     .cam-wrap video{width:100%;height:100%;object-fit:contain;background:#000}
@@ -353,7 +354,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5" fill="currentColor" stroke="none"/></svg><span>Imaging</span></button>
         <button data-mod="exam" title="Refraction, dispensing & optics">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="15" r="4"/><circle cx="18" cy="15" r="4"/><path d="M10 14c1-1 3-1 4 0M2 12l2-3h4M22 12l-2-3h-4"/></svg><span>Exam</span></button>
-        <button data-mod="tests" title="Eye exam test charts">
+        <button data-action="tests" title="Eye exam test charts">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 8v8M9 16h6M10.5 8h3" stroke-width="2.4"/></svg><span>Tests</span></button>
       </nav>
     </div>
@@ -649,39 +650,6 @@
         </div>
       </div>
 
-      <!-- ==================== TESTS MODULE ==================== -->
-      <div class="mod hidden" id="mod-tests">
-        <div class="sec">
-          <h3>Eye exam tests</h3>
-          <div class="note-box" data-i18n-html="testsNote">Opens the chosen chart in a separate window — put it on the patient-facing screen and control it from here. Set the display, distance and true-size calibration in <b>Settings</b> (gear icon).</div>
-
-          <div class="remote hidden" id="remote">
-            <div class="r-head"><span class="dot"></span><span class="i18n">Presenting</span> · <span id="remoteTest">—</span></div>
-            <div class="r-acuity" id="remoteAcuity">—</div>
-            <div class="r-grid" style="margin-bottom:6px">
-              <button id="rBigger" title="Bigger (easier)">A+</button>
-              <button id="rRandom" title="Randomize / flip"><span class="i18n">Shuffle</span></button>
-              <button id="rSmaller" title="Smaller (harder)">A−</button>
-            </div>
-            <div class="r-grid two" style="margin-bottom:6px">
-              <button id="rPrev">◀ <span class="i18n">Prev</span></button>
-              <button id="rNext"><span class="i18n">Next</span> ▶</button>
-            </div>
-            <div class="r-grid two" style="margin-bottom:6px">
-              <button id="rScreenL">◂ <span class="i18n">Screen</span></button>
-              <button id="rScreenR"><span class="i18n">Screen</span> ▸</button>
-            </div>
-            <div class="r-grid">
-              <button id="rRows" title="Snellen: full chart / per-row"><span class="i18n">Rows</span></button>
-              <button id="rMirror"><span class="i18n">Mirror</span></button>
-              <button id="rClose" class="danger"><span class="i18n">Close</span></button>
-            </div>
-          </div>
-
-          <div class="test-grid" id="testGrid"></div>
-        </div>
-      </div>
-
       <!-- Export & data (always visible) -->
       <div class="sec">
         <h3>Export &amp; data</h3>
@@ -795,6 +763,47 @@
     </div>
   </div>
 
+  <!-- Tests modal (grid → remote) -->
+  <div class="modal-overlay hidden" id="testsModal">
+    <div class="modal" style="width:min(680px,100%)">
+      <div class="modal-head">
+        <h2 class="i18n">Eye exam tests</h2>
+        <button class="x" id="testsClose" aria-label="Close">×</button>
+      </div>
+      <div class="modal-body">
+        <div id="testsGridView">
+          <div class="note-box" data-i18n-html="testsNote">Opens the chosen chart in a separate window — put it on the patient-facing screen and control it from here. Set the display, distance and true-size calibration in <b>Settings</b> (gear icon).</div>
+          <div class="test-grid" id="testGrid"></div>
+        </div>
+        <div id="testsRemoteView" class="hidden">
+          <button class="btn ghost wide" id="testsBackBtn" style="margin-bottom:12px">◂ <span class="i18n">Back to tests</span></button>
+          <div class="remote" id="remote">
+            <div class="r-head"><span class="dot"></span><span class="i18n">Presenting</span> · <span id="remoteTest">—</span></div>
+            <div class="r-acuity" id="remoteAcuity">—</div>
+            <div class="r-grid" style="margin-bottom:6px">
+              <button id="rBigger" title="Bigger (easier)">A+</button>
+              <button id="rRandom" title="Randomize / flip"><span class="i18n">Shuffle</span></button>
+              <button id="rSmaller" title="Smaller (harder)">A−</button>
+            </div>
+            <div class="r-grid two" style="margin-bottom:6px">
+              <button id="rPrev">◀ <span class="i18n">Prev</span></button>
+              <button id="rNext"><span class="i18n">Next</span> ▶</button>
+            </div>
+            <div class="r-grid two" style="margin-bottom:6px">
+              <button id="rScreenL">◂ <span class="i18n">Screen</span></button>
+              <button id="rScreenR"><span class="i18n">Screen</span> ▸</button>
+            </div>
+            <div class="r-grid">
+              <button id="rRows" title="Snellen: full chart / per-row"><span class="i18n">Rows</span></button>
+              <button id="rMirror"><span class="i18n">Mirror</span></button>
+              <button id="rClose" class="danger"><span class="i18n">Close</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 <script>
 (function(){
   'use strict';
@@ -875,7 +884,7 @@
       'No marks yet.':'Sin marcas todavía.','Lesion':'Lesión','point':'punto','lesion pin':'marca de lesión',
       'right eye (OD)':'ojo derecho (OD)','left eye (OS)':'ojo izquierdo (OS)',
       // tests & settings
-      'Tests':'Pruebas','Eye exam tests':'Pruebas oculares',
+      'Tests':'Pruebas','Eye exam tests':'Pruebas oculares','Back to tests':'Volver a las pruebas',
       'Presenting':'Presentando','Shuffle':'Mezclar','Prev':'Ant.','Next':'Sig.','Mirror':'Espejo','Close':'Cerrar','Rows':'Filas',
       'Settings':'Ajustes','Test display':'Pantalla de prueba','Same screen':'Misma pantalla','Second monitor':'Segundo monitor','Ask each time':'Preguntar','Detect monitors':'Detectar monitores',
       'Test distance':'Distancia de prueba','Distance':'Distancia','Unit':'Unidad','True-size calibration':'Calibración de tamaño real','85.6 mm card':'Tarjeta 85,6 mm','Display density':'Densidad de pantalla','Mirror chart':'Optotipo en espejo','Off':'No','On (mirrored room)':'Sí (sala con espejo)','Save settings':'Guardar ajustes',
@@ -944,7 +953,7 @@
       'Optic disc center':'視神経乳頭中心','Optic disc margin':'乳頭辺縁','Optic cup margin':'陥凹辺縁',
       'No marks yet.':'まだマークがありません。','Lesion':'病変','point':'点','lesion pin':'病変ピン',
       'right eye (OD)':'右眼 (OD)','left eye (OS)':'左眼 (OS)',
-      'Tests':'検査表','Eye exam tests':'眼科検査表',
+      'Tests':'検査表','Eye exam tests':'眼科検査表','Back to tests':'検査に戻る',
       'Presenting':'提示中','Shuffle':'シャッフル','Prev':'前へ','Next':'次へ','Mirror':'反転','Close':'閉じる','Rows':'行',
       'Settings':'設定','Test display':'検査ディスプレイ','Same screen':'同じ画面','Second monitor':'別モニター','Ask each time':'毎回確認','Detect monitors':'モニターを検出',
       'Test distance':'検査距離','Distance':'距離','Unit':'単位','True-size calibration':'実寸キャリブレーション','85.6 mm card':'85.6mm カード','Display density':'画面密度','Mirror chart':'鏡像表示','Off':'オフ','On (mirrored room)':'オン(鏡室)','Save settings':'設定を保存',
@@ -1332,8 +1341,10 @@
   let spaceDown=false;
   window.addEventListener('keydown',e=>{
     if(/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))return;
+    // Shift+1 → left eye (OS), Shift+2 → right eye (OD) (layout-independent via e.code)
+    if(e.shiftKey&&(e.code==='Digit1'||e.code==='Digit2')){e.preventDefault();switchEye(e.code==='Digit1'?'OS':'OD');return;}
     const map={v:'select',h:'pan','1':'disc-center','2':'fovea-center','3':'disc','4':'cup','5':'lesion','6':'ruler','7':'arrow','8':'text','9':'free'};
-    if(map[e.key.toLowerCase()]){setTool(map[e.key.toLowerCase()]);}
+    if(!e.shiftKey&&map[e.key.toLowerCase()]){setTool(map[e.key.toLowerCase()]);}
     if(e.key===' '){spaceDown=true;viewport.classList.add('pan');}
     if((e.key==='Delete'||e.key==='Backspace')&&selectedId){removeMark(selectedId);}
     if(e.key==='f'||e.key==='F'){fitToView();}
@@ -1426,11 +1437,13 @@
   }
 
   // ---------- Panel module tabs ----------
-  $('topnav').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;setMod(b.dataset.mod);});
+  $('topnav').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+    if(b.dataset.action==='tests'){openTestsModal();return;}
+    if(b.dataset.mod)setMod(b.dataset.mod);});
   function setMod(m){panelMod=m;
     document.querySelector('main').setAttribute('data-mode',m);
-    document.querySelectorAll('#topnav button').forEach(b=>b.classList.toggle('active',b.dataset.mod===m));
-    ['imaging','exam','tests'].forEach(id=>$('mod-'+id).classList.toggle('hidden',id!==m));
+    document.querySelectorAll('#topnav button[data-mod]').forEach(b=>b.classList.toggle('active',b.dataset.mod===m));
+    ['imaging','exam'].forEach(id=>$('mod-'+id).classList.toggle('hidden',id!==m));
     if(m==='imaging'&&E().img)setTimeout(()=>{if(!viewBoth)fitToView();},0);
     if(m==='exam')renderLensLayout();}
 
@@ -2140,9 +2153,17 @@
     regen();render();
   }
 
-  // Remote control (main window drives the popup)
-  function showRemote(id){const r=$('remote');if(!r)return;r.classList.remove('hidden');$('remoteTest').textContent=t(TEST_NAMES[id]||id);updateRemote();}
-  function hideRemote(){const r=$('remote');if(r)r.classList.add('hidden');}
+  // Tests modal: grid (pick a test) → remote (control the presenting chart)
+  function openTestsModal(){$('testsModal').classList.remove('hidden');setTestsView(presentActive()?'remote':'grid');if(presentActive())updateRemote();}
+  function closeTestsModal(){$('testsModal').classList.add('hidden');}
+  function setTestsView(v){$('testsGridView').classList.toggle('hidden',v!=='grid');$('testsRemoteView').classList.toggle('hidden',v!=='remote');}
+  $('testsClose').addEventListener('click',closeTestsModal);
+  $('testsBackBtn').addEventListener('click',()=>setTestsView('grid'));
+  $('testsModal').addEventListener('click',e=>{if(e.target.id==='testsModal')closeTestsModal();});
+
+  // Remote control (main window drives the popup). Selecting a test → remote view.
+  function showRemote(id){$('remoteTest').textContent=t(TEST_NAMES[id]||id);setTestsView('remote');updateRemote();}
+  function hideRemote(){if(!$('testsModal').classList.contains('hidden'))setTestsView('grid');}
   function updateRemote(){if(!presentActive()){hideRemote();return;}
     try{const s=presentWin.CARINO&&presentWin.CARINO.state();if(s){presentTestId=s.test;$('remoteTest').textContent=t(TEST_NAMES[s.test]||s.test);$('remoteAcuity').textContent=s.acuity||'—';}}catch(e){}}
   function rc(fn){return()=>{if(!presentActive()){hideRemote();return;}try{fn(presentWin.CARINO);}catch(e){}updateRemote();};}
@@ -2276,7 +2297,7 @@
   $('cameraClose').addEventListener('click',closeCamera);
   $('cameraModal').addEventListener('click',e=>{if(e.target.id==='cameraModal')closeCamera();});
   ['cameraBtn','cameraBtn2'].forEach(id=>{const el=$(id);if(el)el.addEventListener('click',openCamera);});
-  window.addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('exportModal').classList.contains('hidden'))closeExport();if(!$('cameraModal').classList.contains('hidden'))closeCamera();}});
+  window.addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('exportModal').classList.contains('hidden'))closeExport();if(!$('cameraModal').classList.contains('hidden'))closeCamera();if(!$('testsModal').classList.contains('hidden'))closeTestsModal();}});
 
   // ---------- Boot ----------
   window.addEventListener('resize',()=>{if(E().img&&!viewBoth)applyTransform();});
@@ -2293,7 +2314,7 @@
   }
   boot();
   // expose a little for debugging/testing
-  window.__ophtha={study,settings,setImage,makeSampleFundus,switchEye,setTool,setMod,setEyeView,renderLensLayout,applyLang,openTest,openSettings,openExport,openCamera,buildPresentHtml,E,metricsFor,generateStudyPdf,generateRxPdf,generateOrderPdf,dicomEncapsulatedPdf,renderEyePngBytes};
+  window.__ophtha={study,settings,setImage,makeSampleFundus,switchEye,setTool,setMod,setEyeView,renderLensLayout,applyLang,openTest,openSettings,openExport,openCamera,openTestsModal,setEyeView,buildPresentHtml,E,metricsFor,generateStudyPdf,generateRxPdf,generateOrderPdf,dicomEncapsulatedPdf,renderEyePngBytes};
 })();
 </script>
 </body>

@@ -7,10 +7,13 @@ in the browser; **no image or data is ever uploaded**.
 
 Part of [Carino Systems](https://carino.systems). Live at **ophtha.carino.systems**.
 
-The suite is organised as an **encounter** with three workspaces you switch between from
-the top navbar — **Imaging**, **Exam** (refraction + dispensing) and **Tests**. The fundus
-canvas only appears in Imaging; the other workspaces use the full width in responsive
-columns, so the whole exam shows at a glance with little scrolling. The OD/OS eye switch is
+The suite is organised as an **encounter** with two workspaces in the top navbar —
+**Imaging** and **Exam** (refraction + dispensing) — plus a **Tests** button that opens the
+chart picker in a dialog. The fundus canvas only appears in Imaging; the Exam workspace
+uses the full width in responsive columns, so the whole exam shows at a glance with little
+scrolling.
+
+Switch eyes fast with **Shift+1** (left / OS) and **Shift+2** (right / OD). The OD/OS eye switch is
 always available at the top of the panel. Imaging is entirely optional — you can refract
 and dispense without ever loading a photo.
 
@@ -63,8 +66,9 @@ step 1° and wrap 1–180.
   chart opticians use before edging.
 - **Contact lens** — brand, base curve, diameter, power per eye.
 
-## Eye exam tests (Tests tab)
-Launch patient-facing chart windows and drive them from the main screen:
+## Eye exam tests (Tests button)
+The **Tests** button opens a dialog with all the charts; pick one and the dialog **becomes
+the remote** for the presenting window (Back returns to the chart list):
 - **Charts** — a classic **Snellen** pyramid (one big letter, then two, three…),
   single-line **LogMAR (Sloan)**, Tumbling E, Landolt C, Duochrome (red-green), astigmatic
   dial, Amsler grid, low-contrast letters, a colour-vision **screening demo** (clearly
