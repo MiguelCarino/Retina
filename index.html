@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/webp" href="logo.webp">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ophthalmology Suite — Carino Systems</title>
+  <script src="carino-clock.js" defer></script>
+  <link href="fonts.css" rel="stylesheet">
+  <style>
+    :root{
+      --surface:#0d0d0d; --surface-solid:#080808; --surface-hover:rgba(255,255,255,.08);
+      --border:#262626; --border-glow:rgba(234,179,8,.3);
+      --text:#ffffff; --text-dim:#b8b8b8; --text-muted:#8a8a8a;
+      --accent:#eab308; --accent-faint:rgba(234,179,8,.06); --accent-glow:rgba(234,179,8,.15);
+      --ok:#4ade80; --warn:#fb923c; --err:#f87171; --info:#22d3ee;
+      /* mark colors */
+      --c-disc:#22d3ee; --c-cup:#a78bfa; --c-dcenter:#eab308; --c-fovea:#4ade80;
+      --c-lesion:#f87171; --c-ruler:#fb923c;
+      --font:'IBM Plex Sans','Red Hat Text','Liberation Sans',system-ui,-apple-system,sans-serif;
+      --mono:'IBM Plex Mono','Liberation Mono',ui-monospace,monospace;
+      --r-sm:4px; --r-md:8px;
+      --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    *:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+    @media (prefers-reduced-motion:reduce){*,*::before,*::after{transition-duration:.001ms!important;animation-duration:.001ms!important}}
+    html,body{height:100%;overflow:hidden}
+    body{font-family:var(--font);background:#000;color:var(--text);line-height:1.5;display:flex;flex-direction:column}
+
+    /* ---------- Header (Carino navbar) ---------- */
+    .header{display:flex;align-items:center;gap:16px;padding:12px 20px;background:linear-gradient(180deg,#0f0f0f,#050505);border-bottom:1px solid var(--border);z-index:100;position:relative;justify-content:space-between}
+    .header-left{display:flex;align-items:center;gap:18px;min-width:0;flex-shrink:0}
+    .header-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
+    .brand-name{font-family:var(--font);font-weight:900;font-size:1.5rem;line-height:1;background:linear-gradient(130deg,#fef08a,#eab308 50%,#b45309);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none;white-space:nowrap}
+    .brand-name .app-tag{-webkit-text-fill-color:var(--accent);color:var(--accent);font-family:var(--mono);font-size:.6rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;border:1px solid var(--border);border-radius:4px;padding:3px 6px;margin-left:10px;vertical-align:middle}
+    .header-clock{display:flex;align-items:baseline;gap:8px;border-left:1px solid var(--border);padding-left:18px}
+    .clock-time{font-family:var(--mono);font-size:1.05rem;font-weight:700}
+    .clock-tz{font-family:var(--mono);font-size:.58rem;font-weight:700;color:#050505;background:var(--accent);padding:2px 5px;border-radius:3px}
+    .brand-greeting{font-family:var(--mono);font-size:.68rem;color:var(--text-muted)}
+    .social-row{display:flex;gap:8px}
+    .icon-btn{width:32px;height:32px;border:1px solid var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:.2s;text-decoration:none;background:transparent;cursor:pointer}
+    .icon-btn:hover{border-color:var(--accent);color:#050505;background:var(--accent);transform:translateY(-2px);box-shadow:0 4px 12px var(--accent-glow)}
+    .icon-btn svg{width:15px;height:15px}
+    @media (max-width:1150px){.header-clock{display:none}}
+    @media (max-width:820px){.brand-name .app-tag{display:none}}
+
+    /* ---------- Layout ---------- */
+    main{flex:1;display:flex;min-height:0}
+    .toolrail{width:60px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0;overflow-y:auto}
+    .tool{width:42px;height:42px;border:1px solid var(--border);border-radius:var(--r-md);background:transparent;color:var(--text-dim);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s;position:relative}
+    .tool svg{width:20px;height:20px}
+    .tool:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-faint)}
+    .tool.active{border-color:var(--accent);color:#050505;background:var(--accent)}
+    .tool[data-key]::after{content:attr(data-key);position:absolute;bottom:1px;right:3px;font-family:var(--mono);font-size:.5rem;opacity:.5}
+    .rail-sep{width:32px;height:1px;background:var(--border);margin:4px 0}
+
+    /* ---------- Center viewport ---------- */
+    .center{flex:1;position:relative;background:#000;overflow:hidden;min-width:0}
+    #viewport{position:absolute;inset:0;overflow:hidden;cursor:crosshair}
+    #viewport.pan{cursor:grab}
+    #viewport.panning{cursor:grabbing}
+    #stage{position:absolute;top:0;left:0;transform-origin:0 0;will-change:transform}
+    #fundus{display:block;user-select:none;-webkit-user-drag:none;pointer-events:none;background:#111}
+    #overlay{position:absolute;top:0;left:0;overflow:visible}
+    #overlay text{font-family:var(--mono);paint-order:stroke;stroke:#000;stroke-width:3px;stroke-linejoin:round}
+
+    .empty-hint{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:var(--text-muted);text-align:center;padding:24px;pointer-events:none}
+    .empty-hint h2{font-family:var(--font);font-weight:800;text-transform:uppercase;letter-spacing:.02em;color:var(--text-dim);font-size:1.3rem}
+    .empty-hint p{max-width:42ch;font-size:.9rem}
+    .empty-hint .pointer-on{pointer-events:auto}
+
+    /* overlay controls */
+    .vp-topbar{position:absolute;top:12px;left:12px;right:12px;display:flex;gap:10px;align-items:center;pointer-events:none;z-index:5;flex-wrap:wrap}
+    .eye-switch{display:flex;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden;pointer-events:auto}
+    .eye-switch button{background:transparent;color:var(--text-muted);border:none;font-family:var(--mono);font-size:.72rem;font-weight:700;letter-spacing:.08em;padding:7px 14px;cursor:pointer;transition:.15s}
+    .eye-switch button.active{background:var(--accent);color:#050505}
+    .eye-switch button:not(.active):hover{color:var(--text);background:var(--surface-hover)}
+    .vp-chip{pointer-events:auto;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-md);font-family:var(--mono);font-size:.7rem;color:var(--text-dim);padding:7px 10px;display:flex;align-items:center;gap:8px}
+    .vp-chip label{color:var(--text-muted)}
+    .vp-chip input{width:52px;background:#000;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 5px;font-family:var(--mono);font-size:.72rem}
+    .lesion-pick{pointer-events:auto}
+    .lesion-pick select{background:var(--surface-solid);border:1px solid var(--border);color:var(--text);border-radius:var(--r-md);padding:7px 8px;font-family:var(--mono);font-size:.7rem}
+
+    .vp-zoom{position:absolute;right:12px;bottom:12px;display:flex;flex-direction:column;gap:6px;z-index:5}
+    .vp-zoom button{width:34px;height:34px;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-md);color:var(--text-dim);cursor:pointer;font-size:1.1rem;transition:.15s;display:flex;align-items:center;justify-content:center}
+    .vp-zoom button:hover{border-color:var(--accent);color:var(--accent)}
+    .zoom-label{font-family:var(--mono);font-size:.6rem;color:var(--text-muted);text-align:center}
+
+    .hud{position:absolute;left:12px;bottom:12px;font-family:var(--mono);font-size:.66rem;color:var(--text-muted);background:rgba(0,0,0,.6);border:1px solid var(--border);border-radius:var(--r-sm);padding:4px 8px;z-index:5;pointer-events:none}
+
+    /* ---------- Right panel ---------- */
+    .panel{width:344px;flex-shrink:0;background:var(--surface);border-left:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column}
+    .sec{border-bottom:1px solid var(--border);padding:16px}
+    .sec h3{font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+    .sec h3 .badge{margin-left:auto;font-size:.6rem;color:var(--accent)}
+
+    .metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .metric{background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-md);padding:10px}
+    .metric .k{font-family:var(--mono);font-size:.56rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted)}
+    .metric .v{font-family:var(--mono);font-size:1.15rem;font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums}
+    .metric .v.warn{color:var(--warn)} .metric .v.err{color:var(--err)} .metric .v.ok{color:var(--ok)}
+    .metric .u{font-size:.6rem;color:var(--text-muted);font-weight:400}
+    .metric.wide{grid-column:1 / -1}
+
+    .field{margin-bottom:10px}
+    .field label{display:block;font-family:var(--mono);font-size:.58rem;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px}
+    .field input,.field select,.field textarea{width:100%;background:#000;border:1px solid var(--border);color:var(--text);border-radius:var(--r-sm);padding:7px 9px;font-family:var(--font);font-size:.82rem;transition:.15s}
+    .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent)}
+    .field textarea{resize:vertical;min-height:52px;font-family:var(--font)}
+    .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+    .rx-line{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+
+    .findings{display:flex;flex-direction:column;gap:6px}
+    .finding{display:flex;align-items:center;gap:9px;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-sm);padding:7px 9px;cursor:pointer;transition:.15s}
+    .finding:hover{border-color:var(--accent)}
+    .finding.sel{border-color:var(--accent);background:var(--accent-faint)}
+    .finding .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+    .finding .txt{flex:1;min-width:0}
+    .finding .txt .t{font-size:.78rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .finding .txt .s{font-family:var(--mono);font-size:.6rem;color:var(--text-muted)}
+    .finding .del{background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:1rem;line-height:1;padding:2px 4px}
+    .finding .del:hover{color:var(--err)}
+    .no-findings{font-size:.78rem;color:var(--text-muted);text-align:center;padding:8px}
+
+    .legend{display:grid;grid-template-columns:1fr 1fr;gap:5px 10px}
+    .legend div{display:flex;align-items:center;gap:7px;font-size:.7rem;color:var(--text-dim)}
+    .legend .sw{width:11px;height:11px;border-radius:3px;flex-shrink:0}
+
+    .btn{background:var(--accent);color:#050505;border:none;border-radius:var(--r-sm);font-family:var(--font);font-weight:700;font-size:.8rem;padding:9px 12px;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+    .btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
+    .btn.ghost{background:transparent;color:var(--text-dim);border:1px solid var(--border)}
+    .btn.ghost:hover{border-color:var(--accent);color:var(--accent);transform:none}
+    .btn.wide{width:100%}
+    .btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+    .hidden{display:none!important}
+    .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface-solid);border:1px solid var(--accent);color:var(--text);font-size:.82rem;padding:10px 18px;border-radius:var(--r-md);opacity:0;transition:.25s;z-index:500;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+    /* scrollbars */
+    .panel::-webkit-scrollbar,.toolrail::-webkit-scrollbar{width:8px}
+    .panel::-webkit-scrollbar-thumb,.toolrail::-webkit-scrollbar-thumb{background:#222;border-radius:4px}
+
+    /* ---------- Print report ---------- */
+    #printReport{display:none}
+    @media print{
+      html,body{overflow:visible;height:auto;background:#fff;color:#000}
+      .header,.toolrail,.center,.panel,.toast{display:none!important}
+      #printReport{display:block;padding:24px;font-family:var(--font)}
+      #printReport h1{font-size:20px;margin-bottom:4px}
+      #printReport .muted{color:#555;font-size:12px;margin-bottom:16px}
+      #printReport table{width:100%;border-collapse:collapse;margin-bottom:16px;font-size:12px}
+      #printReport th,#printReport td{border:1px solid #ccc;padding:5px 8px;text-align:left}
+      #printReport th{background:#f3f3f3}
+      #printReport img{max-width:48%;border:1px solid #ccc;margin:4px}
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <a class="brand-name" href="https://carino.systems/" title="Carino Systems — back to hub">Carino<span class="app-tag">Ophtha</span></a>
+      <div class="header-clock" aria-hidden="true">
+        <span class="clock-time">00:00:00</span>
+        <span class="clock-tz">LOCAL</span>
+        <span class="brand-greeting" id="greeting">Fundus &amp; eye annotation</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="social-row">
+        <a href="https://github.com/MiguelCarino/Carino-Ophthalmology" target="_blank" rel="noopener" class="icon-btn" title="GitHub" aria-label="GitHub">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Tool rail -->
+    <div class="toolrail" id="toolrail">
+      <button class="tool" data-tool="select" data-key="V" title="Select / move (V)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 2l6 16 2.5-6.5L19 9z"/></svg></button>
+      <button class="tool" data-tool="pan" data-key="H" title="Pan / hand (H)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v7M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2a8 8 0 0 1-7-4l-2.5-4a2 2 0 0 1 3.5-2l1.5 2"/></svg></button>
+      <div class="rail-sep"></div>
+      <button class="tool" data-tool="disc-center" data-key="1" title="Optic disc center (1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></button>
+      <button class="tool" data-tool="fovea-center" data-key="2" title="Fovea center (2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"/></svg></button>
+      <button class="tool" data-tool="disc" data-key="3" title="Optic disc margin (3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="12" rx="9" ry="7"/></svg></button>
+      <button class="tool" data-tool="cup" data-key="4" title="Optic cup margin (4)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="12" rx="5" ry="4"/></svg></button>
+      <button class="tool" data-tool="lesion" data-key="5" title="Lesion / finding pin (5)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg></button>
+      <button class="tool" data-tool="ruler" data-key="6" title="Measure distance (6)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17L17 3l4 4L7 21z"/><path d="M8 12l2 2M11 9l2 2M14 6l2 2"/></svg></button>
+    </div>
+
+    <!-- Center viewport -->
+    <div class="center">
+      <div class="vp-topbar">
+        <div class="eye-switch" id="eyeSwitch">
+          <button data-eye="OD" class="active">OD · Right</button>
+          <button data-eye="OS">OS · Left</button>
+        </div>
+        <div class="vp-chip"><label>Disc Ø</label><input id="discDia" type="number" step="0.1" min="0.5" max="4" value="1.5"><span>mm</span></div>
+        <div class="lesion-pick">
+          <select id="lesionType" title="Lesion type for the pin tool">
+            <option>Microaneurysm</option><option>Dot/blot hemorrhage</option><option>Flame hemorrhage</option>
+            <option>Hard exudate</option><option>Cotton-wool spot</option><option>Drusen</option>
+            <option>Neovascularization (NVD/NVE)</option><option>Laser scar</option>
+            <option>Pigment / RPE change</option><option>Aneurysm</option><option>Other finding</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="viewport">
+        <div id="stage">
+          <img id="fundus" alt="fundus" />
+          <svg id="overlay" xmlns="http://www.w3.org/2000/svg"><g id="marks"></g></svg>
+        </div>
+      </div>
+
+      <div class="empty-hint" id="emptyHint">
+        <h2>No image loaded</h2>
+        <p>Drop a fundus / anterior-segment photo here, or load one. Then mark the optic disc, cup and fovea to auto-compute the cup-to-disc ratio. Everything stays in your browser — nothing is uploaded.</p>
+        <div style="display:flex;gap:10px" class="pointer-on">
+          <button class="btn" id="loadBtn">Load image…</button>
+          <button class="btn ghost" id="sampleBtn">Load sample fundus</button>
+        </div>
+      </div>
+
+      <div class="vp-zoom">
+        <button id="zoomIn" title="Zoom in">+</button>
+        <div class="zoom-label" id="zoomLabel">100%</div>
+        <button id="zoomOut" title="Zoom out">−</button>
+        <button id="zoomFit" title="Fit to view" style="font-size:.7rem">FIT</button>
+      </div>
+      <div class="hud" id="hud">—</div>
+    </div>
+
+    <!-- Right panel -->
+    <div class="panel">
+      <div class="sec">
+        <h3>Disc analysis <span class="badge" id="eyeBadge">OD</span></h3>
+        <div class="metrics">
+          <div class="metric"><div class="k">Vertical CDR</div><div class="v" id="mVCDR">—</div></div>
+          <div class="metric"><div class="k">Horizontal CDR</div><div class="v" id="mHCDR">—</div></div>
+          <div class="metric"><div class="k">Disc diameter</div><div class="v" id="mDiscD">—<span class="u"> mm</span></div></div>
+          <div class="metric"><div class="k">Disc area</div><div class="v" id="mDiscA">—<span class="u"> mm²</span></div></div>
+          <div class="metric wide"><div class="k">Disc → fovea</div><div class="v" id="mDF">—</div></div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <h3>Patient / exam</h3>
+        <div class="row2">
+          <div class="field"><label>Patient ID</label><input id="pId" placeholder="ANON-001"></div>
+          <div class="field"><label>Exam date</label><input id="pDate" type="date"></div>
+        </div>
+        <div class="field"><label>Name / initials</label><input id="pName" placeholder="J.D."></div>
+      </div>
+
+      <div class="sec">
+        <h3>Clinical — <span id="clinEye">right eye (OD)</span></h3>
+        <div class="row2">
+          <div class="field"><label>VA (uncorrected)</label><input class="cl" data-f="vaUC" placeholder="20/40"></div>
+          <div class="field"><label>VA (corrected)</label><input class="cl" data-f="vaCC" placeholder="20/20"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>IOP (mmHg)</label><input class="cl" data-f="iop" type="number" step="1" placeholder="16"></div>
+          <div class="field"><label>Pachymetry (µm)</label><input class="cl" data-f="pachy" type="number" step="1" placeholder="545"></div>
+        </div>
+        <div class="field"><label>Refraction — sphere / cyl / axis</label>
+          <div class="rx-line">
+            <input class="cl" data-f="sph" placeholder="Sph −1.25">
+            <input class="cl" data-f="cyl" placeholder="Cyl −0.50">
+            <input class="cl" data-f="axis" placeholder="Ax 90">
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Add</label><input class="cl" data-f="add" placeholder="+2.00"></div>
+          <div class="field"><label>Lens status</label>
+            <select class="cl" data-f="lens"><option value="">—</option><option>Phakic</option><option>Pseudophakic</option><option>Aphakic</option></select>
+          </div>
+        </div>
+        <div class="field"><label>Diagnosis / impression</label><input class="cl" data-f="dx" placeholder="e.g. POAG, moderate NPDR"></div>
+        <div class="field"><label>Notes</label><textarea class="cl" data-f="notes" placeholder="Free text…"></textarea></div>
+      </div>
+
+      <div class="sec">
+        <h3>Findings <span class="badge" id="findCount">0</span></h3>
+        <div class="findings" id="findings"><div class="no-findings">No marks yet.</div></div>
+      </div>
+
+      <div class="sec">
+        <h3>Legend</h3>
+        <div class="legend">
+          <div><span class="sw" style="background:var(--c-dcenter)"></span>Disc center</div>
+          <div><span class="sw" style="background:var(--c-fovea)"></span>Fovea center</div>
+          <div><span class="sw" style="background:var(--c-disc)"></span>Disc margin</div>
+          <div><span class="sw" style="background:var(--c-cup)"></span>Cup margin</div>
+          <div><span class="sw" style="background:var(--c-lesion)"></span>Lesion pin</div>
+          <div><span class="sw" style="background:var(--c-ruler)"></span>Measurement</div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <h3>Export</h3>
+        <div class="btn-grid">
+          <button class="btn ghost" id="loadBtn2">Load image</button>
+          <button class="btn ghost" id="sampleBtn2">Sample</button>
+          <button class="btn ghost" id="exportPng">Save PNG</button>
+          <button class="btn ghost" id="exportJson">Save JSON</button>
+          <button class="btn ghost" id="importJson">Open JSON</button>
+          <button class="btn ghost" id="printBtn">Print report</button>
+        </div>
+        <button class="btn wide" id="clearEye" style="margin-top:8px;background:transparent;border:1px solid var(--err);color:var(--err)">Clear this eye's marks</button>
+      </div>
+    </div>
+  </main>
+
+  <input type="file" id="fileInput" accept="image/*" class="hidden">
+  <input type="file" id="jsonInput" accept="application/json,.json" class="hidden">
+  <div class="toast" id="toast"></div>
+  <div id="printReport"></div>
+
+<script>
+(function(){
+  'use strict';
+  const $=id=>document.getElementById(id);
+  const LES_COLORS={}; // per-type not needed; single color
+  const COLORS={'disc-center':getVar('--c-dcenter'),'fovea-center':getVar('--c-fovea'),disc:getVar('--c-disc'),cup:getVar('--c-cup'),lesion:getVar('--c-lesion'),ruler:getVar('--c-ruler')};
+  function getVar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
+
+  // ---------- State ----------
+  function emptyEye(){return {img:null,w:0,h:0,discDiaMm:1.5,marks:[],clinical:{}};}
+  const study={meta:{patientId:'',name:'',date:''},eyes:{OD:emptyEye(),OS:emptyEye()}};
+  let eye='OD', tool='select', lesionType='Microaneurysm';
+  let zoom=1,panX=0,panY=0, selectedId=null, uid=1;
+  let drag=null;
+  const STORE='carino_ophtha_v1';
+
+  const stage=$('stage'), img=$('fundus'), svg=$('overlay'), gMarks=$('marks'), viewport=$('viewport');
+  const E=()=>study.eyes[eye];
+
+  // ---------- Persistence ----------
+  function save(){try{localStorage.setItem(STORE,JSON.stringify(study));}catch(e){}}
+  function restore(){
+    try{const s=localStorage.getItem(STORE);if(!s)return false;const d=JSON.parse(s);
+      if(d&&d.eyes){Object.assign(study.meta,d.meta||{});['OD','OS'].forEach(k=>{if(d.eyes[k])study.eyes[k]=Object.assign(emptyEye(),d.eyes[k]);});
+        // reset uid above existing marks
+        let mx=0;['OD','OS'].forEach(k=>study.eyes[k].marks.forEach(m=>{const n=parseInt(String(m.id).replace(/\D/g,''))||0;if(n>mx)mx=n;}));uid=mx+1;
+        return true;}
+    }catch(e){}
+    return false;
+  }
+
+  // ---------- Image loading ----------
+  function setImage(dataUrl){
+    const im=new Image();
+    im.onload=()=>{
+      E().img=dataUrl; E().w=im.naturalWidth; E().h=im.naturalHeight;
+      applyEyeImage(); fitToView(); save();
+    };
+    im.src=dataUrl;
+  }
+  function applyEyeImage(){
+    const e=E();
+    if(e.img){img.src=e.img;img.width=e.w;img.height=e.h;
+      svg.setAttribute('width',e.w);svg.setAttribute('height',e.h);svg.setAttribute('viewBox','0 0 '+e.w+' '+e.h);
+      stage.style.display='block';$('emptyHint').classList.add('hidden');
+    }else{stage.style.display='none';$('emptyHint').classList.remove('hidden');}
+  }
+  function fitToView(){
+    const e=E();if(!e.img)return;
+    const vw=viewport.clientWidth, vh=viewport.clientHeight, pad=32;
+    zoom=Math.min((vw-pad)/e.w,(vh-pad)/e.h);
+    if(!isFinite(zoom)||zoom<=0)zoom=1;
+    panX=(vw-e.w*zoom)/2; panY=(vh-e.h*zoom)/2;
+    applyTransform(); renderMarks();
+  }
+  function applyTransform(){
+    stage.style.transform='translate('+panX+'px,'+panY+'px) scale('+zoom+')';
+    $('zoomLabel').textContent=Math.round(zoom*100)+'%';
+  }
+
+  // ---------- Coord helpers ----------
+  function toImg(evt){
+    const pt=svg.createSVGPoint();pt.x=evt.clientX;pt.y=evt.clientY;
+    const ctm=svg.getScreenCTM();if(!ctm)return{x:0,y:0};
+    const p=pt.matrixTransform(ctm.inverse());return{x:p.x,y:p.y};
+  }
+  const k=()=>1/zoom; // scale factor for constant-size handles
+
+  // ---------- Marks ----------
+  function newId(){return 'm'+(uid++);}
+  function getMark(id){return E().marks.find(m=>m.id===id);}
+  function singleton(kind){return E().marks.find(m=>m.kind===kind);}
+  function setSingleton(kind,props){
+    let m=singleton(kind);
+    if(m){Object.assign(m,props);}else{m={id:newId(),kind,...props};E().marks.push(m);}
+    return m;
+  }
+  function removeMark(id){E().marks=E().marks.filter(m=>m.id!==id);if(selectedId===id)selectedId=null;afterChange();}
+
+  function svgEl(name,attrs){const el=document.createElementNS('http://www.w3.org/2000/svg',name);for(const a in attrs)el.setAttribute(a,attrs[a]);return el;}
+
+  function renderMarks(){
+    gMarks.textContent='';
+    const kk=k(), r=6*kk, sw=2*kk, fs=13*kk;
+    const e=E();
+    e.marks.forEach(m=>{
+      const c=COLORS[m.kind]||'#fff', sel=(m.id===selectedId);
+      if(m.kind==='disc'||m.kind==='cup'){
+        gMarks.appendChild(svgEl('ellipse',{cx:m.cx,cy:m.cy,rx:m.rx,ry:m.ry,fill:'none',stroke:c,'stroke-width':(sel?3:2),'vector-effect':'non-scaling-stroke','stroke-dasharray':m.kind==='cup'?'':''}));
+        // center tick
+        gMarks.appendChild(svgEl('circle',{cx:m.cx,cy:m.cy,r:2*kk,fill:c}));
+        if(sel){
+          gMarks.appendChild(handle(m.cx+m.rx,m.cy,c,'rx',m.id));
+          gMarks.appendChild(handle(m.cx,m.cy-m.ry,c,'ry',m.id));
+        }
+        const lbl=svgEl('text',{x:m.cx,y:m.cy-m.ry-6*kk,fill:c,'font-size':fs,'text-anchor':'middle'});
+        lbl.textContent=m.kind==='disc'?'Disc':'Cup';gMarks.appendChild(lbl);
+      }else if(m.kind==='disc-center'||m.kind==='fovea-center'){
+        const g=svgEl('g',{});
+        g.appendChild(svgEl('line',{x1:m.x-r*1.6,y1:m.y,x2:m.x+r*1.6,y2:m.y,stroke:c,'stroke-width':sw}));
+        g.appendChild(svgEl('line',{x1:m.x,y1:m.y-r*1.6,x2:m.x,y2:m.y+r*1.6,stroke:c,'stroke-width':sw}));
+        g.appendChild(svgEl('circle',{cx:m.x,cy:m.y,r:r*(sel?1.4:1),fill:'none',stroke:c,'stroke-width':sw}));
+        gMarks.appendChild(g);
+      }else if(m.kind==='lesion'){
+        gMarks.appendChild(svgEl('circle',{cx:m.x,cy:m.y,r:r*(sel?1.5:1.1),fill:c,'fill-opacity':.35,stroke:c,'stroke-width':sw}));
+        gMarks.appendChild(svgEl('circle',{cx:m.x,cy:m.y,r:1.5*kk,fill:c}));
+      }else if(m.kind==='ruler'){
+        gMarks.appendChild(svgEl('line',{x1:m.x1,y1:m.y1,x2:m.x2,y2:m.y2,stroke:c,'stroke-width':sw,'stroke-dasharray':(6*kk)+' '+(4*kk)}));
+        [[m.x1,m.y1],[m.x2,m.y2]].forEach(pt=>gMarks.appendChild(svgEl('circle',{cx:pt[0],cy:pt[1],r:r*.7,fill:c})));
+        const mid={x:(m.x1+m.x2)/2,y:(m.y1+m.y2)/2};
+        const t=svgEl('text',{x:mid.x,y:mid.y-6*kk,fill:c,'font-size':fs,'text-anchor':'middle'});
+        t.textContent=fmtLen(Math.hypot(m.x2-m.x1,m.y2-m.y1));gMarks.appendChild(t);
+      }
+    });
+    // live preview during creation
+    if(drag&&drag.preview){gMarks.appendChild(drag.preview);}
+  }
+  function handle(x,y,c,role,id){const h=svgEl('rect',{x:x-4*k(),y:y-4*k(),width:8*k(),height:8*k(),fill:'#050505',stroke:c,'stroke-width':1.5*k(),'data-handle':role,'data-id':id,style:'cursor:nwse-resize'});return h;}
+
+  // ---------- Calibration & metrics ----------
+  function mmPerPx(){const d=singleton('disc');if(!d||!d.ry)return null;return E().discDiaMm/(2*d.ry);}
+  function fmtLen(px){const s=mmPerPx();if(s)return (px*s).toFixed(2)+' mm';return Math.round(px)+' px';}
+
+  function computeMetrics(){
+    const disc=singleton('disc'),cup=singleton('cup'),dc=singleton('disc-center'),fov=singleton('fovea-center');
+    const vcdr=(disc&&cup&&disc.ry)?(cup.ry/disc.ry):null;
+    const hcdr=(disc&&cup&&disc.rx)?(cup.rx/disc.rx):null;
+    const s=mmPerPx();
+    const set=(id,val,cls)=>{const el=$(id);el.className='v'+(cls?' '+cls:'');el.innerHTML=val;};
+    const cdrClass=v=>v==null?'':(v>=0.7?'err':(v>=0.6?'warn':'ok'));
+    set('mVCDR',vcdr==null?'—':vcdr.toFixed(2),cdrClass(vcdr));
+    set('mHCDR',hcdr==null?'—':hcdr.toFixed(2),cdrClass(hcdr));
+    // disc diameter (vertical) in mm — by definition discDiaMm if calibrated by disc; else px
+    if(disc){
+      const vdmm=s?(2*disc.ry*s):null, hdmm=s?(2*disc.rx*s):null;
+      set('mDiscD', vdmm?vdmm.toFixed(2)+'<span class="u"> mm V</span>':Math.round(2*disc.ry)+'<span class="u"> px</span>','');
+      const areaPx=Math.PI*disc.rx*disc.ry; const areaMm=s?areaPx*s*s:null;
+      set('mDiscA', areaMm?areaMm.toFixed(2)+'<span class="u"> mm²</span>':Math.round(areaPx)+'<span class="u"> px²</span>','');
+    }else{set('mDiscD','—<span class="u"> mm</span>','');set('mDiscA','—<span class="u"> mm²</span>','');}
+    if(dc&&fov){
+      const dx=fov.x-dc.x,dy=fov.y-dc.y,dist=Math.hypot(dx,dy);
+      const ang=Math.atan2(dy,dx)*180/Math.PI;
+      set('mDF', fmtLen(dist)+' <span class="u">@ '+ang.toFixed(0)+'°</span>','');
+    }else{set('mDF','—','');}
+  }
+
+  // ---------- Findings list ----------
+  const NAMES={'disc-center':'Optic disc center','fovea-center':'Fovea center',disc:'Optic disc margin',cup:'Optic cup margin',ruler:'Measurement'};
+  function renderFindings(){
+    const box=$('findings'),ms=E().marks;
+    $('findCount').textContent=ms.length;
+    if(!ms.length){box.innerHTML='<div class="no-findings">No marks yet.</div>';return;}
+    box.innerHTML='';
+    ms.forEach(m=>{
+      const div=document.createElement('div');div.className='finding'+(m.id===selectedId?' sel':'');
+      const c=COLORS[m.kind]||'#fff';
+      let title,sub;
+      if(m.kind==='lesion'){title=m.ltype||'Lesion';sub=m.note?m.note:'lesion pin';}
+      else if(m.kind==='ruler'){title='Measurement';sub=fmtLen(Math.hypot(m.x2-m.x1,m.y2-m.y1));}
+      else{title=NAMES[m.kind];sub=(m.kind==='disc'||m.kind==='cup')?('Ø '+fmtLen(2*m.rx)+' × '+fmtLen(2*m.ry)):'point';}
+      div.innerHTML='<span class="dot" style="background:'+c+'"></span><div class="txt"><div class="t"></div><div class="s"></div></div><button class="del" title="Delete">×</button>';
+      div.querySelector('.t').textContent=title;div.querySelector('.s').textContent=sub;
+      div.addEventListener('click',ev=>{if(ev.target.classList.contains('del'))return;selectedId=m.id;focusMark(m);renderMarks();renderFindings();});
+      div.querySelector('.del').addEventListener('click',ev=>{ev.stopPropagation();removeMark(m.id);});
+      box.appendChild(div);
+    });
+  }
+  function focusMark(m){/* could center view; keep simple */}
+
+  function afterChange(){renderMarks();computeMetrics();renderFindings();save();}
+
+  // ---------- Pointer interaction ----------
+  viewport.addEventListener('pointerdown',e=>{
+    if(!E().img && tool!=='pan')return;
+    viewport.setPointerCapture(e.pointerId);
+    const p=toImg(e);
+    // pan (hand tool, middle button, or space)
+    if(tool==='pan'||e.button===1||spaceDown){
+      drag={mode:'pan',sx:e.clientX,sy:e.clientY,px:panX,py:panY};viewport.classList.add('panning');return;
+    }
+    if(tool==='select'){
+      const hit=hitTest(e,p);
+      if(hit){selectedId=hit.id;
+        if(hit.handle){drag={mode:'resize',id:hit.id,role:hit.handle};}
+        else{const m=getMark(hit.id);drag={mode:'move',id:hit.id,start:p,orig:JSON.parse(JSON.stringify(m))};}
+        renderMarks();renderFindings();
+      }else{selectedId=null;renderMarks();renderFindings();}
+      return;
+    }
+    if(tool==='disc-center'||tool==='fovea-center'){
+      const m=setSingleton(tool,{x:p.x,y:p.y});selectedId=m.id;afterChange();return;
+    }
+    if(tool==='lesion'){
+      const m={id:newId(),kind:'lesion',x:p.x,y:p.y,ltype:lesionType,note:''};E().marks.push(m);selectedId=m.id;
+      const note=prompt('Note for "'+lesionType+'" (optional):','');if(note!==null)m.note=note;
+      afterChange();return;
+    }
+    if(tool==='disc'||tool==='cup'){drag={mode:'ellipse',kind:tool,start:p};return;}
+    if(tool==='ruler'){drag={mode:'ruler',start:p};return;}
+  });
+
+  window.addEventListener('pointermove',e=>{
+    updateHud(e);
+    if(!drag)return;
+    if(drag.mode==='pan'){panX=drag.px+(e.clientX-drag.sx);panY=drag.py+(e.clientY-drag.sy);applyTransform();return;}
+    const p=toImg(e);
+    if(drag.mode==='ellipse'){
+      const cx=(drag.start.x+p.x)/2,cy=(drag.start.y+p.y)/2,rx=Math.abs(p.x-drag.start.x)/2,ry=Math.abs(p.y-drag.start.y)/2;
+      drag.result={cx,cy,rx,ry};
+      drag.preview=svgEl('ellipse',{cx,cy,rx,ry,fill:'none',stroke:COLORS[drag.kind],'stroke-width':2,'vector-effect':'non-scaling-stroke','stroke-dasharray':'4 3'});
+      renderMarks();
+    }else if(drag.mode==='ruler'){
+      drag.result={x1:drag.start.x,y1:drag.start.y,x2:p.x,y2:p.y};
+      drag.preview=svgEl('line',{x1:drag.start.x,y1:drag.start.y,x2:p.x,y2:p.y,stroke:COLORS.ruler,'stroke-width':2*k(),'stroke-dasharray':(6*k())+' '+(4*k())});
+      renderMarks();
+    }else if(drag.mode==='move'){
+      const m=getMark(drag.id);if(!m)return;const dx=p.x-drag.start.x,dy=p.y-drag.start.y,o=drag.orig;
+      if('x' in m){m.x=o.x+dx;m.y=o.y+dy;}
+      if('cx' in m){m.cx=o.cx+dx;m.cy=o.cy+dy;}
+      if('x1' in m){m.x1=o.x1+dx;m.y1=o.y1+dy;m.x2=o.x2+dx;m.y2=o.y2+dy;}
+      renderMarks();computeMetrics();
+    }else if(drag.mode==='resize'){
+      const m=getMark(drag.id);if(!m)return;
+      if(drag.role==='rx')m.rx=Math.max(2,Math.abs(p.x-m.cx));
+      if(drag.role==='ry')m.ry=Math.max(2,Math.abs(p.y-m.cy));
+      renderMarks();computeMetrics();
+    }
+  });
+
+  window.addEventListener('pointerup',e=>{
+    if(!drag){return;}
+    if(drag.mode==='ellipse'&&drag.result&&drag.result.rx>3&&drag.result.ry>3){
+      const m=setSingleton(drag.kind,drag.result);selectedId=m.id;
+    }
+    if(drag.mode==='ruler'&&drag.result){
+      const d=Math.hypot(drag.result.x2-drag.result.x1,drag.result.y2-drag.result.y1);
+      if(d>4){const m={id:newId(),kind:'ruler',...drag.result};E().marks.push(m);selectedId=m.id;}
+    }
+    const wasPan=drag.mode==='pan';
+    drag=null;viewport.classList.remove('panning');
+    if(!wasPan)afterChange();else save();
+  });
+
+  function hitTest(e,p){
+    const tol=10/zoom, ms=E().marks;
+    // handles first (only on selected ellipse)
+    const sel=getMark(selectedId);
+    if(sel&&(sel.kind==='disc'||sel.kind==='cup')){
+      if(Math.hypot(p.x-(sel.cx+sel.rx),p.y-sel.cy)<tol)return{id:sel.id,handle:'rx'};
+      if(Math.hypot(p.x-sel.cx,p.y-(sel.cy-sel.ry))<tol)return{id:sel.id,handle:'ry'};
+    }
+    for(let i=ms.length-1;i>=0;i--){const m=ms[i];
+      if('x' in m){if(Math.hypot(p.x-m.x,p.y-m.y)<tol+4/zoom)return{id:m.id};}
+      else if('cx' in m){const near=Math.abs(Math.hypot((p.x-m.cx)/(m.rx||1),(p.y-m.cy)/(m.ry||1))-1)<0.18;const center=Math.hypot(p.x-m.cx,p.y-m.cy)<tol;if(near||center)return{id:m.id};}
+      else if('x1' in m){for(const pt of [[m.x1,m.y1],[m.x2,m.y2]])if(Math.hypot(p.x-pt[0],p.y-pt[1])<tol)return{id:m.id};
+        // near the line
+        if(distToSeg(p,m)<tol)return{id:m.id};}
+    }
+    return null;
+  }
+  function distToSeg(p,m){const A={x:m.x1,y:m.y1},B={x:m.x2,y:m.y2};const l2=(B.x-A.x)**2+(B.y-A.y)**2;if(!l2)return Math.hypot(p.x-A.x,p.y-A.y);let t=((p.x-A.x)*(B.x-A.x)+(p.y-A.y)*(B.y-A.y))/l2;t=Math.max(0,Math.min(1,t));return Math.hypot(p.x-(A.x+t*(B.x-A.x)),p.y-(A.y+t*(B.y-A.y)));}
+
+  function updateHud(e){
+    if(!E().img){$('hud').textContent='—';return;}
+    const p=toImg(e);const s=mmPerPx();
+    let t=Math.round(p.x)+', '+Math.round(p.y)+' px';
+    if(s)t+='  ·  '+s.toFixed(4)+' mm/px';
+    t+='  ·  '+tool;
+    $('hud').textContent=t;
+  }
+
+  // ---------- Wheel zoom ----------
+  viewport.addEventListener('wheel',e=>{
+    if(!E().img)return;e.preventDefault();
+    const rect=viewport.getBoundingClientRect();
+    const cx=e.clientX-rect.left, cy=e.clientY-rect.top;
+    const ix=(cx-panX)/zoom, iy=(cy-panY)/zoom;
+    const factor=e.deltaY<0?1.12:1/1.12;
+    zoom=Math.max(0.05,Math.min(40,zoom*factor));
+    panX=cx-ix*zoom; panY=cy-iy*zoom;
+    applyTransform();renderMarks();
+  },{passive:false});
+
+  // ---------- Tools ----------
+  function setTool(t){tool=t;document.querySelectorAll('.tool').forEach(b=>b.classList.toggle('active',b.dataset.tool===t));
+    viewport.classList.toggle('pan',t==='pan');}
+  document.querySelectorAll('.tool').forEach(b=>b.addEventListener('click',()=>setTool(b.dataset.tool)));
+
+  let spaceDown=false;
+  window.addEventListener('keydown',e=>{
+    if(/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))return;
+    const map={v:'select',h:'pan','1':'disc-center','2':'fovea-center','3':'disc','4':'cup','5':'lesion','6':'ruler'};
+    if(map[e.key.toLowerCase()]){setTool(map[e.key.toLowerCase()]);}
+    if(e.key===' '){spaceDown=true;viewport.classList.add('pan');}
+    if((e.key==='Delete'||e.key==='Backspace')&&selectedId){removeMark(selectedId);}
+    if(e.key==='f'||e.key==='F'){fitToView();}
+  });
+  window.addEventListener('keyup',e=>{if(e.key===' '){spaceDown=false;if(tool!=='pan')viewport.classList.remove('pan');}});
+
+  // ---------- Eye switch ----------
+  $('eyeSwitch').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;switchEye(b.dataset.eye);});
+  function switchEye(v){
+    eye=v;selectedId=null;
+    document.querySelectorAll('#eyeSwitch button').forEach(b=>b.classList.toggle('active',b.dataset.eye===v));
+    $('eyeBadge').textContent=v;$('clinEye').textContent=v==='OD'?'right eye (OD)':'left eye (OS)';
+    $('discDia').value=E().discDiaMm;
+    applyEyeImage();writeClinical();fitToView();afterChange();
+  }
+
+  // ---------- Clinical form ----------
+  document.querySelectorAll('.cl').forEach(el=>el.addEventListener('input',()=>{E().clinical[el.dataset.f]=el.value;save();}));
+  function writeClinical(){document.querySelectorAll('.cl').forEach(el=>{el.value=E().clinical[el.dataset.f]||'';});}
+  ['pId','pName','pDate'].forEach(id=>$(id).addEventListener('input',()=>{
+    study.meta.patientId=$('pId').value;study.meta.name=$('pName').value;study.meta.date=$('pDate').value;save();}));
+  $('discDia').addEventListener('input',()=>{E().discDiaMm=parseFloat($('discDia').value)||1.5;computeMetrics();renderFindings();save();});
+  $('lesionType').addEventListener('change',()=>{lesionType=$('lesionType').value;});
+
+  // ---------- Load / sample ----------
+  function pickFile(){$('fileInput').click();}
+  ['loadBtn','loadBtn2'].forEach(id=>$(id).addEventListener('click',pickFile));
+  $('fileInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>setImage(r.result);r.readAsDataURL(f);e.target.value='';});
+  ['sampleBtn','sampleBtn2'].forEach(id=>$(id).addEventListener('click',()=>setImage(makeSampleFundus(eye))));
+
+  // drag & drop
+  ['dragover','drop'].forEach(ev=>viewport.addEventListener(ev,e=>e.preventDefault()));
+  viewport.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/')){const r=new FileReader();r.onload=()=>setImage(r.result);r.readAsDataURL(f);}});
+
+  function makeSampleFundus(which){
+    const S=900,cv=document.createElement('canvas');cv.width=S;cv.height=S;const x=cv.getContext('2d');
+    x.fillStyle='#000';x.fillRect(0,0,S,S);
+    // fundus disc
+    const g=x.createRadialGradient(S/2,S/2,60,S/2,S/2,S/2);
+    g.addColorStop(0,'#c4622a');g.addColorStop(.55,'#9c3f14');g.addColorStop(1,'#3a1405');
+    x.beginPath();x.arc(S/2,S/2,S/2-20,0,7);x.fillStyle=g;x.fill();
+    const discX=which==='OD'?S*0.70:S*0.30, discY=S*0.46, foveaX=which==='OD'?S*0.40:S*0.60, foveaY=S*0.50;
+    // vessels
+    x.strokeStyle='rgba(120,20,10,.75)';x.lineWidth=7;
+    for(let i=0;i<7;i++){const a=(i/7)*Math.PI*2;x.beginPath();x.moveTo(discX,discY);
+      x.bezierCurveTo(discX+Math.cos(a)*120,discY+Math.sin(a)*120, foveaX+Math.cos(a)*80,foveaY+Math.sin(a)*90, S/2+Math.cos(a)*320,S/2+Math.sin(a)*320);x.stroke();}
+    // optic disc
+    const dg=x.createRadialGradient(discX,discY,4,discX,discY,70);
+    dg.addColorStop(0,'#ffe9b0');dg.addColorStop(.5,'#f0c060');dg.addColorStop(1,'#d89a2a');
+    x.beginPath();x.ellipse(discX,discY,64,72,0,0,7);x.fillStyle=dg;x.fill();
+    // cup
+    x.beginPath();x.ellipse(discX+4,discY,26,32,0,0,7);x.fillStyle='#fff6e0';x.fill();
+    // fovea
+    const fg=x.createRadialGradient(foveaX,foveaY,2,foveaX,foveaY,55);
+    fg.addColorStop(0,'#5c1e08');fg.addColorStop(1,'rgba(120,50,20,0)');
+    x.beginPath();x.arc(foveaX,foveaY,55,0,7);x.fillStyle=fg;x.fill();
+    // a few lesions
+    for(let i=0;i<9;i++){const a=Math.PI*2*i/9,rr=140+((i*53)%120);x.beginPath();
+      x.arc(S/2+Math.cos(a)*rr,S/2+Math.sin(a)*rr,4+((i*7)%5),0,7);x.fillStyle=i%2?'#7a0f08':'#ffe07a';x.fill();}
+    return cv.toDataURL('image/jpeg',0.9);
+  }
+
+  // ---------- Zoom buttons ----------
+  $('zoomIn').addEventListener('click',()=>zoomBy(1.2));
+  $('zoomOut').addEventListener('click',()=>zoomBy(1/1.2));
+  $('zoomFit').addEventListener('click',fitToView);
+  function zoomBy(f){const vw=viewport.clientWidth/2,vh=viewport.clientHeight/2;const ix=(vw-panX)/zoom,iy=(vh-panY)/zoom;zoom=Math.max(0.05,Math.min(40,zoom*f));panX=vw-ix*zoom;panY=vh-iy*zoom;applyTransform();renderMarks();}
+
+  // ---------- Clear ----------
+  $('clearEye').addEventListener('click',()=>{if(confirm('Remove all marks on the '+eye+' eye? (Image and clinical data are kept.)')){E().marks=[];selectedId=null;afterChange();toast('Marks cleared');}});
+
+  // ---------- Export ----------
+  function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),1800);}
+  function download(name,blob){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+
+  $('exportJson').addEventListener('click',()=>{
+    const out={app:'Carino-Ophthalmology',version:1,exported:new Date().toISOString(),meta:study.meta,
+      eyes:{OD:eyeExport('OD'),OS:eyeExport('OS')}};
+    download('ophtha_'+(study.meta.patientId||'study')+'.json',new Blob([JSON.stringify(out,null,2)],{type:'application/json'}));
+    toast('JSON exported');
+  });
+  function eyeExport(k){const e=study.eyes[k];return{discDiaMm:e.discDiaMm,imageSize:{w:e.w,h:e.h},clinical:e.clinical,
+    metrics:metricsFor(k),marks:e.marks.map(m=>({...m}))};}
+  function metricsFor(k){const e=study.eyes[k];const disc=e.marks.find(m=>m.kind==='disc'),cup=e.marks.find(m=>m.kind==='cup');
+    const dc=e.marks.find(m=>m.kind==='disc-center'),fov=e.marks.find(m=>m.kind==='fovea-center');
+    const s=(disc&&disc.ry)?e.discDiaMm/(2*disc.ry):null;
+    return{verticalCDR:(disc&&cup&&disc.ry)?+(cup.ry/disc.ry).toFixed(3):null,
+      horizontalCDR:(disc&&cup&&disc.rx)?+(cup.rx/disc.rx).toFixed(3):null,
+      discFoveaDistMm:(dc&&fov&&s)?+(Math.hypot(fov.x-dc.x,fov.y-dc.y)*s).toFixed(3):null,
+      mmPerPx:s?+s.toFixed(5):null};}
+
+  $('importJson').addEventListener('click',()=>$('jsonInput').click());
+  $('jsonInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
+    r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.eyes)throw 0;
+      Object.assign(study.meta,d.meta||{});
+      ['OD','OS'].forEach(k=>{if(d.eyes[k]){const src=d.eyes[k];const tgt=study.eyes[k];tgt.discDiaMm=src.discDiaMm||1.5;
+        tgt.clinical=src.clinical||{};tgt.marks=(src.marks||[]).map(m=>({...m}));if(src.imageSize){tgt.w=src.imageSize.w;tgt.h=src.imageSize.h;}}});
+      $('pId').value=study.meta.patientId||'';$('pName').value=study.meta.name||'';$('pDate').value=study.meta.date||'';
+      switchEye('OD');toast('JSON loaded (re-attach image if needed)');save();
+    }catch(err){toast('Invalid JSON file');}};r.readAsText(f);e.target.value='';});
+
+  $('exportPng').addEventListener('click',exportPng);
+  function exportPng(){
+    const e=E();if(!e.img){toast('No image to export');return;}
+    const cv=document.createElement('canvas');cv.width=e.w;cv.height=e.h;const x=cv.getContext('2d');
+    const im=new Image();im.onload=()=>{
+      x.drawImage(im,0,0,e.w,e.h);
+      // serialize current overlay marks at natural scale
+      const clone=svg.cloneNode(true);clone.setAttribute('width',e.w);clone.setAttribute('height',e.h);
+      // remove selection-only handles for a clean export by re-rendering fresh:
+      const data='<svg xmlns="http://www.w3.org/2000/svg" width="'+e.w+'" height="'+e.h+'" viewBox="0 0 '+e.w+' '+e.h+'">'+staticMarksSVG(e)+'</svg>';
+      const svgImg=new Image();svgImg.onload=()=>{x.drawImage(svgImg,0,0);cv.toBlob(b=>{download('ophtha_'+eye+'_'+(study.meta.patientId||'annotated')+'.png',b);toast('PNG exported');},'image/png');};
+      svgImg.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(data);
+    };im.src=e.img;
+  }
+  function staticMarksSVG(e){
+    let out='';const s=(disc)=> (disc&&disc.ry)?e.discDiaMm/(2*disc.ry):null;
+    const disc=e.marks.find(m=>m.kind==='disc');const mpp=s(disc);
+    const fmt=px=>mpp?(px*mpp).toFixed(2)+' mm':Math.round(px)+' px';
+    e.marks.forEach(m=>{const c=COLORS[m.kind]||'#fff';
+      if(m.kind==='disc'||m.kind==='cup'){out+='<ellipse cx="'+m.cx+'" cy="'+m.cy+'" rx="'+m.rx+'" ry="'+m.ry+'" fill="none" stroke="'+c+'" stroke-width="3"/>';out+=txt(m.cx,m.cy-m.ry-8,m.kind==='disc'?'Disc':'Cup',c);}
+      else if(m.kind==='disc-center'||m.kind==='fovea-center'){out+=cross(m.x,m.y,c);}
+      else if(m.kind==='lesion'){out+='<circle cx="'+m.x+'" cy="'+m.y+'" r="9" fill="'+c+'" fill-opacity="0.35" stroke="'+c+'" stroke-width="2.5"/>'+txt(m.x+12,m.y-8,m.ltype||'',c);}
+      else if(m.kind==='ruler'){out+='<line x1="'+m.x1+'" y1="'+m.y1+'" x2="'+m.x2+'" y2="'+m.y2+'" stroke="'+c+'" stroke-width="3" stroke-dasharray="8 5"/>'+txt((m.x1+m.x2)/2,(m.y1+m.y2)/2-8,fmt(Math.hypot(m.x2-m.x1,m.y2-m.y1)),c);}
+    });
+    return out;
+    function cross(X,Y,c){const r=13;return '<g stroke="'+c+'" stroke-width="3"><line x1="'+(X-r)+'" y1="'+Y+'" x2="'+(X+r)+'" y2="'+Y+'"/><line x1="'+X+'" y1="'+(Y-r)+'" x2="'+X+'" y2="'+(Y+r)+'"/><circle cx="'+X+'" cy="'+Y+'" r="'+r+'" fill="none"/></g>';}
+    function txt(X,Y,s,c){return '<text x="'+X+'" y="'+Y+'" fill="'+c+'" font-family="monospace" font-size="20" text-anchor="middle" paint-order="stroke" stroke="#000" stroke-width="4">'+esc(s)+'</text>';}
+    function esc(s){return String(s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'})[c]);}
+  }
+
+  // ---------- Print ----------
+  $('printBtn').addEventListener('click',()=>{buildReport();window.print();});
+  function buildReport(){
+    const m=study.meta;let h='<h1>Ophthalmology report</h1><div class="muted">Carino Ophthalmology · '+new Date().toLocaleString()+'</div>';
+    h+='<table><tr><th>Patient ID</th><td>'+esc(m.patientId||'—')+'</td><th>Name</th><td>'+esc(m.name||'—')+'</td><th>Date</th><td>'+esc(m.date||'—')+'</td></tr></table>';
+    ['OD','OS'].forEach(k=>{const e=study.eyes[k];const mt=metricsFor(k);const c=e.clinical;
+      h+='<h3>'+(k==='OD'?'Right eye (OD)':'Left eye (OS)')+'</h3>';
+      h+='<table><tr><th>VA (uc/cc)</th><td>'+esc((c.vaUC||'—')+' / '+(c.vaCC||'—'))+'</td><th>IOP</th><td>'+esc(c.iop||'—')+' mmHg</td><th>Pachymetry</th><td>'+esc(c.pachy||'—')+' µm</td></tr>'
+        +'<tr><th>Refraction</th><td>'+esc([c.sph,c.cyl,c.axis].filter(Boolean).join(' ')||'—')+(c.add?' add '+esc(c.add):'')+'</td><th>Lens</th><td>'+esc(c.lens||'—')+'</td><th>Diagnosis</th><td>'+esc(c.dx||'—')+'</td></tr>'
+        +'<tr><th>Vertical CDR</th><td>'+(mt.verticalCDR??'—')+'</td><th>Horizontal CDR</th><td>'+(mt.horizontalCDR??'—')+'</td><th>Disc–fovea</th><td>'+(mt.discFoveaDistMm!=null?mt.discFoveaDistMm+' mm':'—')+'</td></tr></table>';
+      const les=e.marks.filter(x=>x.kind==='lesion');
+      if(les.length){h+='<table><tr><th>Finding</th><th>Note</th></tr>'+les.map(l=>'<tr><td>'+esc(l.ltype)+'</td><td>'+esc(l.note||'')+'</td></tr>').join('')+'</table>';}
+      if(c.notes)h+='<p><b>Notes:</b> '+esc(c.notes)+'</p>';
+    });
+    $('printReport').innerHTML=h;
+    function esc(s){return String(s).replace(/[<>&]/g,ch=>({'<':'&lt;','>':'&gt;','&':'&amp;'})[ch]);}
+  }
+
+  // ---------- Boot ----------
+  window.addEventListener('resize',()=>{if(E().img)applyTransform();});
+  function boot(){
+    const had=restore();
+    $('pId').value=study.meta.patientId||'';$('pName').value=study.meta.name||'';$('pDate').value=study.meta.date||'';
+    if(!study.meta.date){$('pDate').value=new Date().toISOString().slice(0,10);study.meta.date=$('pDate').value;}
+    switchEye('OD');
+    setTool('select');
+    if(!E().img && !study.eyes.OS.img){ /* leave empty hint */ }
+    computeMetrics();renderFindings();
+  }
+  boot();
+  // expose a little for debugging/testing
+  window.__ophtha={study,setImage,makeSampleFundus,switchEye,setTool,E,metricsFor};
+})();
+</script>
+</body>
+</html>
