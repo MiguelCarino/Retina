@@ -15,9 +15,14 @@ always available at the top of the panel. Imaging is entirely optional — you c
 and dispense without ever loading a photo.
 
 ## Imaging
+- **Camera capture** — take a photo for the current eye from a webcam or a connected
+  fundus / slit-lamp camera (pick the device in the camera dialog).
 - **Floating tool overlay** — the annotation tools float over the fundus (out of the way),
-  with a **1-eye / 2-eye** toggle: 2-eye shows OD and OS side by side (annotated) for
-  comparison.
+  with a **1-eye / 2-eye** toggle. In 2-eye the active eye stays fully editable beside the
+  other eye as reference; click the other pane to switch which eye you're editing. The
+  measurement/annotation tools work in both modes.
+- **Inline text** — the text tool lets you type a label directly on the image (double-click
+  a label to edit it).
 - **Structure marking** — optic disc center, fovea center, optic disc margin and optic
   cup margin (draggable, resizable ellipses).
 - **Annotation tools** — arrow/pointer (with note), text label, and freehand outline for
@@ -85,6 +90,8 @@ permission; without it the window opens on the current screen (drag it over and 
 for fullscreen).
 
 ## Export
+One **Export** button opens a dialog with a **live PDF preview** of the study report and a
+row of downloads:
 - **Study PDF** — the full encounter: both eyes with embedded annotated images, disc
   metrics, refraction, and a binocular dispensing summary.
 - **Study DICOM** — the same report wrapped as an Encapsulated PDF object (SOP class
