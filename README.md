@@ -82,11 +82,14 @@ the remote** for the presenting window (Back returns to the chart list):
   letter size, shuffle optotypes, toggle order, step through tests, mirror, **move the
   window between monitors**, and read the live acuity (Snellen + logMAR).
 - **Multi-monitor** — on Chromium the chart is placed on the chosen screen automatically
-  via the Window Management API; on **Firefox and Safari/WebKit** it opens here and the
-  **Screen ◂ ▸** buttons (or a manual drag + `F`) move it to the patient monitor.
+  via the Window Management API; the assigned monitor's geometry is **remembered**, so
+  placement keeps working after a reload. On **Firefox and Safari/WebKit** it opens here
+  and the **Screen ◂ ▸** buttons step it through the detected monitors (or drag it and
+  press `F`).
 - **True-size** — charts are drawn to physical size from the **test distance** and a
   one-time **card calibration** (match an 85.6 mm card on screen), so 20/20 really is
-  20/20 at your lane length.
+  20/20 at your lane length. Changing the distance, calibration, mirror or optotype order
+  **rescales the presenting chart live** — halve the distance and the letters halve.
 
 Open **Settings** (gear icon) to choose the display (same screen / second monitor / ask),
 run monitor detection **and click a detected monitor to assign it as the chart screen**,

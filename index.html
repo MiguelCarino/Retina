@@ -1043,6 +1043,14 @@
     panX=(vw-e.w*zoom)/2; panY=(vh-e.h*zoom)/2;
     applyTransform(); renderMarks();
   }
+  // Re-center the image in the (possibly resized) viewport WITHOUT changing zoom —
+  // used when toggling 1-eye / 2-eye so the picture never jumps bigger or smaller.
+  function recenterKeepZoom(){
+    const e=E();if(!e.img){applyTransform();return;}
+    const vw=viewport.clientWidth, vh=viewport.clientHeight;
+    panX=(vw-e.w*zoom)/2; panY=(vh-e.h*zoom)/2;
+    applyTransform(); renderMarks();
+  }
   function applyTransform(){
     stage.style.transform='translate('+panX+'px,'+panY+'px) scale('+zoom+')';
     $('zoomLabel').textContent=Math.round(zoom*100)+'%';
@@ -1877,7 +1885,7 @@
 
   // ======================= Settings =======================
   const SETTINGS_KEY='carino_retina_settings';
-  const settings={display:'same',distance:6,unit:'m',pxPerMm:3.7795,mirror:false,optotypeOrder:'fixed',presentScreen:null,mainScreen:null};
+  const settings={display:'same',distance:6,unit:'m',pxPerMm:3.7795,mirror:false,optotypeOrder:'fixed',presentScreen:null,mainScreen:null,screenGeoms:null};
   function loadSettings(){try{const s=JSON.parse(localStorage.getItem(SETTINGS_KEY));if(s)Object.assign(settings,s);}catch(e){}}
   function saveSettings(){try{localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));}catch(e){}}
   function distanceMm(){return settings.unit==='ft'?settings.distance*304.8:settings.distance*1000;}
@@ -1887,9 +1895,27 @@
     if(!('getScreenDetails' in window)){toast('Multi-monitor placement not supported here');renderScreens();return null;}
     try{screenDetails=await window.getScreenDetails();
       if(screenDetails.addEventListener)screenDetails.addEventListener('screenschange',renderScreens);
-      if(settings.mainScreen==null){let ci=screenDetails.screens.indexOf(screenDetails.currentScreen);if(ci<0)ci=screenDetails.screens.findIndex(s=>s.isPrimary);if(ci>=0){settings.mainScreen=ci;saveSettings();}}
-      renderScreens();return screenDetails;
+      if(settings.mainScreen==null){let ci=screenDetails.screens.indexOf(screenDetails.currentScreen);if(ci<0)ci=screenDetails.screens.findIndex(s=>s.isPrimary);if(ci>=0){settings.mainScreen=ci;}}
+      snapshotScreens();renderScreens();return screenDetails;
     }catch(e){toast('Monitor permission denied');return null;}
+  }
+  // Persist each screen's geometry so we can place the chart on the assigned monitor
+  // even after a reload (when the live ScreenDetails handle is gone) or on browsers
+  // that only expose the coordinates once.
+  function snapshotScreens(){
+    if(!screenDetails)return;
+    settings.screenGeoms=screenDetails.screens.map(s=>({left:s.left,top:s.top,availLeft:s.availLeft,availTop:s.availTop,
+      availWidth:s.availWidth,availHeight:s.availHeight,width:s.width,height:s.height,isPrimary:s.isPrimary}));
+    saveSettings();
+  }
+  function screenBox(s){return{L:(s.availLeft!=null?s.availLeft:(s.left||0)),T:(s.availTop!=null?s.availTop:(s.top||0)),
+    W:s.availWidth||s.width||1280,H:s.availHeight||s.height||800};}
+  // Move+size a popup onto a target screen, re-asserting a few times because some
+  // browsers reset the position right after document.write / when the window paints.
+  function placeWindow(win,s){
+    if(!win||win.closed||!s)return;const b=screenBox(s);
+    const go=()=>{try{win.moveTo(b.L,b.T);win.resizeTo(b.W,b.H);win.moveTo(b.L,b.T);}catch(e){}};
+    go();setTimeout(go,80);setTimeout(go,260);
   }
   function renderScreens(){
     const box=$('screensList');if(!box)return;box.innerHTML='';
@@ -1931,9 +1957,23 @@
   $('settingsClose').addEventListener('click',closeSettings);
   $('settingsModal').addEventListener('click',e=>{if(e.target.id==='settingsModal')closeSettings();});
   $('settingsSave').addEventListener('click',()=>{saveSettings();closeSettings();toast(t('Settings saved'));});
-  wireSeg('setDisplay','display');wireSeg('setUnit','unit');wireSeg('setMirror','mirror',v=>v==='on');wireSeg('setOrder','optotypeOrder');
-  $('setDistance').addEventListener('input',()=>{settings.distance=parseFloat($('setDistance').value)||6;saveSettings();});
-  $('calSlider').addEventListener('input',()=>{settings.pxPerMm=parseFloat($('calSlider').value)||3.7795;updateCal();saveSettings();});
+  // Push the current viewing distance / calibration / mirror / order into a live
+  // presenting chart so the optotypes rescale in real time as you tune the settings.
+  function syncPresent(){if(presentActive()&&presentWin.CARINO&&presentWin.CARINO.setCfg)presentWin.CARINO.setCfg({
+    distanceMm:distanceMm(),pxPerMm:settings.pxPerMm,
+    distanceLabel:(settings.unit==='ft'?settings.distance+' ft':settings.distance+' m'),
+    mirror:settings.mirror,order:settings.optotypeOrder});}
+  wireSeg('setDisplay','display');wireSeg('setMirror','mirror',v=>v==='on');wireSeg('setOrder','optotypeOrder');
+  // Unit toggle converts the stored distance so the physical distance stays the same.
+  document.querySelectorAll('#setUnit button').forEach(b=>b.addEventListener('click',()=>{
+    const nu=b.dataset.v;if(nu!==settings.unit){
+      if(nu==='ft'&&settings.unit==='m')settings.distance=Math.round(settings.distance*3.28084*10)/10;
+      else if(nu==='m'&&settings.unit==='ft')settings.distance=Math.round(settings.distance/3.28084*100)/100;
+      settings.unit=nu;$('setDistance').value=settings.distance;}
+    setSegActive('setUnit',nu);saveSettings();syncPresent();}));
+  document.querySelectorAll('#setMirror button,#setOrder button').forEach(b=>b.addEventListener('click',syncPresent));
+  $('setDistance').addEventListener('input',()=>{settings.distance=parseFloat($('setDistance').value)||6;saveSettings();syncPresent();});
+  $('calSlider').addEventListener('input',()=>{settings.pxPerMm=parseFloat($('calSlider').value)||3.7795;updateCal();saveSettings();syncPresent();});
   $('detectScreens').addEventListener('click',()=>detectScreens());
   window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('settingsModal').classList.contains('hidden'))closeSettings();});
 
@@ -1967,18 +2007,33 @@
   function presentActive(){return presentWin&&!presentWin.closed;}
   function escHtml(s){return String(s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[c]);}
 
+  // The screen the chart should open on — prefer the live handle, fall back to the
+  // persisted geometry so an assigned monitor still works after a reload.
   function chosenScreen(){
-    if(!screenDetails)return null;const scr=screenDetails.screens;
-    if(settings.presentScreen!=null&&scr[settings.presentScreen])return scr[settings.presentScreen];
-    if(settings.display==='secondary')return scr.find(s=>!s.isPrimary)||null;
+    const geoms=settings.screenGeoms;
+    if(settings.presentScreen!=null){
+      if(screenDetails&&screenDetails.screens[settings.presentScreen])return screenDetails.screens[settings.presentScreen];
+      if(geoms&&geoms[settings.presentScreen])return geoms[settings.presentScreen];
+    }
+    if(settings.display==='secondary'){
+      if(screenDetails){const s=screenDetails.screens.find(s=>!s.isPrimary);if(s)return s;}
+      if(geoms){const g=geoms.find(x=>!x.isPrimary);if(g)return g;}
+    }
     return null;
+  }
+  function currentScreenIndex(){
+    const geoms=(screenDetails&&screenDetails.screens)||settings.screenGeoms;
+    if(!geoms)return -1;
+    if(screenDetails){const i=geoms.indexOf(screenDetails.currentScreen);if(i>=0)return i;}
+    if(settings.mainScreen!=null)return settings.mainScreen;
+    return 0;
   }
   async function openTest(id){
     const target=chosenScreen();
     if(!presentActive()){
       let feats;
-      if(target){feats='left='+target.availLeft+',top='+target.availTop+',width='+target.availWidth+',height='+target.availHeight+',menubar=no,toolbar=no,location=no,status=no';}
-      else{const w=Math.min(1280,screen.availWidth),h=Math.min(920,screen.availHeight);feats='width='+w+',height='+h+',left='+Math.round((screen.availWidth-w)/2)+',top='+Math.round((screen.availHeight-h)/2)+',menubar=no,toolbar=no,location=no,status=no';}
+      if(target){const b=screenBox(target);feats='popup,left='+b.L+',top='+b.T+',width='+b.W+',height='+b.H+',menubar=no,toolbar=no,location=no,status=no';}
+      else{const w=Math.min(1280,screen.availWidth),h=Math.min(920,screen.availHeight);feats='popup,width='+w+',height='+h+',left='+Math.round((screen.availWidth-w)/2)+',top='+Math.round((screen.availHeight-h)/2)+',menubar=no,toolbar=no,location=no,status=no';}
       presentWin=window.open('','carinoRetinaTest',feats);   // open synchronously to keep the user-gesture
     }
     if(!presentWin){toast(t('Popup blocked — allow popups for this site'));return;}
@@ -1986,47 +2041,45 @@
       distanceLabel:(settings.unit==='ft'?settings.distance+' ft':settings.distance+' m'),names:TEST_NAMES};
     presentWin.document.open();presentWin.document.write(buildPresentHtml(cfg));presentWin.document.close();
     presentTestId=id;showRemote(id);
-    if(target){try{presentWin.moveTo(target.availLeft,target.availTop);presentWin.resizeTo(target.availWidth,target.availHeight);}catch(e){}}
+    if(target){presentWin.__scrIdx=(settings.presentScreen!=null?settings.presentScreen:currentScreenIndex());placeWindow(presentWin,target);}
     else if(settings.display!=='same'||settings.presentScreen!=null){placeOnMonitor();}
     try{presentWin.focus();}catch(e){}
   }
   async function placeOnMonitor(){
     try{
-      // Chromium: precise placement via the Window Management API.
-      if(('getScreenDetails' in window)){
+      let target=chosenScreen();
+      // Chromium: if we have no live handle yet, ask for one (this runs inside the
+      // click gesture) and resolve the target from it.
+      if(!target&&('getScreenDetails' in window)){
         if(!screenDetails)await detectScreens();
-        if(screenDetails){
-          const secondary=screenDetails.screens.find(s=>!s.isPrimary);
-          let target=null;
-          if(settings.presentScreen!=null&&screenDetails.screens[settings.presentScreen])target=screenDetails.screens[settings.presentScreen];
-          else if(settings.display==='secondary')target=secondary;
-          else if(settings.display==='ask'){if(secondary&&window.confirm(t('Move the chart to the second monitor?')))target=secondary;}
-          if(target&&presentActive()){presentWin.moveTo(target.availLeft,target.availTop);presentWin.resizeTo(target.availWidth,target.availHeight);}
-          return;
+        target=chosenScreen();
+        if(!target&&settings.display==='ask'&&screenDetails){
+          const sec=screenDetails.screens.find(s=>!s.isPrimary);
+          if(sec&&window.confirm(t('Move the chart to the second monitor?')))target=sec;
         }
       }
-      // Firefox / WebKit: shift the popup by one screen width toward a likely
-      // second monitor on the right (user can nudge with the Screen ◂ ▸ buttons).
+      if(target&&presentActive()){placeWindow(presentWin,target);return;}
+      // No monitor API and no saved geometry (older Firefox / WebKit): best-effort
+      // nudge toward a right-side monitor; the Screen ◂ ▸ buttons let the user correct it.
       if(!presentActive())return;
-      const sw=(window.screen&&window.screen.availWidth)||1280, sh=(window.screen&&window.screen.availHeight)||800;
-      if(settings.display==='secondary'){presentWin.moveBy(sw,0);presentWin.resizeTo(sw,sh);}
-      else if(settings.display==='ask'){if(window.confirm(t('Move the chart to the second monitor?')))presentWin.moveBy(sw,0);}
+      const sw=(window.screen&&window.screen.availWidth)||1280;
+      if(settings.display==='secondary')presentWin.moveTo(sw,0);
+      else if(settings.display==='ask'){if(window.confirm(t('Move the chart to the second monitor?')))presentWin.moveTo(sw,0);}
     }catch(e){}
   }
-  // Cross-browser manual move: jump the popup to the next/prev screen.
+  // Manual move: step the popup through the known screens in either direction.
   async function moveWin(dir){
     if(!presentActive())return;
     try{
-      if(('getScreenDetails' in window)){
-        if(!screenDetails)await detectScreens();
-        if(screenDetails&&screenDetails.screens.length>1){
-          const scr=screenDetails.screens;let idx=scr.indexOf(screenDetails.currentScreen);if(idx<0)idx=0;
-          const target=scr[((idx+(dir>0?1:scr.length-1))%scr.length)];
-          presentWin.moveTo(target.availLeft,target.availTop);presentWin.resizeTo(target.availWidth,target.availHeight);return;
-        }
+      if(!screenDetails&&!settings.screenGeoms&&('getScreenDetails' in window))await detectScreens();
+      const geoms=(screenDetails&&screenDetails.screens)||settings.screenGeoms;
+      if(geoms&&geoms.length>1){
+        let idx=(presentWin.__scrIdx!=null?presentWin.__scrIdx:currentScreenIndex());if(idx<0)idx=0;
+        idx=((idx+(dir>0?1:geoms.length-1))%geoms.length);
+        presentWin.__scrIdx=idx;placeWindow(presentWin,geoms[idx]);return;
       }
       const sw=(window.screen&&window.screen.availWidth)||1280;
-      presentWin.moveBy(dir*sw,0);
+      presentWin.moveTo(Math.max(0,(presentWin.screenX||0)+dir*sw),presentWin.screenY||0);
     }catch(e){toast(t('Could not move the window — drag it manually'));}
   }
 
@@ -2135,6 +2188,15 @@
       toggleRows:function(){if(st.test==='snellen'){st.rowMode=(st.rowMode==='single'?'full':'single');render();}},
       fs:function(){try{document.documentElement.requestFullscreen();}catch(e){}},
       setTest:function(id){st.test=id;regen();render();},
+      // Live-apply settings changes (distance, calibration, mirror, order) without
+      // reopening — so adjusting the viewing distance actually rescales the optotypes.
+      setCfg:function(o){o=o||{};
+        if(o.distanceMm!=null)cfg.distanceMm=o.distanceMm;
+        if(o.pxPerMm!=null)cfg.pxPerMm=o.pxPerMm;
+        if(o.distanceLabel!=null)cfg.distanceLabel=o.distanceLabel;
+        if(o.mirror!=null)st.mirror=!!o.mirror;
+        if(o.order)st.order=(o.order==='random'?'random':'fixed');
+        regen();render();},
       state:function(){return{test:st.test,acuity:isAcuity(st.test)?acuity():'',order:st.order,rows:st.rowMode,snellen:st.test==='snellen'};}
     };
     document.addEventListener('keydown',function(e){var k=e.key;
@@ -2190,7 +2252,7 @@
     const c=document.querySelector('.center');
     c.classList.toggle('two',viewBoth);
     if(viewBoth)updateTwo();
-    else{c.classList.remove('act-OD','act-OS');applyEyeImage();if(E().img)fitToView();}
+    else{c.classList.remove('act-OD','act-OS');applyEyeImage();recenterKeepZoom();}
   }
   // In two-eye mode the active eye stays interactive (all tools work); the other eye
   // is shown as a static annotated reference. Click it to make it the active eye.
@@ -2201,7 +2263,7 @@
     const other=eye==='OD'?'OS':'OD',oe=study.eyes[other],img=$('otherImg'),empty=$('otherEmpty');
     if(!oe.img){img.removeAttribute('src');img.style.display='none';empty.classList.remove('hidden');}
     else{empty.classList.add('hidden');img.style.display='';renderEyeDataUrl(other).then(u=>{if(u&&viewBoth)img.src=u;});}
-    applyEyeImage();if(E().img)fitToView();
+    applyEyeImage();recenterKeepZoom();
   }
   $('otherPane').addEventListener('click',()=>{if(viewBoth)switchEye(eye==='OD'?'OS':'OD');});
   function renderEyeDataUrl(key){
