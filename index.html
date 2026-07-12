@@ -4,7 +4,7 @@
   <link rel="icon" type="image/webp" href="logo.webp">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ophthalmology Suite — Carino Systems</title>
+  <title>Carino Retina — Eye examination & dispensing suite</title>
   <script src="carino-clock.js" defer></script>
   <script src="vendor/pdf-lib.min.js"></script>
   <link href="fonts.css" rel="stylesheet">
@@ -111,7 +111,30 @@
     .field textarea{resize:vertical;min-height:52px;font-family:var(--font)}
     .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
     .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+    .row4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px}
     .rx-line{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+    .subhead{font-family:var(--mono);font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:14px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px}
+    .subhead:first-child{margin-top:0}
+    .subhead .hint{margin-left:auto;color:var(--text-muted);letter-spacing:.04em;text-transform:none;font-size:.58rem}
+    /* Rx grid: row-labelled OD/OS table for sphere/cyl/axis/add */
+    .rxgrid{display:grid;grid-template-columns:34px repeat(4,1fr);gap:5px;align-items:center;margin-bottom:6px}
+    .rxgrid .h{font-family:var(--mono);font-size:.52rem;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);text-align:center}
+    .rxgrid .rl{font-family:var(--mono);font-size:.66rem;font-weight:700;color:var(--accent)}
+    .rxgrid input{width:100%;background:#000;border:1px solid var(--border);color:var(--text);border-radius:var(--r-sm);padding:6px 4px;font-family:var(--mono);font-size:.74rem;text-align:center}
+    .rxgrid input:focus{border-color:var(--accent)}
+
+    /* Panel module tabs */
+    .pmod{display:flex;gap:4px;padding:10px 12px;background:var(--surface-solid);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:6}
+    .pmod button{flex:1;background:transparent;border:1px solid var(--border);color:var(--text-muted);font-family:var(--mono);font-size:.62rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:8px 4px;border-radius:var(--r-sm);cursor:pointer;transition:.15s}
+    .pmod button:hover{color:var(--text);border-color:var(--accent)}
+    .pmod button.active{background:var(--accent);color:#050505;border-color:var(--accent)}
+    .mod{display:block}
+    .mod.hidden{display:none!important}
+    .note-box{font-size:.7rem;color:var(--text-muted);line-height:1.5;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-sm);padding:9px 11px;margin-bottom:10px}
+    .note-box b{color:var(--text-dim)}
+    .mini-btn{background:transparent;border:1px solid var(--border);color:var(--text-dim);border-radius:var(--r-sm);font-family:var(--font);font-size:.72rem;font-weight:600;padding:7px 9px;cursor:pointer;transition:.15s;width:100%;text-align:left}
+    .mini-btn:hover{border-color:var(--accent);color:var(--accent)}
+    .mini-btn .n{color:var(--accent);font-family:var(--mono);margin-right:6px}
 
     .findings{display:flex;flex-direction:column;gap:6px}
     .finding{display:flex;align-items:center;gap:9px;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-sm);padding:7px 9px;cursor:pointer;transition:.15s}
@@ -162,17 +185,20 @@
 <body>
   <header class="header">
     <div class="header-left">
-      <a class="brand-name" href="https://carino.systems/" title="Carino Systems — back to hub">Carino<span class="app-tag">Ophtha</span></a>
+      <a class="brand-name" href="https://carino.systems/" title="Carino Systems — back to hub">Carino<span class="app-tag">Retina</span></a>
       <div class="header-clock" aria-hidden="true">
         <span class="clock-time">00:00:00</span>
         <span class="clock-tz">LOCAL</span>
-        <span class="brand-greeting" id="greeting">Fundus &amp; eye annotation</span>
+        <span class="brand-greeting" id="greeting">Fundus, refraction &amp; dispensing</span>
       </div>
     </div>
     <div class="header-right">
       <div class="social-row">
         <a href="https://github.com/MiguelCarino/Carino-Ophthalmology" target="_blank" rel="noopener" class="icon-btn" title="GitHub" aria-label="GitHub">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+        </a>
+        <a href="https://www.linkedin.com/in/miguelcarino94/" target="_blank" rel="noopener" class="icon-btn" title="LinkedIn" aria-label="LinkedIn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
         </a>
       </div>
     </div>
@@ -219,7 +245,7 @@
 
       <div class="empty-hint" id="emptyHint">
         <h2>No image loaded</h2>
-        <p>Drop a fundus / anterior-segment photo here, or load one. Then mark the optic disc, cup and fovea to auto-compute the cup-to-disc ratio. Everything stays in your browser — nothing is uploaded.</p>
+        <p>Drop a fundus / anterior-segment photo here, or load one, to mark the disc, cup and fovea for an automatic cup-to-disc ratio. Prefer to just refract or dispense? Switch to the <b>Refraction</b> or <b>Dispensing</b> tab — no image needed. Everything stays in your browser; nothing is uploaded.</p>
         <div style="display:flex;gap:10px" class="pointer-on">
           <button class="btn" id="loadBtn">Load image…</button>
           <button class="btn ghost" id="sampleBtn">Load sample fundus</button>
@@ -237,75 +263,190 @@
 
     <!-- Right panel -->
     <div class="panel">
+      <!-- Module tabs -->
+      <div class="pmod" id="pmod">
+        <button data-mod="imaging" class="active" title="Fundus imaging & annotation">Imaging</button>
+        <button data-mod="refraction" title="Acuity & refraction">Refraction</button>
+        <button data-mod="dispensing" title="Dispensing & optics">Dispensing</button>
+      </div>
+
+      <!-- Patient / encounter (always visible) -->
       <div class="sec">
-        <h3>Disc analysis <span class="badge" id="eyeBadge">OD</span></h3>
-        <div class="metrics">
-          <div class="metric"><div class="k">Vertical CDR</div><div class="v" id="mVCDR">—</div></div>
-          <div class="metric"><div class="k">Horizontal CDR</div><div class="v" id="mHCDR">—</div></div>
-          <div class="metric"><div class="k">Disc diameter</div><div class="v" id="mDiscD">—<span class="u"> mm</span></div></div>
-          <div class="metric"><div class="k">Disc area</div><div class="v" id="mDiscA">—<span class="u"> mm²</span></div></div>
-          <div class="metric wide"><div class="k">Disc → fovea</div><div class="v" id="mDF">—</div></div>
+        <h3>Patient / encounter <span class="badge" id="eyeBadge">OD</span></h3>
+        <div class="row2">
+          <div class="field"><label>Patient ID</label><input class="mt" data-f="patientId" placeholder="ANON-001"></div>
+          <div class="field"><label>Exam date</label><input class="mt" data-f="date" type="date"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Name / initials</label><input class="mt" data-f="name" placeholder="J.D."></div>
+          <div class="field"><label>Date of birth</label><input class="mt" data-f="dob" type="date"></div>
+        </div>
+        <div class="field"><label>Provider / clinic</label><input class="mt" data-f="provider" placeholder="Dr. …"></div>
+        <div class="field"><label>Chief complaint / reason</label><input class="mt" data-f="complaint" placeholder="e.g. blurry near vision"></div>
+      </div>
+
+      <!-- ==================== IMAGING MODULE ==================== -->
+      <div class="mod" id="mod-imaging">
+        <div class="sec">
+          <h3>Disc analysis <span class="badge" id="discBadge">OD</span></h3>
+          <div class="metrics">
+            <div class="metric"><div class="k">Vertical CDR</div><div class="v" id="mVCDR">—</div></div>
+            <div class="metric"><div class="k">Horizontal CDR</div><div class="v" id="mHCDR">—</div></div>
+            <div class="metric"><div class="k">Disc diameter</div><div class="v" id="mDiscD">—<span class="u"> mm</span></div></div>
+            <div class="metric"><div class="k">Disc area</div><div class="v" id="mDiscA">—<span class="u"> mm²</span></div></div>
+            <div class="metric wide"><div class="k">Disc → fovea</div><div class="v" id="mDF">—</div></div>
+          </div>
+        </div>
+        <div class="sec">
+          <h3>Findings <span class="badge" id="findCount">0</span></h3>
+          <div class="findings" id="findings"><div class="no-findings">No marks yet.</div></div>
+        </div>
+        <div class="sec">
+          <h3>Legend</h3>
+          <div class="legend">
+            <div><span class="sw" style="background:var(--c-dcenter)"></span>Disc center</div>
+            <div><span class="sw" style="background:var(--c-fovea)"></span>Fovea center</div>
+            <div><span class="sw" style="background:var(--c-disc)"></span>Disc margin</div>
+            <div><span class="sw" style="background:var(--c-cup)"></span>Cup margin</div>
+            <div><span class="sw" style="background:var(--c-lesion)"></span>Lesion pin</div>
+            <div><span class="sw" style="background:var(--c-ruler)"></span>Measurement</div>
+          </div>
         </div>
       </div>
 
-      <div class="sec">
-        <h3>Patient / exam</h3>
-        <div class="row2">
-          <div class="field"><label>Patient ID</label><input id="pId" placeholder="ANON-001"></div>
-          <div class="field"><label>Exam date</label><input id="pDate" type="date"></div>
-        </div>
-        <div class="field"><label>Name / initials</label><input id="pName" placeholder="J.D."></div>
-      </div>
+      <!-- ==================== REFRACTION MODULE ==================== -->
+      <div class="mod hidden" id="mod-refraction">
+        <div class="sec">
+          <h3>Refraction — <span class="clinEye">right eye (OD)</span></h3>
 
-      <div class="sec">
-        <h3>Clinical — <span id="clinEye">right eye (OD)</span></h3>
-        <div class="row2">
-          <div class="field"><label>VA (uncorrected)</label><input class="cl" data-f="vaUC" placeholder="20/40"></div>
-          <div class="field"><label>VA (corrected)</label><input class="cl" data-f="vaCC" placeholder="20/20"></div>
-        </div>
-        <div class="row2">
-          <div class="field"><label>IOP (mmHg)</label><input class="cl" data-f="iop" type="number" step="1" placeholder="16"></div>
-          <div class="field"><label>Pachymetry (µm)</label><input class="cl" data-f="pachy" type="number" step="1" placeholder="545"></div>
-        </div>
-        <div class="field"><label>Refraction — sphere / cyl / axis</label>
+          <div class="subhead">Visual acuity</div>
+          <div class="row3">
+            <div class="field"><label>Distance UC</label><input class="cl" data-f="vaUC" placeholder="20/40"></div>
+            <div class="field"><label>Distance CC</label><input class="cl" data-f="vaCC" placeholder="20/20"></div>
+            <div class="field"><label>Near</label><input class="cl" data-f="vaNear" placeholder="J1 / N5"></div>
+          </div>
+
+          <div class="subhead">Autorefraction / retinoscopy</div>
+          <div class="rx-line">
+            <input class="cl" data-f="arSph" placeholder="Sph −1.25">
+            <input class="cl" data-f="arCyl" placeholder="Cyl −0.50">
+            <input class="cl" data-f="arAxis" placeholder="Ax 90">
+          </div>
+
+          <div class="subhead">Subjective — final Rx</div>
           <div class="rx-line">
             <input class="cl" data-f="sph" placeholder="Sph −1.25">
             <input class="cl" data-f="cyl" placeholder="Cyl −0.50">
             <input class="cl" data-f="axis" placeholder="Ax 90">
           </div>
-        </div>
-        <div class="row2">
-          <div class="field"><label>Add</label><input class="cl" data-f="add" placeholder="+2.00"></div>
+          <div class="row2" style="margin-top:6px">
+            <div class="field"><label>Add</label><input class="cl" data-f="add" placeholder="+2.00"></div>
+            <div class="field"><label>Prva / dominance</label><input class="cl" data-f="dom" placeholder="OD dominant"></div>
+          </div>
+
+          <div class="subhead">Keratometry</div>
+          <div class="row3">
+            <div class="field"><label>K1</label><input class="cl" data-f="k1" placeholder="43.25"></div>
+            <div class="field"><label>K2</label><input class="cl" data-f="k2" placeholder="44.00"></div>
+            <div class="field"><label>Axis</label><input class="cl" data-f="kAxis" placeholder="180"></div>
+          </div>
+
+          <div class="subhead">Pressures & anterior segment</div>
+          <div class="row2">
+            <div class="field"><label>IOP (mmHg)</label><input class="cl" data-f="iop" type="number" step="1" placeholder="16"></div>
+            <div class="field"><label>Pachymetry (µm)</label><input class="cl" data-f="pachy" type="number" step="1" placeholder="545"></div>
+          </div>
           <div class="field"><label>Lens status</label>
             <select class="cl" data-f="lens"><option value="">—</option><option>Phakic</option><option>Pseudophakic</option><option>Aphakic</option></select>
           </div>
-        </div>
-        <div class="field"><label>Diagnosis / impression</label><input class="cl" data-f="dx" placeholder="e.g. POAG, moderate NPDR"></div>
-        <div class="field"><label>Notes</label><textarea class="cl" data-f="notes" placeholder="Free text…"></textarea></div>
-      </div>
-
-      <div class="sec">
-        <h3>Findings <span class="badge" id="findCount">0</span></h3>
-        <div class="findings" id="findings"><div class="no-findings">No marks yet.</div></div>
-      </div>
-
-      <div class="sec">
-        <h3>Legend</h3>
-        <div class="legend">
-          <div><span class="sw" style="background:var(--c-dcenter)"></span>Disc center</div>
-          <div><span class="sw" style="background:var(--c-fovea)"></span>Fovea center</div>
-          <div><span class="sw" style="background:var(--c-disc)"></span>Disc margin</div>
-          <div><span class="sw" style="background:var(--c-cup)"></span>Cup margin</div>
-          <div><span class="sw" style="background:var(--c-lesion)"></span>Lesion pin</div>
-          <div><span class="sw" style="background:var(--c-ruler)"></span>Measurement</div>
+          <div class="field"><label>Diagnosis / impression</label><input class="cl" data-f="dx" placeholder="e.g. POAG, presbyopia"></div>
+          <div class="field"><label>Notes</label><textarea class="cl" data-f="notes" placeholder="Free text…"></textarea></div>
         </div>
       </div>
 
+      <!-- ==================== DISPENSING MODULE ==================== -->
+      <div class="mod hidden" id="mod-dispensing">
+        <div class="sec">
+          <h3>Dispensing &amp; optics</h3>
+          <div class="note-box">Runs entirely from the <b>final Rx</b> — no photo required. Load a face photo only if you want to estimate PD from it.</div>
+
+          <div class="subhead">Interpupillary distance <span class="hint">binocular, mm</span></div>
+          <div class="row2">
+            <div class="field"><label>PD distance</label><input class="gd" data-f="pdDist" type="number" step="0.5" placeholder="63"></div>
+            <div class="field"><label>PD near</label><input class="gd" data-f="pdNear" type="number" step="0.5" placeholder="60"></div>
+          </div>
+          <div class="subhead">Monocular PD <span class="hint"><span class="clinEye2">OD</span>, mm</span></div>
+          <div class="row2">
+            <div class="field"><label>Mono distance</label><input class="dp" data-f="pdMonoDist" type="number" step="0.5" placeholder="31.5"></div>
+            <div class="field"><label>Mono near</label><input class="dp" data-f="pdMonoNear" type="number" step="0.5" placeholder="30"></div>
+          </div>
+
+          <div class="subhead">PD from photo <span class="hint">optional · estimate only</span></div>
+          <div class="note-box">Load a face photo with a <b>card</b> (ID-1, 85.6 mm) held to the brow. Draw a <b>ruler</b> across the card's long edge, then across pupil-to-pupil.</div>
+          <div class="field"><label>Reference width (mm)</label><input id="pdRefMm" type="number" step="0.1" value="85.6"></div>
+          <button class="mini-btn" id="pdSetScale" style="margin-bottom:6px"><span class="n">1</span>Selected ruler = reference width</button>
+          <button class="mini-btn" id="pdSetPd"><span class="n">2</span>Selected ruler → PD distance</button>
+          <div class="hud" id="pdPhotoState" style="position:static;margin-top:8px;display:inline-block">No photo scale set</div>
+
+          <div class="subhead">Prism <span class="hint"><span class="clinEye3">OD</span></span></div>
+          <div class="row2">
+            <div class="field"><label>Amount (Δ)</label><input class="dp" data-f="prism" placeholder="2.0"></div>
+            <div class="field"><label>Base</label>
+              <select class="dp" data-f="base"><option value="">—</option><option>Base up</option><option>Base down</option><option>Base in</option><option>Base out</option></select>
+            </div>
+          </div>
+
+          <div class="subhead">Lens <span class="hint">binocular</span></div>
+          <div class="field"><label>Lens type</label>
+            <select class="gd" data-f="lensType"><option value="">—</option><option>Single vision</option><option>Bifocal</option><option>Trifocal</option><option>Progressive</option><option>Office / occupational</option></select>
+          </div>
+          <div class="row2">
+            <div class="field"><label>Material</label>
+              <select class="gd" data-f="material"><option value="">—</option><option>CR-39 (1.50)</option><option>Trivex</option><option>Polycarbonate</option><option>Hi-index 1.60</option><option>Hi-index 1.67</option><option>Hi-index 1.74</option></select>
+            </div>
+            <div class="field"><label>Tint</label><input class="gd" data-f="tint" placeholder="Clear / 80% grey"></div>
+          </div>
+          <div class="field"><label>Coatings / options</label><input class="gd" data-f="coatings" placeholder="AR, photochromic, blue-filter"></div>
+
+          <div class="subhead">Frame <span class="hint">boxing system, mm</span></div>
+          <div class="row4">
+            <div class="field"><label>A (eye)</label><input class="gd" data-f="frameA" placeholder="52"></div>
+            <div class="field"><label>B (vert)</label><input class="gd" data-f="frameB" placeholder="34"></div>
+            <div class="field"><label>DBL</label><input class="gd" data-f="frameDBL" placeholder="18"></div>
+            <div class="field"><label>ED</label><input class="gd" data-f="frameED" placeholder="55"></div>
+          </div>
+
+          <div class="subhead">Fitting</div>
+          <div class="row2">
+            <div class="field"><label>Seg / fit height <span class="clinEye4">OD</span></label><input class="dp" data-f="segHt" placeholder="mm"></div>
+            <div class="field"><label>OC / fit height <span class="clinEye5">OD</span></label><input class="dp" data-f="fitHt" placeholder="mm"></div>
+          </div>
+          <div class="row3">
+            <div class="field"><label>Panto (°)</label><input class="gd" data-f="panto" placeholder="8"></div>
+            <div class="field"><label>Vertex (mm)</label><input class="gd" data-f="vertex" placeholder="12"></div>
+            <div class="field"><label>Wrap (°)</label><input class="gd" data-f="wrap" placeholder="5"></div>
+          </div>
+
+          <div class="subhead">Contact lens <span class="hint"><span class="clinEye6">OD</span></span></div>
+          <div class="field"><label>Brand / design</label><input class="dp" data-f="clBrand" placeholder="e.g. Acuvue Oasys"></div>
+          <div class="row3">
+            <div class="field"><label>BC</label><input class="dp" data-f="clBC" placeholder="8.4"></div>
+            <div class="field"><label>DIA</label><input class="dp" data-f="clDia" placeholder="14.0"></div>
+            <div class="field"><label>Power</label><input class="dp" data-f="clPower" placeholder="−1.25"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Export (always visible) -->
       <div class="sec">
         <h3>Export</h3>
         <div class="btn-grid" style="margin-bottom:8px">
-          <button class="btn" id="exportPdf">Export PDF</button>
-          <button class="btn" id="exportDcm">Export DICOM</button>
+          <button class="btn" id="exportPdf">Study PDF</button>
+          <button class="btn" id="exportDcm">Study DICOM</button>
+        </div>
+        <div class="btn-grid" style="margin-bottom:8px">
+          <button class="btn" id="exportRx">Spectacle Rx</button>
+          <button class="btn" id="exportOrder">Lens order</button>
         </div>
         <div class="btn-grid">
           <button class="btn ghost" id="loadBtn2">Load image</button>
@@ -334,9 +475,9 @@
   function getVar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
 
   // ---------- State ----------
-  function emptyEye(){return {img:null,w:0,h:0,discDiaMm:1.5,marks:[],clinical:{}};}
-  const study={meta:{patientId:'',name:'',date:''},eyes:{OD:emptyEye(),OS:emptyEye()}};
-  let eye='OD', tool='select', lesionType='Microaneurysm';
+  function emptyEye(){return {img:null,w:0,h:0,discDiaMm:1.5,marks:[],clinical:{},disp:{}};}
+  const study={meta:{patientId:'',name:'',date:'',dob:'',provider:'',complaint:''},dispense:{},eyes:{OD:emptyEye(),OS:emptyEye()}};
+  let eye='OD', tool='select', lesionType='Microaneurysm', panelMod='imaging', pdPhotoScale=null;
   let zoom=1,panX=0,panY=0, selectedId=null, uid=1;
   let drag=null;
   const STORE='carino_ophtha_v1';
@@ -348,7 +489,7 @@
   function save(){try{localStorage.setItem(STORE,JSON.stringify(study));}catch(e){}}
   function restore(){
     try{const s=localStorage.getItem(STORE);if(!s)return false;const d=JSON.parse(s);
-      if(d&&d.eyes){Object.assign(study.meta,d.meta||{});['OD','OS'].forEach(k=>{if(d.eyes[k])study.eyes[k]=Object.assign(emptyEye(),d.eyes[k]);});
+      if(d&&d.eyes){Object.assign(study.meta,d.meta||{});Object.assign(study.dispense,d.dispense||{});['OD','OS'].forEach(k=>{if(d.eyes[k])study.eyes[k]=Object.assign(emptyEye(),d.eyes[k]);});
         // reset uid above existing marks
         let mx=0;['OD','OS'].forEach(k=>study.eyes[k].marks.forEach(m=>{const n=parseInt(String(m.id).replace(/\D/g,''))||0;if(n>mx)mx=n;}));uid=mx+1;
         return true;}
@@ -629,18 +770,45 @@
   function switchEye(v){
     eye=v;selectedId=null;
     document.querySelectorAll('#eyeSwitch button').forEach(b=>b.classList.toggle('active',b.dataset.eye===v));
-    $('eyeBadge').textContent=v;$('clinEye').textContent=v==='OD'?'right eye (OD)':'left eye (OS)';
+    $('eyeBadge').textContent=v;$('discBadge').textContent=v;
+    const long=v==='OD'?'right eye (OD)':'left eye (OS)';
+    document.querySelectorAll('.clinEye').forEach(el=>el.textContent=long);
+    document.querySelectorAll('.clinEye2,.clinEye3,.clinEye4,.clinEye5,.clinEye6').forEach(el=>el.textContent=v);
     $('discDia').value=E().discDiaMm;
-    applyEyeImage();writeClinical();fitToView();afterChange();
+    applyEyeImage();writeForm();fitToView();afterChange();
   }
 
-  // ---------- Clinical form ----------
-  document.querySelectorAll('.cl').forEach(el=>el.addEventListener('input',()=>{E().clinical[el.dataset.f]=el.value;save();}));
-  function writeClinical(){document.querySelectorAll('.cl').forEach(el=>{el.value=E().clinical[el.dataset.f]||'';});}
-  ['pId','pName','pDate'].forEach(id=>$(id).addEventListener('input',()=>{
-    study.meta.patientId=$('pId').value;study.meta.name=$('pName').value;study.meta.date=$('pDate').value;save();}));
+  // ---------- Data binding (meta / clinical / disp / dispense) ----------
+  function storeFor(el){const c=el.classList;
+    if(c.contains('mt'))return study.meta;
+    if(c.contains('gd'))return study.dispense;
+    if(c.contains('cl'))return E().clinical;
+    if(c.contains('dp'))return E().disp;
+    return null;}
+  document.querySelectorAll('.mt,.gd,.cl,.dp').forEach(el=>el.addEventListener('input',()=>{
+    const st=storeFor(el);if(st)st[el.dataset.f]=el.value;save();}));
+  function writeForm(){document.querySelectorAll('.mt,.gd,.cl,.dp').forEach(el=>{const st=storeFor(el);el.value=st?(st[el.dataset.f]||''):'';});}
+  const writeClinical=writeForm; // per-eye fields refresh on eye switch
   $('discDia').addEventListener('input',()=>{E().discDiaMm=parseFloat($('discDia').value)||1.5;computeMetrics();renderFindings();save();});
   $('lesionType').addEventListener('change',()=>{lesionType=$('lesionType').value;});
+
+  // ---------- Panel module tabs ----------
+  $('pmod').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;setMod(b.dataset.mod);});
+  function setMod(m){panelMod=m;
+    document.querySelectorAll('#pmod button').forEach(b=>b.classList.toggle('active',b.dataset.mod===m));
+    ['imaging','refraction','dispensing'].forEach(id=>$('mod-'+id).classList.toggle('hidden',id!==m));}
+
+  // ---------- PD from photo (optional estimate) ----------
+  function selectedRulerLen(){const m=getMark(selectedId);if(!m||m.kind!=='ruler')return null;return Math.hypot(m.x2-m.x1,m.y2-m.y1);}
+  $('pdSetScale').addEventListener('click',()=>{
+    const len=selectedRulerLen();if(!len){toast('Select a ruler across the card first');return;}
+    const ref=parseFloat($('pdRefMm').value)||85.6;pdPhotoScale=ref/len;
+    $('pdPhotoState').textContent='Scale: '+pdPhotoScale.toFixed(4)+' mm/px';toast('Photo scale set');});
+  $('pdSetPd').addEventListener('click',()=>{
+    if(!pdPhotoScale){toast('Set the reference scale first (step 1)');return;}
+    const len=selectedRulerLen();if(!len){toast('Select a pupil-to-pupil ruler');return;}
+    const pd=(len*pdPhotoScale).toFixed(1);study.dispense.pdDist=pd;
+    document.querySelector('.gd[data-f="pdDist"]').value=pd;save();toast('PD ≈ '+pd+' mm (verify manually)');});
 
   // ---------- Load / sample ----------
   function pickFile(){$('fileInput').click();}
@@ -652,32 +820,71 @@
   ['dragover','drop'].forEach(ev=>viewport.addEventListener(ev,e=>e.preventDefault()));
   viewport.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/')){const r=new FileReader();r.onload=()=>setImage(r.result);r.readAsDataURL(f);}});
 
+  // Synthetic but reasonably realistic fundus: retinal glow, arcade vessels
+  // curving around the macula, an optic disc with a central cup, and a few
+  // scattered lesions to practice on. OD mirrors OS (disc on temporal side).
   function makeSampleFundus(which){
-    const S=900,cv=document.createElement('canvas');cv.width=S;cv.height=S;const x=cv.getContext('2d');
+    const S=1000,cv=document.createElement('canvas');cv.width=S;cv.height=S;const x=cv.getContext('2d');
+    const cx=S/2,cy=S/2,R=S/2-8,OD=which==='OD';
     x.fillStyle='#000';x.fillRect(0,0,S,S);
-    // fundus disc
-    const g=x.createRadialGradient(S/2,S/2,60,S/2,S/2,S/2);
-    g.addColorStop(0,'#c4622a');g.addColorStop(.55,'#9c3f14');g.addColorStop(1,'#3a1405');
-    x.beginPath();x.arc(S/2,S/2,S/2-20,0,7);x.fillStyle=g;x.fill();
-    const discX=which==='OD'?S*0.70:S*0.30, discY=S*0.46, foveaX=which==='OD'?S*0.40:S*0.60, foveaY=S*0.50;
-    // vessels
-    x.strokeStyle='rgba(120,20,10,.75)';x.lineWidth=7;
-    for(let i=0;i<7;i++){const a=(i/7)*Math.PI*2;x.beginPath();x.moveTo(discX,discY);
-      x.bezierCurveTo(discX+Math.cos(a)*120,discY+Math.sin(a)*120, foveaX+Math.cos(a)*80,foveaY+Math.sin(a)*90, S/2+Math.cos(a)*320,S/2+Math.sin(a)*320);x.stroke();}
-    // optic disc
-    const dg=x.createRadialGradient(discX,discY,4,discX,discY,70);
-    dg.addColorStop(0,'#ffe9b0');dg.addColorStop(.5,'#f0c060');dg.addColorStop(1,'#d89a2a');
-    x.beginPath();x.ellipse(discX,discY,64,72,0,0,7);x.fillStyle=dg;x.fill();
-    // cup
-    x.beginPath();x.ellipse(discX+4,discY,26,32,0,0,7);x.fillStyle='#fff6e0';x.fill();
-    // fovea
-    const fg=x.createRadialGradient(foveaX,foveaY,2,foveaX,foveaY,55);
-    fg.addColorStop(0,'#5c1e08');fg.addColorStop(1,'rgba(120,50,20,0)');
-    x.beginPath();x.arc(foveaX,foveaY,55,0,7);x.fillStyle=fg;x.fill();
-    // a few lesions
-    for(let i=0;i<9;i++){const a=Math.PI*2*i/9,rr=140+((i*53)%120);x.beginPath();
-      x.arc(S/2+Math.cos(a)*rr,S/2+Math.sin(a)*rr,4+((i*7)%5),0,7);x.fillStyle=i%2?'#7a0f08':'#ffe07a';x.fill();}
-    return cv.toDataURL('image/jpeg',0.9);
+    x.save();x.beginPath();x.arc(cx,cy,R,0,7);x.clip();
+
+    // base retinal gradient
+    const g=x.createRadialGradient(cx,cy*0.92,70,cx,cy,R*1.05);
+    g.addColorStop(0,'#d97c39');g.addColorStop(.5,'#bc5c1f');g.addColorStop(.82,'#8c3e12');g.addColorStop(1,'#571f07');
+    x.fillStyle=g;x.fillRect(0,0,S,S);
+    // choroidal mottling (golden-angle scatter, deterministic)
+    for(let i=0;i<300;i++){const a=i*2.39996,rr=Math.sqrt(i/300)*R;const px=cx+Math.cos(a)*rr,py=cy+Math.sin(a)*rr,rad=7+((i*13)%20);
+      const mg=x.createRadialGradient(px,py,0,px,py,rad);mg.addColorStop(0,'rgba(150,72,26,0.09)');mg.addColorStop(1,'rgba(150,72,26,0)');
+      x.fillStyle=mg;x.beginPath();x.arc(px,py,rad,0,7);x.fill();}
+
+    const discX=OD?cx+R*0.42:cx-R*0.42,discY=cy-R*0.03;
+    const macX=OD?cx-R*0.14:cx+R*0.14,macY=cy+R*0.02;
+    const dir=OD?-1:1; // temporal direction (toward macula)
+    const artery='rgba(184,36,22,0.9)',vein='rgba(122,16,12,0.95)';
+    function vessel(pts,w,color){x.strokeStyle=color;x.lineWidth=w;x.lineCap='round';x.lineJoin='round';
+      x.beginPath();x.moveTo(pts[0][0],pts[0][1]);
+      for(let i=1;i<pts.length-1;i++){const mx=(pts[i][0]+pts[i+1][0])/2,my=(pts[i][1]+pts[i+1][1])/2;x.quadraticCurveTo(pts[i][0],pts[i][1],mx,my);}
+      x.lineTo(pts[pts.length-1][0],pts[pts.length-1][1]);x.stroke();}
+    // superior & inferior temporal arcades sweeping around the macula
+    function arcade(sign){
+      const p=[[discX,discY+sign*18],
+        [discX+dir*R*0.12,discY+sign*R*0.17],
+        [macX+dir*R*0.06,macY+sign*R*0.30],
+        [macX-dir*R*0.26,macY+sign*R*0.22],
+        [macX-dir*R*0.56,macY+sign*R*0.08]];
+      vessel(p,11,vein);vessel(p.map(q=>[q[0],q[1]-3]),6.5,artery);
+      for(let b=1;b<p.length-1;b++){const q=p[b];vessel([q,[q[0]+dir*38,q[1]+sign*46],[q[0]+dir*R*0.03*b,q[1]+sign*R*0.15]],4,vein);}
+    }
+    arcade(-1);arcade(1);
+    // nasal vessels (away from macula)
+    for(let i=0;i<5;i++){const a=-Math.PI/2+(i-2)*0.42,ex=discX-dir*Math.cos(a)*R*0.5,ey=discY+Math.sin(a)*R*0.5;
+      vessel([[discX,discY],[discX-dir*Math.cos(a)*R*0.18,discY+Math.sin(a)*R*0.2],[ex,ey]],3.6,i%2?artery:vein);}
+
+    // optic disc (slightly vertically-oval) with neuroretinal rim + cup
+    const dR=R*0.115;
+    const dg=x.createRadialGradient(discX,discY,dR*0.2,discX,discY,dR*1.1);
+    dg.addColorStop(0,'#ffe0a0');dg.addColorStop(.6,'#f2ba60');dg.addColorStop(1,'#cf9036');
+    x.fillStyle=dg;x.beginPath();x.ellipse(discX,discY,dR*0.9,dR,0,0,7);x.fill();
+    const cupR=dR*0.42,cg=x.createRadialGradient(discX,discY,0,discX,discY,cupR);
+    cg.addColorStop(0,'#fdf7e8');cg.addColorStop(1,'#f6e2b2');x.fillStyle=cg;x.beginPath();x.ellipse(discX,discY,cupR*0.88,cupR,0,0,7);x.fill();
+
+    // macula darkening with foveal reflex
+    const mg2=x.createRadialGradient(macX,macY,2,macX,macY,R*0.17);
+    mg2.addColorStop(0,'rgba(70,24,8,0.72)');mg2.addColorStop(.7,'rgba(92,38,14,0.22)');mg2.addColorStop(1,'rgba(120,50,20,0)');
+    x.fillStyle=mg2;x.beginPath();x.arc(macX,macY,R*0.17,0,7);x.fill();
+    x.fillStyle='rgba(255,242,204,0.55)';x.beginPath();x.arc(macX-2,macY-2,3,0,7);x.fill();
+
+    // a few scattered lesions (dots / drusen) to annotate
+    for(let i=0;i<8;i++){const a=i*2.4,rr=R*0.34+((i*67)%Math.floor(R*0.42));const px=cx+Math.cos(a)*rr,py=cy+Math.sin(a)*rr;
+      x.fillStyle=i%3?'rgba(140,12,8,0.85)':'rgba(255,226,150,0.85)';x.beginPath();x.arc(px,py,3+((i*5)%3),0,7);x.fill();}
+    x.restore();
+
+    // peripheral vignette
+    const vg=x.createRadialGradient(cx,cy,R*0.72,cx,cy,R);
+    vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,0.55)');
+    x.fillStyle=vg;x.beginPath();x.arc(cx,cy,R,0,7);x.fill();
+    return cv.toDataURL('image/jpeg',0.92);
   }
 
   // ---------- Zoom buttons ----------
@@ -694,12 +901,12 @@
   function download(name,blob){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
 
   $('exportJson').addEventListener('click',()=>{
-    const out={app:'Carino-Ophthalmology',version:1,exported:new Date().toISOString(),meta:study.meta,
+    const out={app:'Carino-Retina',version:2,exported:new Date().toISOString(),meta:study.meta,dispense:study.dispense,
       eyes:{OD:eyeExport('OD'),OS:eyeExport('OS')}};
-    download('ophtha_'+(study.meta.patientId||'study')+'.json',new Blob([JSON.stringify(out,null,2)],{type:'application/json'}));
+    download('retina_'+(study.meta.patientId||'study')+'.json',new Blob([JSON.stringify(out,null,2)],{type:'application/json'}));
     toast('JSON exported');
   });
-  function eyeExport(k){const e=study.eyes[k];return{discDiaMm:e.discDiaMm,imageSize:{w:e.w,h:e.h},clinical:e.clinical,
+  function eyeExport(k){const e=study.eyes[k];return{discDiaMm:e.discDiaMm,imageSize:{w:e.w,h:e.h},clinical:e.clinical,disp:e.disp,
     metrics:metricsFor(k),marks:e.marks.map(m=>({...m}))};}
   function metricsFor(k){const e=study.eyes[k];const disc=e.marks.find(m=>m.kind==='disc'),cup=e.marks.find(m=>m.kind==='cup');
     const dc=e.marks.find(m=>m.kind==='disc-center'),fov=e.marks.find(m=>m.kind==='fovea-center');
@@ -712,10 +919,9 @@
   $('importJson').addEventListener('click',()=>$('jsonInput').click());
   $('jsonInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
     r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.eyes)throw 0;
-      Object.assign(study.meta,d.meta||{});
+      Object.assign(study.meta,d.meta||{});Object.assign(study.dispense,d.dispense||{});
       ['OD','OS'].forEach(k=>{if(d.eyes[k]){const src=d.eyes[k];const tgt=study.eyes[k];tgt.discDiaMm=src.discDiaMm||1.5;
-        tgt.clinical=src.clinical||{};tgt.marks=(src.marks||[]).map(m=>({...m}));if(src.imageSize){tgt.w=src.imageSize.w;tgt.h=src.imageSize.h;}}});
-      $('pId').value=study.meta.patientId||'';$('pName').value=study.meta.name||'';$('pDate').value=study.meta.date||'';
+        tgt.clinical=src.clinical||{};tgt.disp=src.disp||{};tgt.marks=(src.marks||[]).map(m=>({...m}));if(src.imageSize){tgt.w=src.imageSize.w;tgt.h=src.imageSize.h;}}});
       switchEye('OD');toast('JSON loaded (re-attach image if needed)');save();
     }catch(err){toast('Invalid JSON file');}};r.readAsText(f);e.target.value='';});
 
@@ -767,84 +973,133 @@
     });
   }
 
-  // ---------- Full study PDF ----------
-  async function generateStudyPdf(){
+  // ---------- Shared PDF builder ----------
+  async function newPdf(title){
     if(typeof PDFLib==='undefined')throw new Error('PDF library not loaded');
     const {PDFDocument,StandardFonts,rgb}=PDFLib;
-    const pngs={OD:await renderEyePngBytes('OD'),OS:await renderEyePngBytes('OS')};
     const doc=await PDFDocument.create();
-    doc.setTitle('Ophthalmology report — '+(study.meta.patientId||''));
-    doc.setProducer('Carino Ophthalmology');doc.setCreator('Carino Ophthalmology');
+    doc.setTitle(title);doc.setProducer('Carino Retina');doc.setCreator('Carino Retina');
     const font=await doc.embedFont(StandardFonts.Helvetica);
     const fontB=await doc.embedFont(StandardFonts.HelveticaBold);
-    const W=595.28,H=841.89,M=48, CW=W-2*M;
-    const gold=rgb(0.72,0.53,0.04),dark=rgb(0.10,0.10,0.10),grey=rgb(0.42,0.42,0.42),lineC=rgb(0.80,0.80,0.80),warn=rgb(0.82,0.38,0.06),err=rgb(0.86,0.15,0.15),ok=rgb(0.15,0.55,0.25);
-    let page,y;
+    const W=595.28,H=841.89,M=48,CW=W-2*M;
+    const C={gold:rgb(0.72,0.53,0.04),dark:rgb(0.10,0.10,0.10),grey:rgb(0.42,0.42,0.42),line:rgb(0.80,0.80,0.80),warn:rgb(0.82,0.38,0.06),err:rgb(0.86,0.15,0.15),ok:rgb(0.15,0.55,0.25)};
+    const st={page:null,y:0};
     // Standard (WinAnsi) fonts can't encode arbitrary Unicode — fold to a safe subset.
     function clean(s){return String(s==null?'':s)
-      .replace(/[µΜμ]/g,'u')       // micro / Greek mu -> u
-      .replace(/[–—−]/g,'-')        // dashes / minus
+      .replace(/[µΜμ]/g,'u').replace(/[–—−]/g,'-')
       .replace(/[‘’‚]/g,"'").replace(/[“”„]/g,'"')
       .replace(/[•·]/g,'-').replace(/×/g,'x')
-      .replace(/[^\x20-\x7E\xA0-\xFF]/g,'');}      // keep printable ASCII + Latin-1
-    function newPage(){page=doc.addPage([W,H]);y=H-M;}
-    function ensure(h){if(y-h<M)newPage();}
-    function line(txt,o){o=o||{};const size=o.size||10,gap=o.gap||(size+4);ensure(gap);page.drawText(clean(txt),{x:o.x||M,y:y-size,size,font:o.bold?fontB:font,color:o.color||dark});if(!o.inline)y-=gap;}
-    function hr(){ensure(8);page.drawLine({start:{x:M,y},end:{x:W-M,y},thickness:0.5,color:lineC});y-=10;}
-    function kvRow(pairs){ // [[k,v],...] two columns
-      ensure(15);const colW=CW/2;
+      .replace(/[^\x20-\x7E\xA0-\xFF]/g,'');}
+    function newPage(){st.page=doc.addPage([W,H]);st.y=H-M;}
+    function ensure(h){if(st.y-h<M)newPage();}
+    function line(txt,o){o=o||{};const size=o.size||10,gap=o.gap||(size+4);ensure(gap);st.page.drawText(clean(txt),{x:o.x||M,y:st.y-size,size,font:o.bold?fontB:font,color:o.color||C.dark});if(!o.inline)st.y-=gap;}
+    function hr(){ensure(8);st.page.drawLine({start:{x:M,y:st.y},end:{x:W-M,y:st.y},thickness:0.5,color:C.line});st.y-=10;}
+    function sub(t){ensure(16);line(t,{size:8,bold:true,color:C.grey,gap:14});}
+    function kvRow(pairs){ensure(15);const colW=CW/2;
       pairs.forEach((p,i)=>{const col=i%2,x=M+col*colW;
-        page.drawText(clean(p[0]).toUpperCase(),{x,y:y-8,size:6.5,font:fontB,color:grey});
-        page.drawText(clean(p[1]==null||p[1]===''?'—':p[1]),{x,y:y-17,size:9.5,font,color:p[2]||dark});
-        if(col===1||i===pairs.length-1)y-=26;});
-    }
-    newPage();
-    // Header band
-    page.drawRectangle({x:0,y:H-8,width:W,height:8,color:gold});
-    line('Ophthalmology Report',{size:20,bold:true,color:gold,gap:24});
-    const now=new Date();
-    line('Carino Ophthalmology · generated '+now.toLocaleString(),{size:8.5,color:grey,gap:16});
-    hr();
-    kvRow([['Patient ID',study.meta.patientId],['Name / initials',study.meta.name],['Exam date',study.meta.date],['Report date',now.toISOString().slice(0,10)]]);
-    y-=6;
-
-    for(const key of ['OD','OS']){
-      const e=study.eyes[key],c=e.clinical||{},mt=metricsFor(key);
-      const hasData=e.marks.length||pngs[key]||Object.keys(c).some(k=>c[k]);
-      if(!hasData)continue;
-      ensure(30);hr();
-      line(key==='OD'?'Right eye  (OD)':'Left eye  (OS)',{size:14,bold:true,color:dark,gap:20});
-      if(pngs[key]){
-        const png=await doc.embedPng(pngs[key].bytes);
-        const s=Math.min(CW/png.width,250/png.height),w=png.width*s,h=png.height*s;
-        ensure(h+8);page.drawImage(png,{x:M+(CW-w)/2,y:y-h,width:w,height:h});
-        page.drawRectangle({x:M+(CW-w)/2,y:y-h,width:w,height:h,borderColor:lineC,borderWidth:0.5});
-        y-=h+12;
-      }
-      const cdrCol=v=>v==null?dark:(v>=0.7?err:(v>=0.6?warn:ok));
-      kvRow([['Vertical CDR',mt.verticalCDR,cdrCol(mt.verticalCDR)],['Horizontal CDR',mt.horizontalCDR,cdrCol(mt.horizontalCDR)],
-             ['Disc–fovea (mm)',mt.discFoveaDistMm],['Calibration (mm/px)',mt.mmPerPx]]);
-      kvRow([['VA uncorrected',c.vaUC],['VA corrected',c.vaCC],['IOP (mmHg)',c.iop],['Pachymetry (µm)',c.pachy]]);
-      kvRow([['Refraction',[c.sph,c.cyl,c.axis].filter(Boolean).join('  ')||''],['Add',c.add],['Lens status',c.lens],['Diagnosis',c.dx]]);
-      const les=e.marks.filter(m=>m.kind==='lesion');
-      if(les.length){
-        line('Findings',{size:8,bold:true,color:grey,gap:14});
-        les.forEach(l=>line('•  '+(l.ltype||'Lesion')+(l.note?'  — '+l.note:''),{size:9.5,x:M+8,gap:13}));
-      }
-      const rulers=e.marks.filter(m=>m.kind==='ruler');
-      if(rulers.length){
-        line('Measurements',{size:8,bold:true,color:grey,gap:14});
-        rulers.forEach(r=>{const s=(e.marks.find(m=>m.kind==='disc')&&e.marks.find(m=>m.kind==='disc').ry)?e.discDiaMm/(2*e.marks.find(m=>m.kind==='disc').ry):null;const d=Math.hypot(r.x2-r.x1,r.y2-r.y1);line('•  '+(s?(d*s).toFixed(2)+' mm':Math.round(d)+' px'),{size:9.5,x:M+8,gap:13});});
-      }
-      if(c.notes){line('Notes',{size:8,bold:true,color:grey,gap:14});wrapText(clean(c.notes),CW-8,9.5,font).forEach(ln=>line(ln,{size:9.5,x:M+8,gap:12}));}
-    }
-    // footer note
-    ensure(24);hr();line('Documentation / annotation aid — not a diagnostic device.',{size:7.5,color:grey,gap:10});
-    return await doc.save();
-
-    function wrapText(str,maxW,size,f){const words=String(str).split(/\s+/),lines=[];let cur='';
-      words.forEach(w=>{const t=cur?cur+' '+w:w;if(f.widthOfTextAtSize(t,size)>maxW&&cur){lines.push(cur);cur=w;}else cur=t;});
+        st.page.drawText(clean(p[0]).toUpperCase(),{x,y:st.y-8,size:6.5,font:fontB,color:C.grey});
+        st.page.drawText(clean(p[1]==null||p[1]===''?'—':p[1]),{x,y:st.y-17,size:9.5,font,color:p[2]||C.dark});
+        if(col===1||i===pairs.length-1)st.y-=26;});}
+    function wrapText(str,maxW,size){const words=String(str).split(/\s+/),lines=[];let cur='';
+      words.forEach(w=>{const t=cur?cur+' '+w:w;if(font.widthOfTextAtSize(t,size)>maxW&&cur){lines.push(cur);cur=w;}else cur=t;});
       if(cur)lines.push(cur);return lines;}
+    async function image(bytes,maxH){const png=await doc.embedPng(bytes);const s=Math.min(CW/png.width,(maxH||250)/png.height),w=png.width*s,h=png.height*s;
+      ensure(h+8);st.page.drawImage(png,{x:M+(CW-w)/2,y:st.y-h,width:w,height:h});
+      st.page.drawRectangle({x:M+(CW-w)/2,y:st.y-h,width:w,height:h,borderColor:C.line,borderWidth:0.5});st.y-=h+12;}
+    function header(t,sub2){newPage();st.page.drawRectangle({x:0,y:H-8,width:W,height:8,color:C.gold});
+      line(t,{size:20,bold:true,color:C.gold,gap:24});line('Carino Retina · '+sub2,{size:8.5,color:C.grey,gap:16});hr();}
+    return {doc,C,W,H,M,CW,font,fontB,clean,newPage,ensure,line,hr,sub,kvRow,wrapText,image,header,
+      page:()=>st.page,get y(){return st.y},set y(v){st.y=v}};
+  }
+
+  // Prescription table (OD/OS rows × sph/cyl/axis/add/prism/base)
+  function drawRxTable(P){
+    const cols=['Eye','Sph','Cyl','Axis','Add','Prism','Base'],cw=P.CW/cols.length,rowH=22;
+    P.ensure(rowH*3+8);const top=P.y,pg=P.page();
+    cols.forEach((h,i)=>pg.drawText(h.toUpperCase(),{x:P.M+i*cw+4,y:top-13,size:7,font:P.fontB,color:P.C.grey}));
+    P.y-=rowH;
+    ['OD','OS'].forEach(k=>{const c=study.eyes[k].clinical||{},dp=study.eyes[k].disp||{};
+      const vals=[k,c.sph,c.cyl,c.axis,c.add,dp.prism,dp.base],yy=P.y;
+      vals.forEach((v,i)=>pg.drawText(P.clean(v==null||v===''?'—':String(v)),{x:P.M+i*cw+4,y:yy-13,size:9,font:i===0?P.fontB:P.font,color:P.C.dark}));
+      P.y-=rowH;});
+    [top,top-rowH,P.y].forEach(yy=>pg.drawLine({start:{x:P.M,y:yy},end:{x:P.M+P.CW,y:yy},thickness:0.5,color:P.C.line}));
+    P.y-=8;
+  }
+
+  // ---------- Full study PDF ----------
+  async function generateStudyPdf(){
+    const P=await newPdf('Retina exam — '+(study.meta.patientId||''));
+    const now=new Date(),m=study.meta;
+    P.header('Eye Examination Report','generated '+now.toLocaleString());
+    P.kvRow([['Patient ID',m.patientId],['Name / initials',m.name],['Date of birth',m.dob],['Exam date',m.date]]);
+    P.kvRow([['Provider / clinic',m.provider],['Chief complaint',m.complaint],['Report date',now.toISOString().slice(0,10)],['','']]);
+    P.y-=4;
+    const cdrCol=v=>v==null?P.C.dark:(v>=0.7?P.C.err:(v>=0.6?P.C.warn:P.C.ok));
+    for(const key of ['OD','OS']){
+      const e=study.eyes[key],c=e.clinical||{},dp=e.disp||{},mt=metricsFor(key);
+      const hasData=e.marks.length||e.img||Object.keys(c).some(k=>c[k])||Object.keys(dp).some(k=>dp[k]);
+      if(!hasData)continue;
+      P.ensure(30);P.hr();
+      P.line(key==='OD'?'Right eye  (OD)':'Left eye  (OS)',{size:14,bold:true,gap:20});
+      if(e.img){const png=await renderEyePngBytes(key);if(png)await P.image(png.bytes,250);}
+      P.sub('Refraction & acuity');
+      P.kvRow([['VA distance UC',c.vaUC],['VA distance CC',c.vaCC],['VA near',c.vaNear],['Autorefraction',[c.arSph,c.arCyl,c.arAxis].filter(Boolean).join('  ')]]);
+      P.kvRow([['Final Rx',[c.sph,c.cyl,c.axis].filter(Boolean).join('  ')],['Add',c.add],['Keratometry',[c.k1,c.k2].filter(Boolean).join(' / ')+(c.kAxis?' @'+c.kAxis:'')],['Lens status',c.lens]]);
+      if(mt.verticalCDR!=null||mt.mmPerPx!=null){
+        P.sub('Optic disc');
+        P.kvRow([['Vertical CDR',mt.verticalCDR,cdrCol(mt.verticalCDR)],['Horizontal CDR',mt.horizontalCDR,cdrCol(mt.horizontalCDR)],['Disc-fovea (mm)',mt.discFoveaDistMm],['Calibration (mm/px)',mt.mmPerPx]]);
+      }
+      P.kvRow([['IOP (mmHg)',c.iop],['Pachymetry (um)',c.pachy],['Diagnosis',c.dx],['','']]);
+      if(Object.keys(dp).some(k=>dp[k])){
+        P.sub('Dispensing (this eye)');
+        P.kvRow([['Mono PD dist',dp.pdMonoDist],['Mono PD near',dp.pdMonoNear],['Prism',[dp.prism,dp.base].filter(Boolean).join(' ')],['Seg / OC height',[dp.segHt,dp.fitHt].filter(Boolean).join(' / ')]]);
+        if(dp.clBrand||dp.clBC||dp.clPower)P.kvRow([['CL brand',dp.clBrand],['CL BC / DIA',[dp.clBC,dp.clDia].filter(Boolean).join(' / ')],['CL power',dp.clPower],['','']]);
+      }
+      const les=e.marks.filter(x=>x.kind==='lesion');
+      if(les.length){P.sub('Findings');les.forEach(l=>P.line('- '+(l.ltype||'Lesion')+(l.note?'  — '+l.note:''),{size:9.5,x:P.M+8,gap:13}));}
+      if(c.notes){P.sub('Notes');P.wrapText(c.notes,P.CW-8,9.5).forEach(ln=>P.line(ln,{size:9.5,x:P.M+8,gap:12}));}
+    }
+    const g=study.dispense;
+    if(Object.keys(g).some(k=>g[k])){
+      P.ensure(30);P.hr();P.line('Dispensing summary (binocular)',{size:14,bold:true,gap:20});
+      P.kvRow([['PD distance',g.pdDist],['PD near',g.pdNear],['Lens type',g.lensType],['Material',g.material]]);
+      P.kvRow([['Coatings',g.coatings],['Tint',g.tint],['Frame A / B',[g.frameA,g.frameB].filter(Boolean).join(' / ')],['DBL / ED',[g.frameDBL,g.frameED].filter(Boolean).join(' / ')]]);
+      P.kvRow([['Panto (deg)',g.panto],['Vertex (mm)',g.vertex],['Wrap (deg)',g.wrap],['','']]);
+    }
+    P.ensure(24);P.hr();P.line('Documentation / annotation aid — not a diagnostic device.',{size:7.5,color:P.C.grey,gap:10});
+    return await P.doc.save();
+  }
+
+  // ---------- Spectacle prescription PDF ----------
+  async function generateRxPdf(){
+    const P=await newPdf('Spectacle Rx — '+(study.meta.patientId||''));
+    const now=new Date(),m=study.meta,g=study.dispense;
+    P.header('Spectacle Prescription','issued '+now.toLocaleDateString());
+    P.kvRow([['Patient',m.name||m.patientId||''],['Patient ID',m.patientId],['Date of birth',m.dob],['Date',m.date||now.toISOString().slice(0,10)]]);
+    P.y-=4;P.sub('Prescription');drawRxTable(P);
+    P.kvRow([['PD distance',g.pdDist],['PD near',g.pdNear],['Lens type',g.lensType],['Material',g.material]]);
+    P.y-=14;
+    P.line('Prescriber:  '+(m.provider||'____________________________'),{size:10,gap:26});
+    P.line('Signature:  ____________________     Date:  '+(m.date||now.toISOString().slice(0,10)),{size:10,gap:20});
+    P.ensure(24);P.hr();P.line('Generated by Carino Retina — verify before dispensing; not a substitute for a signed clinical prescription.',{size:7.5,color:P.C.grey,gap:10});
+    return await P.doc.save();
+  }
+
+  // ---------- Lens / lab order PDF ----------
+  async function generateOrderPdf(){
+    const P=await newPdf('Lens order — '+(study.meta.patientId||''));
+    const now=new Date(),m=study.meta,g=study.dispense,dOD=study.eyes.OD.disp||{},dOS=study.eyes.OS.disp||{};
+    P.header('Lens / Lab Order','created '+now.toLocaleString());
+    P.kvRow([['Patient',m.name||m.patientId||''],['Patient ID',m.patientId],['Provider',m.provider],['Date',m.date||now.toISOString().slice(0,10)]]);
+    P.y-=4;P.sub('Prescription');drawRxTable(P);
+    P.sub('Lens');
+    P.kvRow([['Lens type',g.lensType],['Material',g.material],['Coatings',g.coatings],['Tint',g.tint]]);
+    P.sub('Interpupillary distance');
+    P.kvRow([['PD distance',g.pdDist],['PD near',g.pdNear],['Mono OD (d/n)',[dOD.pdMonoDist,dOD.pdMonoNear].filter(Boolean).join(' / ')],['Mono OS (d/n)',[dOS.pdMonoDist,dOS.pdMonoNear].filter(Boolean).join(' / ')]]);
+    P.sub('Frame (boxing) & fitting');
+    P.kvRow([['A / B',[g.frameA,g.frameB].filter(Boolean).join(' / ')],['DBL / ED',[g.frameDBL,g.frameED].filter(Boolean).join(' / ')],['Panto/Vertex/Wrap',[g.panto,g.vertex,g.wrap].filter(Boolean).join(' / ')],['Seg OD/OS',[dOD.segHt,dOS.segHt].filter(Boolean).join(' / ')]]);
+    P.ensure(24);P.hr();P.line('Generated by Carino Retina — confirm all measurements before ordering.',{size:7.5,color:P.C.grey,gap:10});
+    return await P.doc.save();
   }
 
   // ---------- Whole study → DICOM (Encapsulated PDF, Explicit VR LE) ----------
@@ -887,7 +1142,7 @@
       el(0x0008,0x0064,'CS',S('WSD')),
       el(0x0008,0x0070,'LO',S('Carino Systems')),
       el(0x0008,0x0090,'PN',S('')),
-      el(0x0008,0x103E,'LO',S('Ophthalmology report')),
+      el(0x0008,0x103E,'LO',S('Eye examination report')),
       el(0x0010,0x0010,'PN',S(patName)),
       el(0x0010,0x0020,'LO',S(patID)),
       el(0x0010,0x0030,'DA',S('')),
@@ -897,7 +1152,7 @@
       el(0x0020,0x0010,'SH',S('1')),
       el(0x0020,0x0011,'IS',S('1')),
       el(0x0020,0x0013,'IS',S('1')),
-      el(0x0042,0x0010,'ST',S('Ophthalmology Report')),
+      el(0x0042,0x0010,'ST',S('Eye Examination Report')),
       el(0x0042,0x0011,'OB',OB(pdfBytes)),
       el(0x0042,0x0012,'LO',S('application/pdf'))
     ]);
@@ -909,7 +1164,7 @@
       el(0x0002,0x0003,'UI',S(sopInst,true)),
       el(0x0002,0x0010,'UI',S(tsUID,true)),
       el(0x0002,0x0012,'UI',S(UID_ROOT+'.1',true)),
-      el(0x0002,0x0013,'SH',S('CARINO_OPHTHA'))
+      el(0x0002,0x0013,'SH',S('CARINO_RETINA'))
     ]);
     const groupLen=el(0x0002,0x0000,'UL',u32(metaEls.length));
     const preamble=new Uint8Array(128); // zeros
@@ -917,24 +1172,40 @@
     return concat([preamble,dicm,groupLen,metaEls,ds]);
   }
 
+  // A study is exportable if it has an image, marks, or any typed clinical / dispensing data.
+  function studyHasContent(){
+    const g=study.dispense;if(Object.keys(g).some(k=>g[k]))return true;
+    return ['OD','OS'].some(k=>{const e=study.eyes[k];
+      return e.img||e.marks.length||Object.keys(e.clinical).some(x=>e.clinical[x])||Object.keys(e.disp).some(x=>e.disp[x]);});
+  }
+  const fname=(suffix,ext)=>'retina_'+(study.meta.patientId||'study')+(suffix?'_'+suffix:'')+'.'+ext;
+  async function runExport(label,fn){
+    if(!studyHasContent()){toast('Nothing to export yet — add data or an image');return null;}
+    toast('Building '+label+'…');
+    try{return await fn();}catch(err){console.error(err);toast(label+' failed: '+err.message);return null;}
+  }
   $('exportPdf').addEventListener('click',async()=>{
-    if(!study.eyes.OD.img&&!study.eyes.OS.img){toast('Load an image first');return;}
-    try{toast('Building PDF…');const bytes=await generateStudyPdf();
-      download('ophtha_'+(study.meta.patientId||'study')+'.pdf',new Blob([bytes],{type:'application/pdf'}));toast('PDF exported');}
-    catch(err){console.error(err);toast('PDF failed: '+err.message);}
+    const bytes=await runExport('PDF',generateStudyPdf);if(!bytes)return;
+    download(fname('',/*ext*/'pdf'),new Blob([bytes],{type:'application/pdf'}));toast('Study PDF exported');
   });
   $('exportDcm').addEventListener('click',async()=>{
-    if(!study.eyes.OD.img&&!study.eyes.OS.img){toast('Load an image first');return;}
-    try{toast('Building DICOM…');const pdf=await generateStudyPdf();
-      const dcm=dicomEncapsulatedPdf(pdf,study.meta);
-      download('ophtha_'+(study.meta.patientId||'study')+'.dcm',new Blob([dcm],{type:'application/dicom'}));toast('DICOM (Encapsulated PDF) exported');}
-    catch(err){console.error(err);toast('DICOM failed: '+err.message);}
+    const pdf=await runExport('DICOM',generateStudyPdf);if(!pdf)return;
+    const dcm=dicomEncapsulatedPdf(pdf,study.meta);
+    download(fname('','dcm'),new Blob([dcm],{type:'application/dicom'}));toast('DICOM (Encapsulated PDF) exported');
+  });
+  $('exportRx').addEventListener('click',async()=>{
+    const bytes=await runExport('Rx',generateRxPdf);if(!bytes)return;
+    download(fname('Rx','pdf'),new Blob([bytes],{type:'application/pdf'}));toast('Spectacle Rx exported');
+  });
+  $('exportOrder').addEventListener('click',async()=>{
+    const bytes=await runExport('order',generateOrderPdf);if(!bytes)return;
+    download(fname('order','pdf'),new Blob([bytes],{type:'application/pdf'}));toast('Lens order exported');
   });
 
   // ---------- Print ----------
   $('printBtn').addEventListener('click',()=>{buildReport();window.print();});
   function buildReport(){
-    const m=study.meta;let h='<h1>Ophthalmology report</h1><div class="muted">Carino Ophthalmology · '+new Date().toLocaleString()+'</div>';
+    const m=study.meta;let h='<h1>Eye examination report</h1><div class="muted">Carino Retina · '+new Date().toLocaleString()+'</div>';
     h+='<table><tr><th>Patient ID</th><td>'+esc(m.patientId||'—')+'</td><th>Name</th><td>'+esc(m.name||'—')+'</td><th>Date</th><td>'+esc(m.date||'—')+'</td></tr></table>';
     ['OD','OS'].forEach(k=>{const e=study.eyes[k];const mt=metricsFor(k);const c=e.clinical;
       h+='<h3>'+(k==='OD'?'Right eye (OD)':'Left eye (OS)')+'</h3>';
@@ -952,17 +1223,16 @@
   // ---------- Boot ----------
   window.addEventListener('resize',()=>{if(E().img)applyTransform();});
   function boot(){
-    const had=restore();
-    $('pId').value=study.meta.patientId||'';$('pName').value=study.meta.name||'';$('pDate').value=study.meta.date||'';
-    if(!study.meta.date){$('pDate').value=new Date().toISOString().slice(0,10);study.meta.date=$('pDate').value;}
-    switchEye('OD');
+    restore();
+    if(!study.meta.date){study.meta.date=new Date().toISOString().slice(0,10);}
+    setMod('imaging');
+    switchEye('OD');      // switchEye → writeForm() populates all meta/clinical/disp/dispense fields
     setTool('select');
-    if(!E().img && !study.eyes.OS.img){ /* leave empty hint */ }
     computeMetrics();renderFindings();
   }
   boot();
   // expose a little for debugging/testing
-  window.__ophtha={study,setImage,makeSampleFundus,switchEye,setTool,E,metricsFor,generateStudyPdf,dicomEncapsulatedPdf,renderEyePngBytes};
+  window.__ophtha={study,setImage,makeSampleFundus,switchEye,setTool,setMod,E,metricsFor,generateStudyPdf,generateRxPdf,generateOrderPdf,dicomEncapsulatedPdf,renderEyePngBytes};
 })();
 </script>
 </body>
