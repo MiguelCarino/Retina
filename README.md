@@ -8,15 +8,20 @@ in the browser; **no image or data is ever uploaded**.
 Part of [Carino Systems](https://carino.systems). Live at **ophtha.carino.systems**.
 
 The suite is organised as an **encounter** with four workspaces you switch between from
-the left nav — **Imaging**, **Refraction**, **Dispensing** and **Tests**. The fundus
+the top navbar — **Imaging**, **Refraction**, **Dispensing** and **Tests**. The fundus
 canvas only appears in Imaging; the other workspaces use the full width in responsive
 columns, so refraction and dispensing show everything at a glance. The OD/OS eye switch is
 always available at the top of the panel. Imaging is entirely optional — you can refract
 and dispense without ever loading a photo.
 
 ## Imaging
+- **Floating tool overlay** — the annotation tools float over the fundus (out of the way),
+  with a **1-eye / 2-eye** toggle: 2-eye shows OD and OS side by side (annotated) for
+  comparison.
 - **Structure marking** — optic disc center, fovea center, optic disc margin and optic
   cup margin (draggable, resizable ellipses).
+- **Annotation tools** — arrow/pointer (with note), text label, and freehand outline for
+  irregular lesions, alongside lesion pins and the ruler.
 - **Auto metrics** — vertical & horizontal cup-to-disc ratio (colour-coded by glaucoma
   risk), disc diameter/area, disc–fovea distance and angle.
 - **Calibration** — set the assumed vertical disc diameter (default 1.5 mm); every
@@ -47,6 +52,10 @@ step 1° and wrap 1–180.
   coatings and tint.
 - **Frame** — boxing system A / B / DBL / ED, plus panto, vertex and wrap.
 - **Fitting** — segment / OC heights per eye.
+- **Lens layout / centration** — a live schematic of both lenses in the frame showing the
+  optical-center / fitting cross per eye (from PD, frame A/B/DBL and heights), the frame
+  midline and datum, and the horizontal decentration + fitting height — the centration
+  chart opticians use before edging.
 - **Contact lens** — brand, base curve, diameter, power per eye.
 
 ## Eye exam tests (Tests tab)
@@ -69,8 +78,9 @@ Launch patient-facing chart windows and drive them from the main screen:
   20/20 at your lane length.
 
 Open **Settings** (gear icon) to choose the display (same screen / second monitor / ask),
-run monitor detection, set the distance and units, calibrate true size, and enable mirror
-mode for mirrored exam rooms. Second-monitor placement uses the browser's window-management
+run monitor detection **and click a detected monitor to assign it as the chart screen**,
+set the distance and units, calibrate true size, and enable mirror mode for mirrored exam
+rooms. Second-monitor placement uses the browser's window-management
 permission; without it the window opens on the current screen (drag it over and press **F**
 for fullscreen).
 

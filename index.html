@@ -259,6 +259,48 @@
     .screen-item .pri{color:var(--accent)}
     .hint-line{font-size:.7rem;color:var(--text-muted);line-height:1.5;margin-top:6px}
 
+    /* ---------- Top nav (workspace sections) ---------- */
+    .topnav{display:flex;gap:3px;margin-left:8px;border-left:1px solid var(--border);padding-left:14px}
+    .topnav button{display:flex;align-items:center;gap:7px;background:transparent;border:1px solid transparent;border-radius:var(--r-sm);color:var(--text-muted);font-family:var(--font);font-size:.78rem;font-weight:600;padding:7px 12px;cursor:pointer;transition:.15s;white-space:nowrap}
+    .topnav button svg{width:16px;height:16px;flex-shrink:0}
+    .topnav button:hover{color:var(--text);background:var(--surface-hover)}
+    .topnav button.active{color:var(--accent);background:var(--accent-faint);border-color:var(--border-glow)}
+    @media (max-width:1150px){.topnav{padding-left:10px;margin-left:4px}}
+    @media (max-width:900px){.topnav button span{display:none}.topnav button{padding:7px 9px}}
+
+    /* ---------- Floating viewport tools ---------- */
+    .vp-tools{position:absolute;left:12px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;gap:5px;background:rgba(12,12,12,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid var(--border);border-radius:12px;padding:8px 6px;z-index:6;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+    .vp-tools .rail-sep{width:26px}
+    main:not([data-mode="imaging"]) .vp-tools{display:none!important}
+
+    /* Eye-view toggle (1 vs 2 eyes) */
+    .eye-view{display:flex;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden;pointer-events:auto}
+    .eye-view button{background:transparent;color:var(--text-muted);border:none;font-family:var(--mono);font-size:.68rem;font-weight:700;padding:7px 11px;cursor:pointer;transition:.15s;white-space:nowrap}
+    .eye-view button.active{background:var(--accent);color:#050505}
+    .eye-view button:not(.active):hover{color:var(--text);background:var(--surface-hover)}
+
+    /* Compare (both eyes) view */
+    #compare{position:absolute;inset:0;display:none;gap:2px;background:#000;z-index:1}
+    #compare.on{display:flex}
+    .cmp-pane{flex:1;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#050505}
+    .cmp-pane img{max-width:100%;max-height:100%;object-fit:contain}
+    .cmp-pane .cmp-tag{position:absolute;top:10px;left:10px;font-family:var(--mono);font-size:.7rem;font-weight:700;color:#050505;background:var(--accent);padding:3px 8px;border-radius:3px;z-index:2}
+    .cmp-pane .cmp-empty{color:var(--text-muted);font-size:.82rem;padding:20px;text-align:center}
+
+    /* Date inputs — visible picker on dark theme */
+    input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.85);opacity:.7;cursor:pointer}
+    input[type=date]::-webkit-calendar-picker-indicator:hover{opacity:1}
+
+    /* Lens centration layout */
+    .lens-layout{background:#0a0a0a;border:1px solid var(--border);border-radius:var(--r-md);padding:10px;margin-top:6px}
+    .lens-layout svg{width:100%;height:auto;display:block}
+    .lens-note{font-family:var(--mono);font-size:.58rem;color:var(--text-muted);margin-top:6px;line-height:1.5}
+
+    /* Monitor selection */
+    .screen-item{cursor:pointer}
+    .screen-item.sel{border-color:var(--accent);background:var(--accent-faint)}
+    .screen-item .use{font-family:var(--mono);font-size:.58rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+
     /* ---------- Print report ---------- */
     #printReport{display:none}
     @media print{
@@ -281,8 +323,17 @@
       <div class="header-clock" aria-hidden="true">
         <span class="clock-time">00:00:00</span>
         <span class="clock-tz">LOCAL</span>
-        <span class="brand-greeting" id="greeting">Fundus, refraction &amp; dispensing</span>
       </div>
+      <nav class="topnav" id="topnav">
+        <button data-mod="imaging" class="active" title="Fundus imaging & annotation">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5" fill="currentColor" stroke="none"/></svg><span>Imaging</span></button>
+        <button data-mod="refraction" title="Acuity & refraction">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="15" r="4"/><circle cx="18" cy="15" r="4"/><path d="M10 14c1-1 3-1 4 0M2 12l2-3h4M22 12l-2-3h-4"/></svg><span>Refraction</span></button>
+        <button data-mod="dispensing" title="Dispensing & optics">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 7h20M4 7l1.5 10a2 2 0 0 0 2 1.7h9a2 2 0 0 0 2-1.7L20 7M9 11h6"/></svg><span>Dispensing</span></button>
+        <button data-mod="tests" title="Eye exam test charts">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 8v8M9 16h6M10.5 8h3" stroke-width="2.4"/></svg><span>Tests</span></button>
+      </nav>
     </div>
     <div class="header-right">
       <div class="lang-row" id="langRow" title="Language / Idioma / 言語">
@@ -305,35 +356,30 @@
   </header>
 
   <main data-mode="imaging">
-    <!-- Workspace nav (primary mode switcher) -->
-    <nav class="worknav" id="worknav">
-      <button data-mod="imaging" class="active" title="Fundus imaging & annotation">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5" fill="currentColor" stroke="none"/></svg>Imaging</button>
-      <button data-mod="refraction" title="Acuity & refraction">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="15" r="4"/><circle cx="18" cy="15" r="4"/><path d="M10 14c1-1 3-1 4 0M2 12l2-3h4M22 12l-2-3h-4"/></svg>Refraction</button>
-      <button data-mod="dispensing" title="Dispensing & optics">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 7h20M4 7l1.5 10a2 2 0 0 0 2 1.7h9a2 2 0 0 0 2-1.7L20 7M9 11h6"/></svg>Dispensing</button>
-      <button data-mod="tests" title="Eye exam test charts">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 8v8M9 16h6M10.5 8h3" stroke-width="2.4"/></svg>Tests</button>
-      <!-- Imaging tools (only shown in Imaging mode) -->
-      <div class="wn-tools" id="toolrail">
-        <div class="rail-sep"></div>
-        <button class="tool" data-tool="select" data-key="V" title="Select / move (V)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 2l6 16 2.5-6.5L19 9z"/></svg></button>
-      <button class="tool" data-tool="pan" data-key="H" title="Pan / hand (H)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v7M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2a8 8 0 0 1-7-4l-2.5-4a2 2 0 0 1 3.5-2l1.5 2"/></svg></button>
-      <div class="rail-sep"></div>
-      <button class="tool" data-tool="disc-center" data-key="1" title="Optic disc center (1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></button>
-      <button class="tool" data-tool="fovea-center" data-key="2" title="Fovea center (2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"/></svg></button>
-      <button class="tool" data-tool="disc" data-key="3" title="Optic disc margin (3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="12" rx="9" ry="7"/></svg></button>
-      <button class="tool" data-tool="cup" data-key="4" title="Optic cup margin (4)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="12" rx="5" ry="4"/></svg></button>
-      <button class="tool" data-tool="lesion" data-key="5" title="Lesion / finding pin (5)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg></button>
-        <button class="tool" data-tool="ruler" data-key="6" title="Measure distance (6)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17L17 3l4 4L7 21z"/><path d="M8 12l2 2M11 9l2 2M14 6l2 2"/></svg></button>
-      </div>
-    </nav>
-
     <div class="workarea">
     <!-- Center viewport -->
     <div class="center">
+      <!-- Floating annotation tools (Imaging only) -->
+      <div class="vp-tools" id="toolrail">
+        <button class="tool" data-tool="select" data-key="V" title="Select / move (V)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 2l6 16 2.5-6.5L19 9z"/></svg></button>
+        <button class="tool" data-tool="pan" data-key="H" title="Pan / hand (H)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v7M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2a8 8 0 0 1-7-4l-2.5-4a2 2 0 0 1 3.5-2l1.5 2"/></svg></button>
+        <div class="rail-sep"></div>
+        <button class="tool" data-tool="disc-center" data-key="1" title="Optic disc center (1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></button>
+        <button class="tool" data-tool="fovea-center" data-key="2" title="Fovea center (2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"/></svg></button>
+        <button class="tool" data-tool="disc" data-key="3" title="Optic disc margin (3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="12" rx="9" ry="7"/></svg></button>
+        <button class="tool" data-tool="cup" data-key="4" title="Optic cup margin (4)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="12" rx="5" ry="4"/></svg></button>
+        <button class="tool" data-tool="lesion" data-key="5" title="Lesion / finding pin (5)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg></button>
+        <button class="tool" data-tool="ruler" data-key="6" title="Measure distance (6)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17L17 3l4 4L7 21z"/><path d="M8 12l2 2M11 9l2 2M14 6l2 2"/></svg></button>
+        <div class="rail-sep"></div>
+        <button class="tool" data-tool="arrow" data-key="7" title="Arrow / pointer (7)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 19L18 6M9 6h9v9"/></svg></button>
+        <button class="tool" data-tool="text" data-key="8" title="Text label (8)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 6V4h14v2M12 4v16M9 20h6"/></svg></button>
+        <button class="tool" data-tool="free" data-key="9" title="Freehand outline (9)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 16c2-5 4 3 7-1s3-7 5-4 2 6 6 3"/></svg></button>
+      </div>
       <div class="vp-topbar">
+        <div class="eye-view" id="eyeView">
+          <button data-view="one" class="active">1 eye</button>
+          <button data-view="both">2 eyes</button>
+        </div>
         <div class="vp-chip"><label>Disc Ø</label><input id="discDia" type="number" step="0.1" min="0.5" max="4" value="1.5"><span>mm</span></div>
         <div class="lesion-pick">
           <select id="lesionType" class="i18n-opts" title="Lesion type for the pin tool">
@@ -343,6 +389,11 @@
             <option value="Pigment / RPE change">Pigment / RPE change</option><option value="Aneurysm">Aneurysm</option><option value="Other finding">Other finding</option>
           </select>
         </div>
+      </div>
+
+      <div id="compare">
+        <div class="cmp-pane"><span class="cmp-tag">OD · Right</span><img id="cmpOD" alt="OD annotated"><div class="cmp-empty hidden" id="cmpODempty">No OD image</div></div>
+        <div class="cmp-pane"><span class="cmp-tag">OS · Left</span><img id="cmpOS" alt="OS annotated"><div class="cmp-empty hidden" id="cmpOSempty">No OS image</div></div>
       </div>
 
       <div id="viewport">
@@ -563,6 +614,12 @@
           </div>
 
           <div class="subsec">
+            <div class="subhead">Lens layout / centration <span class="hint">from PD, frame &amp; heights</span></div>
+            <div class="lens-layout" id="lensLayout"></div>
+            <div class="lens-note" data-i18n-html="lensNote">Gold cross = optical center / fitting cross per lens; dashed line = frame midline &amp; datum. "dec" is horizontal decentration from the box center, "h" the fitting height.</div>
+          </div>
+
+          <div class="subsec">
             <div class="subhead">Contact lens <span class="hint"><span class="clinEye6">OD</span></span></div>
             <div class="field"><label>Brand / design</label><input class="dp" data-f="clBrand" placeholder="e.g. Acuvue Oasys"></div>
             <div class="row3">
@@ -695,7 +752,7 @@
   'use strict';
   const $=id=>document.getElementById(id);
   const LES_COLORS={}; // per-type not needed; single color
-  const COLORS={'disc-center':getVar('--c-dcenter'),'fovea-center':getVar('--c-fovea'),disc:getVar('--c-disc'),cup:getVar('--c-cup'),lesion:getVar('--c-lesion'),ruler:getVar('--c-ruler')};
+  const COLORS={'disc-center':getVar('--c-dcenter'),'fovea-center':getVar('--c-fovea'),disc:getVar('--c-disc'),cup:getVar('--c-cup'),lesion:getVar('--c-lesion'),ruler:getVar('--c-ruler'),arrow:'#e879f9',text:'#38bdf8',free:'#fb7185'};
   function getVar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
 
   // ---------- State ----------
@@ -777,6 +834,11 @@
       'Snellen letters':'Letras de Snellen','Distance acuity':'Agudeza de lejos','LogMAR (Sloan)':'LogMAR (Sloan)','Letter chart':'Optotipo de letras','Tumbling E':'E giratoria','Illiterate / pediatric':'Iletrados / pediátrico','Landolt C':'Anillo de Landolt','Ring gap':'Abertura del anillo','Duochrome':'Bicromático','Red-green balance':'Equilibrio rojo-verde','Astigmatic dial':'Esfera astigmática','Axis / fan':'Eje / abanico','Amsler grid':'Rejilla de Amsler','Macular / central':'Macular / central','Contrast letters':'Letras de contraste','Low contrast':'Bajo contraste','Color vision':'Visión del color','Screening demo':'Demo de cribado','Fixation target':'Punto de fijación','Central fixation':'Fijación central','Blank — white':'Blanco','White field':'Campo blanco','Blank — black':'Negro','Black field':'Campo negro',
       'Settings saved':'Ajustes guardados','Popup blocked — allow popups for this site':'Ventana bloqueada — permite ventanas emergentes','primary':'principal','secondary':'secundario','Move the chart to the second monitor?':'¿Mover el optotipo al segundo monitor?',
       'Optotype order':'Orden de optotipos','Fixed chart':'Carta fija','Randomize':'Aleatorio','Screen':'Pantalla','Could not move the window — drag it manually':'No se pudo mover la ventana — muévela manualmente',
+      '1 eye':'1 ojo','2 eyes':'2 ojos','No OD image':'Sin imagen OD','No OS image':'Sin imagen OS',
+      'Annotation':'Anotación','Text label':'Etiqueta de texto','Outline':'Contorno',
+      'Lens layout / centration':'Montaje / centrado','Enter frame A, B and DBL to see the centration layout.':'Introduce A, B y DBL de la montura para ver el centrado.',
+      'Chart screen':'Pantalla de test','Use this screen for charts':'Usar esta pantalla para los tests',
+      lensNote:'Cruz dorada = centro óptico / cruz de montaje de cada lente; línea discontinua = línea media y datum de la montura. «dec» es la descentración horizontal desde el centro de la caja, «h» la altura de montaje.',
       'Fixed shows the classic chart letters in their original order; Randomize scrambles them. The Shuffle button re-randomizes any time.':'«Fija» muestra las letras clásicas en su orden original; «Aleatorio» las mezcla. El botón Mezclar vuelve a aleatorizar cuando quieras.',
       testsNote:'Abre el optotipo elegido en otra ventana — colócala en la pantalla del paciente y contrólala desde aquí. Configura la pantalla, la distancia y la calibración de tamaño real en <b>Ajustes</b> (icono de engranaje).',
       monHint:'Colocar un optotipo en un segundo monitor usa el permiso de gestión de ventanas del navegador. Si no se concede, la ventana se abre aquí — arrástrala y pulsa <b>F</b> para pantalla completa.',
@@ -833,6 +895,11 @@
       'Snellen letters':'スネレン文字','Distance acuity':'遠見視力','LogMAR (Sloan)':'logMAR(Sloan)','Letter chart':'文字視標','Tumbling E':'ランダムE','Illiterate / pediatric':'非識字 / 小児','Landolt C':'ランドルト環','Ring gap':'環の切れ目','Duochrome':'レッドグリーン','Red-green balance':'赤緑バランス','Astigmatic dial':'放射状視標','Axis / fan':'軸 / 扇','Amsler grid':'アムスラーチャート','Macular / central':'黄斑 / 中心','Contrast letters':'コントラスト文字','Low contrast':'低コントラスト','Color vision':'色覚','Screening demo':'スクリーニング例','Fixation target':'固視標','Central fixation':'中心固視','Blank — white':'白画面','White field':'白背景','Blank — black':'黒画面','Black field':'黒背景',
       'Settings saved':'設定を保存しました','Popup blocked — allow popups for this site':'ポップアップがブロックされました — 許可してください','primary':'メイン','secondary':'サブ','Move the chart to the second monitor?':'視標を別モニターに移動しますか？',
       'Optotype order':'視標の順序','Fixed chart':'固定','Randomize':'ランダム','Screen':'画面','Could not move the window — drag it manually':'ウィンドウを移動できませんでした — 手動で移動してください',
+      '1 eye':'片眼','2 eyes':'両眼','No OD image':'OD画像なし','No OS image':'OS画像なし',
+      'Annotation':'注釈','Text label':'テキスト','Outline':'輪郭',
+      'Lens layout / centration':'レンズレイアウト / 芯出し','Enter frame A, B and DBL to see the centration layout.':'フレームのA・B・DBLを入力すると芯出し図が表示されます。',
+      'Chart screen':'視標画面','Use this screen for charts':'この画面を視標表示に使用',
+      lensNote:'金の十字＝各レンズの光学中心／フィッティングクロス、破線＝フレーム中心線とデータム。「dec」は玉型中心からの水平偏心、「h」はフィッティング高さです。',
       'Fixed shows the classic chart letters in their original order; Randomize scrambles them. The Shuffle button re-randomizes any time.':'「固定」は従来の並び順で文字を表示し、「ランダム」は並びをシャッフルします。シャッフルボタンでいつでも再ランダム化できます。',
       testsNote:'選択した視標を別ウィンドウで開きます — 患者側の画面に置き、ここから操作します。ディスプレイ・距離・実寸キャリブレーションは<b>設定</b>(歯車アイコン)で行います。',
       monHint:'別モニターへの表示にはブラウザのウィンドウ管理許可を使います。許可がない場合はこの画面に開くので、ドラッグして移動し<b>F</b>で全画面にします。',
@@ -843,7 +910,7 @@
   };
   let lang=localStorage.getItem('carino_lang')||'en';
   function t(k){if(lang==='en'||!k)return k;const d=I18N[lang];return (d&&d[k]!=null)?d[k]:k;}
-  const I18N_SEL=['#greeting','.worknav button','.sec h3','.subhead','.field label','.metric .k','.legend div','.btn','.eye-switch button','.vp-chip label','.mini-btn','.empty-hint h2','#pdPhotoState','.i18n','.modal h2','.test-card .tc-name','.test-card .tc-sub','.seg button'];
+  const I18N_SEL=['#greeting','.topnav button span','.sec h3','.subhead','.field label','.metric .k','.legend div','.btn','.eye-switch button','.eye-view button','.vp-chip label','.mini-btn','.empty-hint h2','#pdPhotoState','.i18n','.modal h2','.test-card .tc-name','.test-card .tc-sub','.seg button','.cmp-empty'];
   const I18N_TITLE_SEL=['.tool','#lesionType','.vp-zoom button'];
   const i18nReg=[], i18nTitleReg=[]; let i18nCollected=false;
   function firstTextNode(el){for(const n of el.childNodes){if(n.nodeType===3&&n.nodeValue.trim())return n;}return null;}
@@ -884,6 +951,7 @@
     im.onload=()=>{
       E().img=dataUrl; E().w=im.naturalWidth; E().h=im.naturalHeight;
       applyEyeImage(); fitToView(); save();
+      if(viewBoth)setEyeView('both');
     };
     im.src=dataUrl;
   }
@@ -959,6 +1027,18 @@
         const mid={x:(m.x1+m.x2)/2,y:(m.y1+m.y2)/2};
         const t=svgEl('text',{x:mid.x,y:mid.y-6*kk,fill:c,'font-size':fs,'text-anchor':'middle'});
         t.textContent=fmtLen(Math.hypot(m.x2-m.x1,m.y2-m.y1));gMarks.appendChild(t);
+      }else if(m.kind==='arrow'){
+        const ang=Math.atan2(m.y2-m.y1,m.x2-m.x1),ah=10*kk;
+        gMarks.appendChild(svgEl('line',{x1:m.x1,y1:m.y1,x2:m.x2,y2:m.y2,stroke:c,'stroke-width':(sel?sw*1.6:sw)}));
+        gMarks.appendChild(svgEl('polyline',{points:[[m.x2-ah*Math.cos(ang-0.4),m.y2-ah*Math.sin(ang-0.4)],[m.x2,m.y2],[m.x2-ah*Math.cos(ang+0.4),m.y2-ah*Math.sin(ang+0.4)]].map(q=>q.join(',')).join(' '),fill:'none',stroke:c,'stroke-width':sw}));
+        gMarks.appendChild(svgEl('circle',{cx:m.x1,cy:m.y1,r:r*.6,fill:c}));
+        if(m.note){const t=svgEl('text',{x:m.x1,y:m.y1-6*kk,fill:c,'font-size':fs,'text-anchor':'middle'});t.textContent=m.note;gMarks.appendChild(t);}
+      }else if(m.kind==='text'){
+        gMarks.appendChild(svgEl('circle',{cx:m.x,cy:m.y,r:r*(sel?1:.7),fill:'none',stroke:c,'stroke-width':sw}));
+        const t=svgEl('text',{x:m.x+9*kk,y:m.y+4*kk,fill:c,'font-size':fs*1.05,'text-anchor':'start'});t.textContent=m.text||'';gMarks.appendChild(t);
+      }else if(m.kind==='free'){
+        gMarks.appendChild(svgEl('polygon',{points:m.pts.map(q=>q.join(',')).join(' '),fill:c,'fill-opacity':sel?.14:.08,stroke:c,'stroke-width':(sel?3:2),'vector-effect':'non-scaling-stroke'}));
+        if(m.note){const c0=m.pts[0];const t=svgEl('text',{x:c0[0],y:c0[1]-6*kk,fill:c,'font-size':fs,'text-anchor':'middle'});t.textContent=m.note;gMarks.appendChild(t);}
       }
     });
     // live preview during creation
@@ -994,7 +1074,7 @@
   }
 
   // ---------- Findings list ----------
-  const NAMES={'disc-center':'Optic disc center','fovea-center':'Fovea center',disc:'Optic disc margin',cup:'Optic cup margin',ruler:'Measurement'};
+  const NAMES={'disc-center':'Optic disc center','fovea-center':'Fovea center',disc:'Optic disc margin',cup:'Optic cup margin',ruler:'Measurement',arrow:'Annotation',text:'Text label',free:'Outline'};
   function renderFindings(){
     const box=$('findings'),ms=E().marks;
     $('findCount').textContent=ms.length;
@@ -1006,6 +1086,9 @@
       let title,sub;
       if(m.kind==='lesion'){title=t(m.ltype||'Lesion');sub=m.note?m.note:t('lesion pin');}
       else if(m.kind==='ruler'){title=t('Measurement');sub=fmtLen(Math.hypot(m.x2-m.x1,m.y2-m.y1));}
+      else if(m.kind==='arrow'){title=t('Annotation');sub=m.note||fmtLen(Math.hypot(m.x2-m.x1,m.y2-m.y1));}
+      else if(m.kind==='text'){title=t('Text label');sub=m.text||'';}
+      else if(m.kind==='free'){title=t('Outline');sub=m.note||(m.pts.length+' pts');}
       else{title=t(NAMES[m.kind]);sub=(m.kind==='disc'||m.kind==='cup')?('Ø '+fmtLen(2*m.rx)+' × '+fmtLen(2*m.ry)):t('point');}
       div.innerHTML='<span class="dot" style="background:'+c+'"></span><div class="txt"><div class="t"></div><div class="s"></div></div><button class="del" title="Delete">×</button>';
       div.querySelector('.t').textContent=title;div.querySelector('.s').textContent=sub;
@@ -1046,6 +1129,12 @@
     }
     if(tool==='disc'||tool==='cup'){drag={mode:'ellipse',kind:tool,start:p};return;}
     if(tool==='ruler'){drag={mode:'ruler',start:p};return;}
+    if(tool==='arrow'){drag={mode:'arrow',start:p};return;}
+    if(tool==='free'){drag={mode:'free',pts:[[p.x,p.y]]};return;}
+    if(tool==='text'){
+      const txt=prompt('Label text:','');if(txt){const m={id:newId(),kind:'text',x:p.x,y:p.y,text:txt};E().marks.push(m);selectedId=m.id;afterChange();}
+      return;
+    }
   });
 
   window.addEventListener('pointermove',e=>{
@@ -1058,15 +1147,22 @@
       drag.result={cx,cy,rx,ry};
       drag.preview=svgEl('ellipse',{cx,cy,rx,ry,fill:'none',stroke:COLORS[drag.kind],'stroke-width':2,'vector-effect':'non-scaling-stroke','stroke-dasharray':'4 3'});
       renderMarks();
-    }else if(drag.mode==='ruler'){
+    }else if(drag.mode==='ruler'||drag.mode==='arrow'){
+      const c=drag.mode==='arrow'?COLORS.arrow:COLORS.ruler;
       drag.result={x1:drag.start.x,y1:drag.start.y,x2:p.x,y2:p.y};
-      drag.preview=svgEl('line',{x1:drag.start.x,y1:drag.start.y,x2:p.x,y2:p.y,stroke:COLORS.ruler,'stroke-width':2*k(),'stroke-dasharray':(6*k())+' '+(4*k())});
+      drag.preview=svgEl('line',{x1:drag.start.x,y1:drag.start.y,x2:p.x,y2:p.y,stroke:c,'stroke-width':2*k(),'stroke-dasharray':(6*k())+' '+(4*k())});
+      renderMarks();
+    }else if(drag.mode==='free'){
+      const last=drag.pts[drag.pts.length-1];
+      if(Math.hypot(p.x-last[0],p.y-last[1])>3/zoom)drag.pts.push([p.x,p.y]);
+      drag.preview=svgEl('polyline',{points:drag.pts.map(q=>q.join(',')).join(' '),fill:'none',stroke:COLORS.free,'stroke-width':2,'vector-effect':'non-scaling-stroke'});
       renderMarks();
     }else if(drag.mode==='move'){
       const m=getMark(drag.id);if(!m)return;const dx=p.x-drag.start.x,dy=p.y-drag.start.y,o=drag.orig;
       if('x' in m){m.x=o.x+dx;m.y=o.y+dy;}
       if('cx' in m){m.cx=o.cx+dx;m.cy=o.cy+dy;}
       if('x1' in m){m.x1=o.x1+dx;m.y1=o.y1+dy;m.x2=o.x2+dx;m.y2=o.y2+dy;}
+      if('pts' in m){m.pts=o.pts.map(q=>[q[0]+dx,q[1]+dy]);}
       renderMarks();computeMetrics();
     }else if(drag.mode==='resize'){
       const m=getMark(drag.id);if(!m)return;
@@ -1081,9 +1177,12 @@
     if(drag.mode==='ellipse'&&drag.result&&drag.result.rx>3&&drag.result.ry>3){
       const m=setSingleton(drag.kind,drag.result);selectedId=m.id;
     }
-    if(drag.mode==='ruler'&&drag.result){
+    if((drag.mode==='ruler'||drag.mode==='arrow')&&drag.result){
       const d=Math.hypot(drag.result.x2-drag.result.x1,drag.result.y2-drag.result.y1);
-      if(d>4){const m={id:newId(),kind:'ruler',...drag.result};E().marks.push(m);selectedId=m.id;}
+      if(d>4){const m={id:newId(),kind:drag.mode,...drag.result};if(drag.mode==='arrow'){const note=prompt('Arrow note (optional):','');if(note)m.note=note;}E().marks.push(m);selectedId=m.id;}
+    }
+    if(drag.mode==='free'&&drag.pts&&drag.pts.length>2){
+      const m={id:newId(),kind:'free',pts:drag.pts.slice()};const note=prompt('Outline note (optional):','');if(note)m.note=note;E().marks.push(m);selectedId=m.id;
     }
     const wasPan=drag.mode==='pan';
     drag=null;viewport.classList.remove('panning');
@@ -1099,7 +1198,9 @@
       if(Math.hypot(p.x-sel.cx,p.y-(sel.cy-sel.ry))<tol)return{id:sel.id,handle:'ry'};
     }
     for(let i=ms.length-1;i>=0;i--){const m=ms[i];
-      if('x' in m){if(Math.hypot(p.x-m.x,p.y-m.y)<tol+4/zoom)return{id:m.id};}
+      if('pts' in m){for(const pt of m.pts)if(Math.hypot(p.x-pt[0],p.y-pt[1])<tol)return{id:m.id};
+        for(let j=0;j<m.pts.length-1;j++)if(distPtSeg(p.x,p.y,m.pts[j][0],m.pts[j][1],m.pts[j+1][0],m.pts[j+1][1])<tol)return{id:m.id};}
+      else if('x' in m){if(Math.hypot(p.x-m.x,p.y-m.y)<tol+4/zoom)return{id:m.id};}
       else if('cx' in m){const near=Math.abs(Math.hypot((p.x-m.cx)/(m.rx||1),(p.y-m.cy)/(m.ry||1))-1)<0.18;const center=Math.hypot(p.x-m.cx,p.y-m.cy)<tol;if(near||center)return{id:m.id};}
       else if('x1' in m){for(const pt of [[m.x1,m.y1],[m.x2,m.y2]])if(Math.hypot(p.x-pt[0],p.y-pt[1])<tol)return{id:m.id};
         // near the line
@@ -1107,7 +1208,8 @@
     }
     return null;
   }
-  function distToSeg(p,m){const A={x:m.x1,y:m.y1},B={x:m.x2,y:m.y2};const l2=(B.x-A.x)**2+(B.y-A.y)**2;if(!l2)return Math.hypot(p.x-A.x,p.y-A.y);let t=((p.x-A.x)*(B.x-A.x)+(p.y-A.y)*(B.y-A.y))/l2;t=Math.max(0,Math.min(1,t));return Math.hypot(p.x-(A.x+t*(B.x-A.x)),p.y-(A.y+t*(B.y-A.y)));}
+  function distToSeg(p,m){return distPtSeg(p.x,p.y,m.x1,m.y1,m.x2,m.y2);}
+  function distPtSeg(px,py,ax,ay,bx,by){const l2=(bx-ax)**2+(by-ay)**2;if(!l2)return Math.hypot(px-ax,py-ay);let t=((px-ax)*(bx-ax)+(py-ay)*(by-ay))/l2;t=Math.max(0,Math.min(1,t));return Math.hypot(px-(ax+t*(bx-ax)),py-(ay+t*(by-ay)));}
 
   function updateHud(e){
     if(!E().img){$('hud').textContent='—';return;}
@@ -1138,7 +1240,7 @@
   let spaceDown=false;
   window.addEventListener('keydown',e=>{
     if(/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))return;
-    const map={v:'select',h:'pan','1':'disc-center','2':'fovea-center','3':'disc','4':'cup','5':'lesion','6':'ruler'};
+    const map={v:'select',h:'pan','1':'disc-center','2':'fovea-center','3':'disc','4':'cup','5':'lesion','6':'ruler','7':'arrow','8':'text','9':'free'};
     if(map[e.key.toLowerCase()]){setTool(map[e.key.toLowerCase()]);}
     if(e.key===' '){spaceDown=true;viewport.classList.add('pan');}
     if((e.key==='Delete'||e.key==='Backspace')&&selectedId){removeMark(selectedId);}
@@ -1155,7 +1257,10 @@
     refreshEyeLabels();
     document.querySelectorAll('.clinEye2,.clinEye3,.clinEye4,.clinEye5,.clinEye6').forEach(el=>el.textContent=v);
     $('discDia').value=E().discDiaMm;
-    applyEyeImage();writeForm();fitToView();afterChange();
+    applyEyeImage();writeForm();
+    if(viewBoth)setEyeView('both');else fitToView();
+    if(panelMod==='dispensing')renderLensLayout();
+    afterChange();
   }
 
   // ---------- Data binding (meta / clinical / disp / dispense) ----------
@@ -1166,7 +1271,7 @@
     if(c.contains('dp'))return E().disp;
     return null;}
   document.querySelectorAll('.mt,.gd,.cl,.dp').forEach(el=>el.addEventListener('input',()=>{
-    const st=storeFor(el);if(st)st[el.dataset.f]=el.value;save();}));
+    const st=storeFor(el);if(st)st[el.dataset.f]=el.value;save();if(panelMod==='dispensing')renderLensLayout();}));
   function writeForm(){document.querySelectorAll('.mt,.gd,.cl,.dp').forEach(el=>{const st=storeFor(el);el.value=st?(st[el.dataset.f]||''):'';});}
   const writeClinical=writeForm; // per-eye fields refresh on eye switch
   $('discDia').addEventListener('input',()=>{E().discDiaMm=parseFloat($('discDia').value)||1.5;computeMetrics();renderFindings();save();});
@@ -1229,12 +1334,13 @@
   }
 
   // ---------- Panel module tabs ----------
-  $('worknav').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;setMod(b.dataset.mod);});
+  $('topnav').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;setMod(b.dataset.mod);});
   function setMod(m){panelMod=m;
     document.querySelector('main').setAttribute('data-mode',m);
-    document.querySelectorAll('#worknav button').forEach(b=>b.classList.toggle('active',b.dataset.mod===m));
+    document.querySelectorAll('#topnav button').forEach(b=>b.classList.toggle('active',b.dataset.mod===m));
     ['imaging','refraction','dispensing','tests'].forEach(id=>$('mod-'+id).classList.toggle('hidden',id!==m));
-    if(m==='imaging'&&E().img)setTimeout(fitToView,0);}
+    if(m==='imaging'&&E().img)setTimeout(()=>{if(!viewBoth)fitToView();},0);
+    if(m==='dispensing')renderLensLayout();}
 
   // ---------- PD from photo (optional estimate) ----------
   function selectedRulerLen(){const m=getMark(selectedId);if(!m||m.kind!=='ruler')return null;return Math.hypot(m.x2-m.x1,m.y2-m.y1);}
@@ -1386,6 +1492,12 @@
       else if(m.kind==='disc-center'||m.kind==='fovea-center'){out+=cross(m.x,m.y,c);}
       else if(m.kind==='lesion'){out+='<circle cx="'+m.x+'" cy="'+m.y+'" r="9" fill="'+c+'" fill-opacity="0.35" stroke="'+c+'" stroke-width="2.5"/>'+txt(m.x+12,m.y-8,m.ltype||'',c);}
       else if(m.kind==='ruler'){out+='<line x1="'+m.x1+'" y1="'+m.y1+'" x2="'+m.x2+'" y2="'+m.y2+'" stroke="'+c+'" stroke-width="3" stroke-dasharray="8 5"/>'+txt((m.x1+m.x2)/2,(m.y1+m.y2)/2-8,fmt(Math.hypot(m.x2-m.x1,m.y2-m.y1)),c);}
+      else if(m.kind==='arrow'){const a=Math.atan2(m.y2-m.y1,m.x2-m.x1),ah=16;
+        out+='<line x1="'+m.x1+'" y1="'+m.y1+'" x2="'+m.x2+'" y2="'+m.y2+'" stroke="'+c+'" stroke-width="3"/>';
+        out+='<polyline points="'+(m.x2-ah*Math.cos(a-0.4))+','+(m.y2-ah*Math.sin(a-0.4))+' '+m.x2+','+m.y2+' '+(m.x2-ah*Math.cos(a+0.4))+','+(m.y2-ah*Math.sin(a+0.4))+'" fill="none" stroke="'+c+'" stroke-width="3"/>';
+        if(m.note)out+=txt(m.x1,m.y1-10,m.note,c);}
+      else if(m.kind==='text'){out+='<circle cx="'+m.x+'" cy="'+m.y+'" r="5" fill="'+c+'"/>'+'<text x="'+(m.x+12)+'" y="'+(m.y+7)+'" fill="'+c+'" font-family="monospace" font-size="20" text-anchor="start" paint-order="stroke" stroke="#000" stroke-width="4">'+esc(m.text||'')+'</text>';}
+      else if(m.kind==='free'){out+='<polygon points="'+m.pts.map(q=>q.join(',')).join(' ')+'" fill="'+c+'" fill-opacity="0.12" stroke="'+c+'" stroke-width="3"/>';if(m.note)out+=txt(m.pts[0][0],m.pts[0][1]-8,m.note,c);}
     });
     return out;
     function cross(X,Y,c){const r=13;return '<g stroke="'+c+'" stroke-width="3"><line x1="'+(X-r)+'" y1="'+Y+'" x2="'+(X+r)+'" y2="'+Y+'"/><line x1="'+X+'" y1="'+(Y-r)+'" x2="'+X+'" y2="'+(Y+r)+'"/><circle cx="'+X+'" cy="'+Y+'" r="'+r+'" fill="none"/></g>';}
@@ -1660,7 +1772,7 @@
 
   // ======================= Settings =======================
   const SETTINGS_KEY='carino_retina_settings';
-  const settings={display:'same',distance:6,unit:'m',pxPerMm:3.7795,mirror:false,optotypeOrder:'fixed'};
+  const settings={display:'same',distance:6,unit:'m',pxPerMm:3.7795,mirror:false,optotypeOrder:'fixed',presentScreen:null};
   function loadSettings(){try{const s=JSON.parse(localStorage.getItem(SETTINGS_KEY));if(s)Object.assign(settings,s);}catch(e){}}
   function saveSettings(){try{localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));}catch(e){}}
   function distanceMm(){return settings.unit==='ft'?settings.distance*304.8:settings.distance*1000;}
@@ -1677,8 +1789,11 @@
     const box=$('screensList');if(!box)return;box.innerHTML='';
     if(!screenDetails){box.innerHTML='<div class="screen-item"><span>'+(('getScreenDetails' in window)?'—':'API n/a')+'</span></div>';return;}
     screenDetails.screens.forEach((s,i)=>{
-      const d=document.createElement('div');d.className='screen-item';
-      d.innerHTML='<span>#'+(i+1)+' · '+s.width+'×'+s.height+'</span><span class="'+(s.isPrimary?'pri':'')+'">'+t(s.isPrimary?'primary':'secondary')+'</span>';
+      const d=document.createElement('div');d.className='screen-item'+(settings.presentScreen===i?' sel':'');
+      const role=settings.presentScreen===i?('<span class="use">'+t('Chart screen')+'</span>'):('<span class="'+(s.isPrimary?'pri':'')+'">'+t(s.isPrimary?'primary':'secondary')+'</span>');
+      d.innerHTML='<span>#'+(i+1)+' · '+s.width+'×'+s.height+'</span>'+role;
+      d.title=t('Use this screen for charts');
+      d.addEventListener('click',()=>{settings.presentScreen=(settings.presentScreen===i?null:i);saveSettings();renderScreens();});
       box.appendChild(d);
     });
   }
@@ -1755,7 +1870,8 @@
         if(screenDetails){
           const secondary=screenDetails.screens.find(s=>!s.isPrimary);
           let target=null;
-          if(settings.display==='secondary')target=secondary;
+          if(settings.presentScreen!=null&&screenDetails.screens[settings.presentScreen])target=screenDetails.screens[settings.presentScreen];
+          else if(settings.display==='secondary')target=secondary;
           else if(settings.display==='ask'){if(secondary&&window.confirm(t('Move the chart to the second monitor?')))target=secondary;}
           if(target&&presentActive()){presentWin.moveTo(target.availLeft,target.availTop);presentWin.resizeTo(target.availWidth,target.availHeight);}
           return;
@@ -1924,8 +2040,67 @@
     setInterval(()=>{if(presentActive())updateRemote();else hideRemote();},1200);
   }
 
+  // ---------- Eye view (single / compare both) ----------
+  let viewBoth=false;
+  $('eyeView').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;setEyeView(b.dataset.view);});
+  function setEyeView(v){
+    viewBoth=(v==='both');
+    document.querySelectorAll('#eyeView button').forEach(b=>b.classList.toggle('active',b.dataset.view===v));
+    $('toolrail').style.display=viewBoth?'none':'';
+    const cmp=$('compare');
+    if(viewBoth){
+      cmp.classList.add('on');$('emptyHint').classList.add('hidden');
+      ['OD','OS'].forEach(key=>{
+        const img=$('cmp'+key),empty=$('cmp'+key+'empty'),e=study.eyes[key];
+        if(!e.img){img.removeAttribute('src');img.style.display='none';empty.classList.remove('hidden');return;}
+        empty.classList.add('hidden');img.style.display='';
+        renderEyeDataUrl(key).then(u=>{if(u&&viewBoth)img.src=u;});
+      });
+    }else{cmp.classList.remove('on');applyEyeImage();if(E().img)fitToView();}
+  }
+  function renderEyeDataUrl(key){
+    return new Promise(resolve=>{
+      const e=study.eyes[key];if(!e.img){resolve(null);return;}
+      const cv=document.createElement('canvas');cv.width=e.w;cv.height=e.h;const x=cv.getContext('2d');
+      const im=new Image();im.onload=()=>{x.drawImage(im,0,0,e.w,e.h);
+        const data='<svg xmlns="http://www.w3.org/2000/svg" width="'+e.w+'" height="'+e.h+'" viewBox="0 0 '+e.w+' '+e.h+'">'+staticMarksSVG(e)+'</svg>';
+        const s2=new Image();s2.onload=()=>{x.drawImage(s2,0,0);resolve(cv.toDataURL('image/png'));};s2.onerror=()=>resolve(cv.toDataURL('image/png'));
+        s2.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(data);
+      };im.onerror=()=>resolve(null);im.src=e.img;
+    });
+  }
+
+  // ---------- Lens centration layout (dispensing) ----------
+  function renderLensLayout(){
+    const el=$('lensLayout');if(!el)return;
+    const g=study.dispense;
+    const A=parseFloat(g.frameA),B=parseFloat(g.frameB),DBL=parseFloat(g.frameDBL);
+    if(!(A>0&&B>0&&DBL>=0)){el.innerHTML='<div class="lens-note">'+t('Enter frame A, B and DBL to see the centration layout.')+'</div>';return;}
+    const pdBino=parseFloat(g.pdDist)||0,frameHalf=(A+DBL)/2;
+    const W=2*A+DBL+20,H=B+42,sc=Math.min(3.4,(el.clientWidth-16)/W||3),px=v=>+(v*sc).toFixed(1);
+    const midX=10+A+DBL/2,topY=18;
+    function lens(kd,x0,d){
+      const cx=x0+A/2,mono=parseFloat(d.pdMonoDist)||(pdBino?pdBino/2:null);
+      const fh=parseFloat(d.segHt)||parseFloat(d.fitHt)||B/2;
+      const ocx=(mono!=null)?((kd==='OD')?midX-mono:midX+mono):cx, ocy=(topY+B)-fh;
+      let o='<rect x="'+px(x0)+'" y="'+px(topY)+'" width="'+px(A)+'" height="'+px(B)+'" rx="'+px(3)+'" fill="none" stroke="#666" stroke-width="1"/>';
+      o+='<line x1="'+px(x0)+'" y1="'+px(topY+B/2)+'" x2="'+px(x0+A)+'" y2="'+px(topY+B/2)+'" stroke="#3a3a3a" stroke-dasharray="3 3"/>';
+      o+='<g stroke="#eab308" stroke-width="1.4"><line x1="'+px(ocx-4)+'" y1="'+px(ocy)+'" x2="'+px(ocx+4)+'" y2="'+px(ocy)+'"/><line x1="'+px(ocx)+'" y1="'+px(ocy-4)+'" x2="'+px(ocx)+'" y2="'+px(ocy+4)+'"/><circle cx="'+px(ocx)+'" cy="'+px(ocy)+'" r="'+px(2.4)+'" fill="none"/></g>';
+      o+='<text x="'+px(cx)+'" y="'+px(topY-4)+'" fill="#8a8a8a" font-size="9" text-anchor="middle">'+kd+'</text>';
+      const dec=(mono!=null)?(frameHalf-mono):null;
+      o+='<text x="'+px(cx)+'" y="'+px(topY+B+13)+'" fill="#b8b8b8" font-size="8" text-anchor="middle">'+(dec!=null?('dec '+Math.abs(dec).toFixed(1)+(dec>=0?' in':' out')):'PD?')+' · h '+fh.toFixed(1)+'</text>';
+      return o;
+    }
+    let s='<svg viewBox="0 0 '+px(W)+' '+px(H)+'" style="max-height:180px">';
+    s+='<line x1="'+px(midX)+'" y1="'+px(6)+'" x2="'+px(midX)+'" y2="'+px(topY+B+4)+'" stroke="#eab308" stroke-dasharray="2 3" stroke-width="0.8" opacity="0.55"/>';
+    s+=lens('OD',10,study.eyes.OD.disp||{});
+    s+=lens('OS',10+A+DBL,study.eyes.OS.disp||{});
+    s+='</svg>';
+    el.innerHTML=s;
+  }
+
   // ---------- Boot ----------
-  window.addEventListener('resize',()=>{if(E().img)applyTransform();});
+  window.addEventListener('resize',()=>{if(E().img&&!viewBoth)applyTransform();});
   function boot(){
     restore();loadSettings();
     if(!study.meta.date){study.meta.date=new Date().toISOString().slice(0,10);}
@@ -1939,7 +2114,7 @@
   }
   boot();
   // expose a little for debugging/testing
-  window.__ophtha={study,settings,setImage,makeSampleFundus,switchEye,setTool,setMod,applyLang,openTest,openSettings,buildPresentHtml,E,metricsFor,generateStudyPdf,generateRxPdf,generateOrderPdf,dicomEncapsulatedPdf,renderEyePngBytes};
+  window.__ophtha={study,settings,setImage,makeSampleFundus,switchEye,setTool,setMod,setEyeView,renderLensLayout,applyLang,openTest,openSettings,buildPresentHtml,E,metricsFor,generateStudyPdf,generateRxPdf,generateOrderPdf,dicomEncapsulatedPdf,renderEyePngBytes};
 })();
 </script>
 </body>
