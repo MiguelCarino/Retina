@@ -7,9 +7,12 @@ in the browser; **no image or data is ever uploaded**.
 
 Part of [Carino Systems](https://carino.systems). Live at **ophtha.carino.systems**.
 
-The suite is organised as an **encounter** with three modules you switch between in the
-side panel. Imaging is entirely optional — you can refract and dispense without ever
-loading a photo.
+The suite is organised as an **encounter** with four workspaces you switch between from
+the left nav — **Imaging**, **Refraction**, **Dispensing** and **Tests**. The fundus
+canvas only appears in Imaging; the other workspaces use the full width in responsive
+columns, so refraction and dispensing show everything at a glance. The OD/OS eye switch is
+always available at the top of the panel. Imaging is entirely optional — you can refract
+and dispense without ever loading a photo.
 
 ## Imaging
 - **Structure marking** — optic disc center, fovea center, optic disc margin and optic
@@ -48,13 +51,19 @@ step 1° and wrap 1–180.
 
 ## Eye exam tests (Tests tab)
 Launch patient-facing chart windows and drive them from the main screen:
-- **Charts** — Snellen & LogMAR (Sloan) letters, Tumbling E, Landolt C, Duochrome
-  (red-green), astigmatic dial, Amsler grid, low-contrast letters, a colour-vision
-  **screening demo** (clearly non-diagnostic), a fixation target and blank white/black
-  fields.
+- **Charts** — a classic **Snellen** pyramid (one big letter, then two, three…),
+  single-line **LogMAR (Sloan)**, Tumbling E, Landolt C, Duochrome (red-green), astigmatic
+  dial, Amsler grid, low-contrast letters, a colour-vision **screening demo** (clearly
+  non-diagnostic), a fixation target and blank white/black fields.
+- **Optotype order** — choose **Fixed chart** (canonical letters in their original order)
+  or **Randomize** in Settings; the Shuffle button re-randomizes at any time to prevent
+  memorization.
 - **Remote control** — from the panel (or in the chart window with the keyboard): change
-  letter size, shuffle/rotate optotypes, step through tests, mirror, and read the live
-  acuity (Snellen + logMAR).
+  letter size, shuffle optotypes, toggle order, step through tests, mirror, **move the
+  window between monitors**, and read the live acuity (Snellen + logMAR).
+- **Multi-monitor** — on Chromium the chart is placed on the chosen screen automatically
+  via the Window Management API; on **Firefox and Safari/WebKit** it opens here and the
+  **Screen ◂ ▸** buttons (or a manual drag + `F`) move it to the patient monitor.
 - **True-size** — charts are drawn to physical size from the **test distance** and a
   one-time **card calibration** (match an 85.6 mm card on screen), so 20/20 really is
   20/20 at your lane length.
