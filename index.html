@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ophthalmology Suite — Carino Systems</title>
   <script src="carino-clock.js" defer></script>
+  <script src="vendor/pdf-lib.min.js"></script>
   <link href="fonts.css" rel="stylesheet">
   <style>
     :root{
@@ -302,6 +303,10 @@
 
       <div class="sec">
         <h3>Export</h3>
+        <div class="btn-grid" style="margin-bottom:8px">
+          <button class="btn" id="exportPdf">Export PDF</button>
+          <button class="btn" id="exportDcm">Export DICOM</button>
+        </div>
         <div class="btn-grid">
           <button class="btn ghost" id="loadBtn2">Load image</button>
           <button class="btn ghost" id="sampleBtn2">Sample</button>
@@ -744,6 +749,188 @@
     function esc(s){return String(s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'})[c]);}
   }
 
+  // ---------- Annotated PNG bytes (for PDF/DICOM embedding) ----------
+  function renderEyePngBytes(key){
+    return new Promise(resolve=>{
+      const e=study.eyes[key];
+      if(!e.img){resolve(null);return;}
+      const cv=document.createElement('canvas');cv.width=e.w;cv.height=e.h;const x=cv.getContext('2d');
+      const im=new Image();
+      im.onload=()=>{
+        x.drawImage(im,0,0,e.w,e.h);
+        const data='<svg xmlns="http://www.w3.org/2000/svg" width="'+e.w+'" height="'+e.h+'" viewBox="0 0 '+e.w+' '+e.h+'">'+staticMarksSVG(e)+'</svg>';
+        const done=()=>cv.toBlob(b=>b.arrayBuffer().then(ab=>resolve({bytes:new Uint8Array(ab),w:e.w,h:e.h})),'image/png');
+        const svgImg=new Image();svgImg.onload=()=>{x.drawImage(svgImg,0,0);done();};svgImg.onerror=done;
+        svgImg.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(data);
+      };
+      im.onerror=()=>resolve(null);im.src=e.img;
+    });
+  }
+
+  // ---------- Full study PDF ----------
+  async function generateStudyPdf(){
+    if(typeof PDFLib==='undefined')throw new Error('PDF library not loaded');
+    const {PDFDocument,StandardFonts,rgb}=PDFLib;
+    const pngs={OD:await renderEyePngBytes('OD'),OS:await renderEyePngBytes('OS')};
+    const doc=await PDFDocument.create();
+    doc.setTitle('Ophthalmology report — '+(study.meta.patientId||''));
+    doc.setProducer('Carino Ophthalmology');doc.setCreator('Carino Ophthalmology');
+    const font=await doc.embedFont(StandardFonts.Helvetica);
+    const fontB=await doc.embedFont(StandardFonts.HelveticaBold);
+    const W=595.28,H=841.89,M=48, CW=W-2*M;
+    const gold=rgb(0.72,0.53,0.04),dark=rgb(0.10,0.10,0.10),grey=rgb(0.42,0.42,0.42),lineC=rgb(0.80,0.80,0.80),warn=rgb(0.82,0.38,0.06),err=rgb(0.86,0.15,0.15),ok=rgb(0.15,0.55,0.25);
+    let page,y;
+    // Standard (WinAnsi) fonts can't encode arbitrary Unicode — fold to a safe subset.
+    function clean(s){return String(s==null?'':s)
+      .replace(/[µΜμ]/g,'u')       // micro / Greek mu -> u
+      .replace(/[–—−]/g,'-')        // dashes / minus
+      .replace(/[‘’‚]/g,"'").replace(/[“”„]/g,'"')
+      .replace(/[•·]/g,'-').replace(/×/g,'x')
+      .replace(/[^\x20-\x7E\xA0-\xFF]/g,'');}      // keep printable ASCII + Latin-1
+    function newPage(){page=doc.addPage([W,H]);y=H-M;}
+    function ensure(h){if(y-h<M)newPage();}
+    function line(txt,o){o=o||{};const size=o.size||10,gap=o.gap||(size+4);ensure(gap);page.drawText(clean(txt),{x:o.x||M,y:y-size,size,font:o.bold?fontB:font,color:o.color||dark});if(!o.inline)y-=gap;}
+    function hr(){ensure(8);page.drawLine({start:{x:M,y},end:{x:W-M,y},thickness:0.5,color:lineC});y-=10;}
+    function kvRow(pairs){ // [[k,v],...] two columns
+      ensure(15);const colW=CW/2;
+      pairs.forEach((p,i)=>{const col=i%2,x=M+col*colW;
+        page.drawText(clean(p[0]).toUpperCase(),{x,y:y-8,size:6.5,font:fontB,color:grey});
+        page.drawText(clean(p[1]==null||p[1]===''?'—':p[1]),{x,y:y-17,size:9.5,font,color:p[2]||dark});
+        if(col===1||i===pairs.length-1)y-=26;});
+    }
+    newPage();
+    // Header band
+    page.drawRectangle({x:0,y:H-8,width:W,height:8,color:gold});
+    line('Ophthalmology Report',{size:20,bold:true,color:gold,gap:24});
+    const now=new Date();
+    line('Carino Ophthalmology · generated '+now.toLocaleString(),{size:8.5,color:grey,gap:16});
+    hr();
+    kvRow([['Patient ID',study.meta.patientId],['Name / initials',study.meta.name],['Exam date',study.meta.date],['Report date',now.toISOString().slice(0,10)]]);
+    y-=6;
+
+    for(const key of ['OD','OS']){
+      const e=study.eyes[key],c=e.clinical||{},mt=metricsFor(key);
+      const hasData=e.marks.length||pngs[key]||Object.keys(c).some(k=>c[k]);
+      if(!hasData)continue;
+      ensure(30);hr();
+      line(key==='OD'?'Right eye  (OD)':'Left eye  (OS)',{size:14,bold:true,color:dark,gap:20});
+      if(pngs[key]){
+        const png=await doc.embedPng(pngs[key].bytes);
+        const s=Math.min(CW/png.width,250/png.height),w=png.width*s,h=png.height*s;
+        ensure(h+8);page.drawImage(png,{x:M+(CW-w)/2,y:y-h,width:w,height:h});
+        page.drawRectangle({x:M+(CW-w)/2,y:y-h,width:w,height:h,borderColor:lineC,borderWidth:0.5});
+        y-=h+12;
+      }
+      const cdrCol=v=>v==null?dark:(v>=0.7?err:(v>=0.6?warn:ok));
+      kvRow([['Vertical CDR',mt.verticalCDR,cdrCol(mt.verticalCDR)],['Horizontal CDR',mt.horizontalCDR,cdrCol(mt.horizontalCDR)],
+             ['Disc–fovea (mm)',mt.discFoveaDistMm],['Calibration (mm/px)',mt.mmPerPx]]);
+      kvRow([['VA uncorrected',c.vaUC],['VA corrected',c.vaCC],['IOP (mmHg)',c.iop],['Pachymetry (µm)',c.pachy]]);
+      kvRow([['Refraction',[c.sph,c.cyl,c.axis].filter(Boolean).join('  ')||''],['Add',c.add],['Lens status',c.lens],['Diagnosis',c.dx]]);
+      const les=e.marks.filter(m=>m.kind==='lesion');
+      if(les.length){
+        line('Findings',{size:8,bold:true,color:grey,gap:14});
+        les.forEach(l=>line('•  '+(l.ltype||'Lesion')+(l.note?'  — '+l.note:''),{size:9.5,x:M+8,gap:13}));
+      }
+      const rulers=e.marks.filter(m=>m.kind==='ruler');
+      if(rulers.length){
+        line('Measurements',{size:8,bold:true,color:grey,gap:14});
+        rulers.forEach(r=>{const s=(e.marks.find(m=>m.kind==='disc')&&e.marks.find(m=>m.kind==='disc').ry)?e.discDiaMm/(2*e.marks.find(m=>m.kind==='disc').ry):null;const d=Math.hypot(r.x2-r.x1,r.y2-r.y1);line('•  '+(s?(d*s).toFixed(2)+' mm':Math.round(d)+' px'),{size:9.5,x:M+8,gap:13});});
+      }
+      if(c.notes){line('Notes',{size:8,bold:true,color:grey,gap:14});wrapText(clean(c.notes),CW-8,9.5,font).forEach(ln=>line(ln,{size:9.5,x:M+8,gap:12}));}
+    }
+    // footer note
+    ensure(24);hr();line('Documentation / annotation aid — not a diagnostic device.',{size:7.5,color:grey,gap:10});
+    return await doc.save();
+
+    function wrapText(str,maxW,size,f){const words=String(str).split(/\s+/),lines=[];let cur='';
+      words.forEach(w=>{const t=cur?cur+' '+w:w;if(f.widthOfTextAtSize(t,size)>maxW&&cur){lines.push(cur);cur=w;}else cur=t;});
+      if(cur)lines.push(cur);return lines;}
+  }
+
+  // ---------- Whole study → DICOM (Encapsulated PDF, Explicit VR LE) ----------
+  const UID_ROOT='1.2.826.0.1.3680043.10.1401'; // Carino internal root
+  function genUID(suffix){return (UID_ROOT+'.'+suffix+'.'+Date.now()+'.'+Math.floor(Math.random()*1e6)).slice(0,64);}
+  function dicomEncapsulatedPdf(pdfBytes,info){
+    const enc=new TextEncoder();
+    const concat=arrs=>{let n=0;arrs.forEach(a=>n+=a.length);const out=new Uint8Array(n);let o=0;arrs.forEach(a=>{out.set(a,o);o+=a.length;});return out;};
+    const u16=v=>{const b=new Uint8Array(2);new DataView(b.buffer).setUint16(0,v,true);return b;};
+    const u32=v=>{const b=new Uint8Array(4);new DataView(b.buffer).setUint32(0,v>>>0,true);return b;};
+    const LONG=['OB','OW','OF','SQ','UT','UN'];
+    function pad(bytes,ch){if(bytes.length%2===0)return bytes;const p=new Uint8Array(bytes.length+1);p.set(bytes);p[bytes.length]=ch;return p;}
+    function el(g,e,vr,val){ // val:Uint8Array already padded
+      const head=[u16(g),u16(e),enc.encode(vr)];
+      if(LONG.includes(vr)){head.push(u16(0));head.push(u32(val.length));}else{head.push(u16(val.length));}
+      head.push(val);return concat(head);
+    }
+    const S=(s,ui)=>pad(enc.encode(s==null?'':String(s)),ui?0x00:0x20);
+    const OB=b=>pad(b,0x00);
+
+    const sopClass='1.2.840.10008.5.1.4.1.1.104.1'; // Encapsulated PDF Storage
+    const tsUID='1.2.840.10008.1.2.1';               // Explicit VR Little Endian
+    const sopInst=genUID('3'), studyUID=genUID('1'), seriesUID=genUID('2');
+    const d=new Date(),p2=n=>String(n).padStart(2,'0');
+    const studyDate=((info.date||new Date().toISOString().slice(0,10)).replace(/-/g,''))||'';
+    const studyTime=p2(d.getHours())+p2(d.getMinutes())+p2(d.getSeconds());
+    const patName=info.name?String(info.name):'ANONYMOUS';
+    const patID=info.patientId?String(info.patientId):'ANON';
+
+    // Dataset (ascending tag order), Explicit VR LE
+    const ds=concat([
+      el(0x0008,0x0005,'CS',S('ISO_IR 192')),
+      el(0x0008,0x0016,'UI',S(sopClass,true)),
+      el(0x0008,0x0018,'UI',S(sopInst,true)),
+      el(0x0008,0x0020,'DA',S(studyDate)),
+      el(0x0008,0x0023,'DA',S(studyDate)),
+      el(0x0008,0x0030,'TM',S(studyTime)),
+      el(0x0008,0x0033,'TM',S(studyTime)),
+      el(0x0008,0x0060,'CS',S('DOC')),
+      el(0x0008,0x0064,'CS',S('WSD')),
+      el(0x0008,0x0070,'LO',S('Carino Systems')),
+      el(0x0008,0x0090,'PN',S('')),
+      el(0x0008,0x103E,'LO',S('Ophthalmology report')),
+      el(0x0010,0x0010,'PN',S(patName)),
+      el(0x0010,0x0020,'LO',S(patID)),
+      el(0x0010,0x0030,'DA',S('')),
+      el(0x0010,0x0040,'CS',S('')),
+      el(0x0020,0x000D,'UI',S(studyUID,true)),
+      el(0x0020,0x000E,'UI',S(seriesUID,true)),
+      el(0x0020,0x0010,'SH',S('1')),
+      el(0x0020,0x0011,'IS',S('1')),
+      el(0x0020,0x0013,'IS',S('1')),
+      el(0x0042,0x0010,'ST',S('Ophthalmology Report')),
+      el(0x0042,0x0011,'OB',OB(pdfBytes)),
+      el(0x0042,0x0012,'LO',S('application/pdf'))
+    ]);
+
+    // File meta (group 0002) — always Explicit VR LE
+    const metaEls=concat([
+      el(0x0002,0x0001,'OB',new Uint8Array([0x00,0x01])),
+      el(0x0002,0x0002,'UI',S(sopClass,true)),
+      el(0x0002,0x0003,'UI',S(sopInst,true)),
+      el(0x0002,0x0010,'UI',S(tsUID,true)),
+      el(0x0002,0x0012,'UI',S(UID_ROOT+'.1',true)),
+      el(0x0002,0x0013,'SH',S('CARINO_OPHTHA'))
+    ]);
+    const groupLen=el(0x0002,0x0000,'UL',u32(metaEls.length));
+    const preamble=new Uint8Array(128); // zeros
+    const dicm=enc.encode('DICM');
+    return concat([preamble,dicm,groupLen,metaEls,ds]);
+  }
+
+  $('exportPdf').addEventListener('click',async()=>{
+    if(!study.eyes.OD.img&&!study.eyes.OS.img){toast('Load an image first');return;}
+    try{toast('Building PDF…');const bytes=await generateStudyPdf();
+      download('ophtha_'+(study.meta.patientId||'study')+'.pdf',new Blob([bytes],{type:'application/pdf'}));toast('PDF exported');}
+    catch(err){console.error(err);toast('PDF failed: '+err.message);}
+  });
+  $('exportDcm').addEventListener('click',async()=>{
+    if(!study.eyes.OD.img&&!study.eyes.OS.img){toast('Load an image first');return;}
+    try{toast('Building DICOM…');const pdf=await generateStudyPdf();
+      const dcm=dicomEncapsulatedPdf(pdf,study.meta);
+      download('ophtha_'+(study.meta.patientId||'study')+'.dcm',new Blob([dcm],{type:'application/dicom'}));toast('DICOM (Encapsulated PDF) exported');}
+    catch(err){console.error(err);toast('DICOM failed: '+err.message);}
+  });
+
   // ---------- Print ----------
   $('printBtn').addEventListener('click',()=>{buildReport();window.print();});
   function buildReport(){
@@ -775,7 +962,7 @@
   }
   boot();
   // expose a little for debugging/testing
-  window.__ophtha={study,setImage,makeSampleFundus,switchEye,setTool,E,metricsFor};
+  window.__ophtha={study,setImage,makeSampleFundus,switchEye,setTool,E,metricsFor,generateStudyPdf,dicomEncapsulatedPdf,renderEyePngBytes};
 })();
 </script>
 </body>

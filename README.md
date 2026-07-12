@@ -19,7 +19,10 @@ Part of [Carino Systems](https://carino.systems). Live at **ophtha.carino.system
 - **Measurement tool** — ruler in px or mm.
 - **Per-eye (OD / OS) clinical sheet** — VA, IOP, refraction (sph/cyl/axis/add),
   pachymetry, lens status, diagnosis, notes.
-- **Export** — annotated PNG, full study JSON (re-openable), and a printable report.
+- **Export** — annotated PNG, full study **PDF report** (both eyes, embedded
+  annotated images + metrics + clinical data), a **DICOM** file (Encapsulated
+  PDF, SOP class `1.2.840.10008.5.1.4.1.1.104.1` — a single PACS-storable object
+  containing the whole study), re-openable study JSON, and a printable report.
 - Zoom / pan, keyboard tool shortcuts (V H 1–6), autosave to localStorage,
   drag-and-drop image loading, and a built-in synthetic sample fundus.
 
