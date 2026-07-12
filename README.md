@@ -7,10 +7,10 @@ in the browser; **no image or data is ever uploaded**.
 
 Part of [Carino Systems](https://carino.systems). Live at **ophtha.carino.systems**.
 
-The suite is organised as an **encounter** with four workspaces you switch between from
-the top navbar — **Imaging**, **Refraction**, **Dispensing** and **Tests**. The fundus
+The suite is organised as an **encounter** with three workspaces you switch between from
+the top navbar — **Imaging**, **Exam** (refraction + dispensing) and **Tests**. The fundus
 canvas only appears in Imaging; the other workspaces use the full width in responsive
-columns, so refraction and dispensing show everything at a glance. The OD/OS eye switch is
+columns, so the whole exam shows at a glance with little scrolling. The OD/OS eye switch is
 always available at the top of the panel. Imaging is entirely optional — you can refract
 and dispense without ever loading a photo.
 
@@ -69,6 +69,8 @@ Launch patient-facing chart windows and drive them from the main screen:
   single-line **LogMAR (Sloan)**, Tumbling E, Landolt C, Duochrome (red-green), astigmatic
   dial, Amsler grid, low-contrast letters, a colour-vision **screening demo** (clearly
   non-diagnostic), a fixation target and blank white/black fields.
+- **Snellen full / per-row** — show the whole chart or one row at a time, stepping through
+  rows (the **Rows** remote button or `C`; `↑/↓` change the row).
 - **Optotype order** — choose **Fixed chart** (canonical letters in their original order)
   or **Randomize** in Settings; the Shuffle button re-randomizes at any time to prevent
   memorization.

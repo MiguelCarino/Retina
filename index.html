@@ -80,10 +80,9 @@
     main:not([data-mode="imaging"]) .panel{width:auto;flex:1;border-left:none}
     /* keep fields readable on wide screens (cap width, align left) */
     main:not([data-mode="imaging"]) .panel>*{max-width:1180px}
-    main:not([data-mode="imaging"]) #mod-refraction>.sec,
-    main:not([data-mode="imaging"]) #mod-dispensing>.sec{columns:290px;column-gap:24px;padding:18px 22px}
-    main:not([data-mode="imaging"]) #mod-refraction>.sec>h3,
-    main:not([data-mode="imaging"]) #mod-dispensing>.sec>h3{column-span:all}
+    main:not([data-mode="imaging"]) #mod-exam>.sec{columns:290px;column-gap:24px;padding:18px 22px}
+    main:not([data-mode="imaging"]) #mod-exam>.sec>h3{column-span:all}
+    #mod-exam>.sec>h3.grp2{margin-top:22px;padding-top:14px;border-top:1px solid var(--border)}
     main:not([data-mode="imaging"]) #mod-tests .test-grid{grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
     main:not([data-mode="imaging"]) #mod-tests .remote{max-width:520px}
     .subsec{break-inside:avoid;display:block;margin-bottom:6px}
@@ -352,10 +351,8 @@
       <nav class="topnav" id="topnav">
         <button data-mod="imaging" class="active" title="Fundus imaging & annotation">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5" fill="currentColor" stroke="none"/></svg><span>Imaging</span></button>
-        <button data-mod="refraction" title="Acuity & refraction">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="15" r="4"/><circle cx="18" cy="15" r="4"/><path d="M10 14c1-1 3-1 4 0M2 12l2-3h4M22 12l-2-3h-4"/></svg><span>Refraction</span></button>
-        <button data-mod="dispensing" title="Dispensing & optics">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 7h20M4 7l1.5 10a2 2 0 0 0 2 1.7h9a2 2 0 0 0 2-1.7L20 7M9 11h6"/></svg><span>Dispensing</span></button>
+        <button data-mod="exam" title="Refraction, dispensing & optics">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="15" r="4"/><circle cx="18" cy="15" r="4"/><path d="M10 14c1-1 3-1 4 0M2 12l2-3h4M22 12l-2-3h-4"/></svg><span>Exam</span></button>
         <button data-mod="tests" title="Eye exam test charts">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 8v8M9 16h6M10.5 8h3" stroke-width="2.4"/></svg><span>Tests</span></button>
       </nav>
@@ -430,7 +427,7 @@
 
       <div class="empty-hint" id="emptyHint">
         <h2>No image loaded</h2>
-        <p data-i18n-html="emptyP">Drop a fundus / anterior-segment photo here, or load one, to mark the disc, cup and fovea for an automatic cup-to-disc ratio. Prefer to just refract or dispense? Open the <b>Refraction</b> or <b>Dispensing</b> workspace on the left — no image needed. Everything stays in your browser; nothing is uploaded.</p>
+        <p data-i18n-html="emptyP">Drop a fundus / anterior-segment photo here, or load one, to mark the disc, cup and fovea for an automatic cup-to-disc ratio. Prefer to just refract or dispense? Open the <b>Exam</b> workspace above — no image needed. Everything stays in your browser; nothing is uploaded.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center" class="pointer-on">
           <button class="btn" id="loadBtn">Load image…</button>
           <button class="btn ghost" id="cameraBtn2">Take photo…</button>
@@ -501,8 +498,8 @@
         </div>
       </div>
 
-      <!-- ==================== REFRACTION MODULE ==================== -->
-      <div class="mod hidden" id="mod-refraction">
+      <!-- ==================== EXAM MODULE (refraction + dispensing) ==================== -->
+      <div class="mod hidden" id="mod-exam">
         <div class="sec">
           <h3>Refraction — <span class="clinEye">right eye (OD)</span></h3>
 
@@ -562,13 +559,8 @@
             <div class="field"><label>Diagnosis / impression</label><input class="cl" data-f="dx" placeholder="e.g. POAG, presbyopia"></div>
             <div class="field"><label>Notes</label><textarea class="cl" data-f="notes" placeholder="Free text…"></textarea></div>
           </div>
-        </div>
-      </div>
 
-      <!-- ==================== DISPENSING MODULE ==================== -->
-      <div class="mod hidden" id="mod-dispensing">
-        <div class="sec">
-          <h3>Dispensing &amp; optics</h3>
+          <h3 class="grp2">Dispensing &amp; optics</h3>
           <div class="subsec">
             <div class="note-box" data-i18n-html="dispNote1">Runs entirely from the <b>final Rx</b> — no photo required. Load a face photo only if you want to estimate PD from it.</div>
             <div class="subhead">Interpupillary distance <span class="hint">binocular, mm</span></div>
@@ -679,7 +671,8 @@
               <button id="rScreenL">◂ <span class="i18n">Screen</span></button>
               <button id="rScreenR"><span class="i18n">Screen</span> ▸</button>
             </div>
-            <div class="r-grid two">
+            <div class="r-grid">
+              <button id="rRows" title="Snellen: full chart / per-row"><span class="i18n">Rows</span></button>
               <button id="rMirror"><span class="i18n">Mirror</span></button>
               <button id="rClose" class="danger"><span class="i18n">Close</span></button>
             </div>
@@ -826,7 +819,7 @@
     es:{
       // header / tabs
       'Fundus, refraction & dispensing':'Fondo de ojo, refracción y óptica',
-      'Imaging':'Imagen','Refraction':'Refracción','Dispensing':'Óptica',
+      'Imaging':'Imagen','Refraction':'Refracción','Dispensing':'Óptica','Exam':'Examen',
       // section headers
       'Patient / encounter':'Paciente / consulta','Disc analysis':'Análisis del disco',
       'Findings':'Hallazgos','Legend':'Leyenda','Refraction —':'Refracción —',
@@ -883,7 +876,7 @@
       'right eye (OD)':'ojo derecho (OD)','left eye (OS)':'ojo izquierdo (OS)',
       // tests & settings
       'Tests':'Pruebas','Eye exam tests':'Pruebas oculares',
-      'Presenting':'Presentando','Shuffle':'Mezclar','Prev':'Ant.','Next':'Sig.','Mirror':'Espejo','Close':'Cerrar',
+      'Presenting':'Presentando','Shuffle':'Mezclar','Prev':'Ant.','Next':'Sig.','Mirror':'Espejo','Close':'Cerrar','Rows':'Filas',
       'Settings':'Ajustes','Test display':'Pantalla de prueba','Same screen':'Misma pantalla','Second monitor':'Segundo monitor','Ask each time':'Preguntar','Detect monitors':'Detectar monitores',
       'Test distance':'Distancia de prueba','Distance':'Distancia','Unit':'Unidad','True-size calibration':'Calibración de tamaño real','85.6 mm card':'Tarjeta 85,6 mm','Display density':'Densidad de pantalla','Mirror chart':'Optotipo en espejo','Off':'No','On (mirrored room)':'Sí (sala con espejo)','Save settings':'Guardar ajustes',
       'Snellen letters':'Letras de Snellen','Distance acuity':'Agudeza de lejos','LogMAR (Sloan)':'LogMAR (Sloan)','Letter chart':'Optotipo de letras','Tumbling E':'E giratoria','Illiterate / pediatric':'Iletrados / pediátrico','Landolt C':'Anillo de Landolt','Ring gap':'Abertura del anillo','Duochrome':'Bicromático','Red-green balance':'Equilibrio rojo-verde','Astigmatic dial':'Esfera astigmática','Axis / fan':'Eje / abanico','Amsler grid':'Rejilla de Amsler','Macular / central':'Macular / central','Contrast letters':'Letras de contraste','Low contrast':'Bajo contraste','Color vision':'Visión del color','Screening demo':'Demo de cribado','Fixation target':'Punto de fijación','Central fixation':'Fijación central','Blank — white':'Blanco','White field':'Campo blanco','Blank — black':'Negro','Black field':'Campo negro',
@@ -893,7 +886,7 @@
       'Annotation':'Anotación','Text label':'Etiqueta de texto','Outline':'Contorno',
       'Lens layout / centration':'Montaje / centrado','Enter frame A, B and DBL to see the centration layout.':'Introduce A, B y DBL de la montura para ver el centrado.',
       'Chart screen':'Pantalla de test','Use this screen for charts':'Usar esta pantalla para los tests',
-      'Control (main)':'Control (principal)','This is the control window screen':'Esta es la pantalla de la ventana de control',
+      'Control (main)':'Control (principal)','This is the control window screen':'Esta es la pantalla de la ventana de control','Tap to assign':'Toca para asignar','Tap: main → chart → none':'Toca: principal → test → ninguno',
       'Screen calibration':'Calibración de pantalla','Patient ↔ screen distance':'Distancia paciente ↔ pantalla',
       'Charts are sized for a real viewing distance and physical pixel size, so acuity is accurate. Set both:':'Los optotipos se dimensionan según la distancia real y el tamaño físico del píxel, para una agudeza correcta. Configura ambos:',
       "Hold a standard card (credit / ID, 85.6 mm wide) against the box and drag the slider until it matches the card's width.":'Coloca una tarjeta estándar (crédito / ID, 85,6 mm) sobre el recuadro y ajusta el control hasta que coincida con su ancho.',
@@ -906,13 +899,13 @@
       testsNote:'Abre el optotipo elegido en otra ventana — colócala en la pantalla del paciente y contrólala desde aquí. Configura la pantalla, la distancia y la calibración de tamaño real en <b>Ajustes</b> (icono de engranaje).',
       monHint:'Colocar un optotipo en un segundo monitor usa el permiso de gestión de ventanas del navegador. Si no se concede, la ventana se abre aquí — arrástrala y pulsa <b>F</b> para pantalla completa.',
       // html blocks
-      emptyP:'Arrastra aquí una foto de fondo de ojo o segmento anterior, o cárgala, para marcar el disco, la excavación y la fóvea y obtener la relación excavación/disco automática. ¿Solo quieres refractar o montar lentes? Cambia a la pestaña <b>Refracción</b> u <b>Óptica</b> — no hace falta imagen. Todo permanece en tu navegador; no se sube nada.',
+      emptyP:'Arrastra aquí una foto de fondo de ojo o segmento anterior, o cárgala, para marcar el disco, la excavación y la fóvea y obtener la relación excavación/disco automática. ¿Solo quieres refractar o montar lentes? Abre el espacio <b>Examen</b> arriba — no hace falta imagen. Todo permanece en tu navegador; no se sube nada.',
       dispNote1:'Funciona por completo con la <b>Rx final</b> — sin foto. Carga una foto del rostro solo si quieres estimar la DIP a partir de ella.',
       dispNote2:'Carga una foto del rostro con una <b>tarjeta</b> (ID-1, 85,6 mm) junto a la ceja. Traza una <b>regla</b> sobre el lado largo de la tarjeta y luego de pupila a pupila.'
     },
     ja:{
       'Fundus, refraction & dispensing':'眼底・屈折・調製',
-      'Imaging':'画像','Refraction':'屈折検査','Dispensing':'調製',
+      'Imaging':'画像','Refraction':'屈折検査','Dispensing':'調製','Exam':'検査',
       'Patient / encounter':'患者 / 診察','Disc analysis':'視神経乳頭の解析',
       'Findings':'所見','Legend':'凡例','Refraction —':'屈折 —','Dispensing & optics':'調製と光学','Export':'書き出し',
       'Visual acuity':'視力','Autorefraction / retinoscopy':'オートレフ / 検影法','Subjective — final Rx':'自覚的 — 最終処方',
@@ -952,7 +945,7 @@
       'No marks yet.':'まだマークがありません。','Lesion':'病変','point':'点','lesion pin':'病変ピン',
       'right eye (OD)':'右眼 (OD)','left eye (OS)':'左眼 (OS)',
       'Tests':'検査表','Eye exam tests':'眼科検査表',
-      'Presenting':'提示中','Shuffle':'シャッフル','Prev':'前へ','Next':'次へ','Mirror':'反転','Close':'閉じる',
+      'Presenting':'提示中','Shuffle':'シャッフル','Prev':'前へ','Next':'次へ','Mirror':'反転','Close':'閉じる','Rows':'行',
       'Settings':'設定','Test display':'検査ディスプレイ','Same screen':'同じ画面','Second monitor':'別モニター','Ask each time':'毎回確認','Detect monitors':'モニターを検出',
       'Test distance':'検査距離','Distance':'距離','Unit':'単位','True-size calibration':'実寸キャリブレーション','85.6 mm card':'85.6mm カード','Display density':'画面密度','Mirror chart':'鏡像表示','Off':'オフ','On (mirrored room)':'オン(鏡室)','Save settings':'設定を保存',
       'Snellen letters':'スネレン文字','Distance acuity':'遠見視力','LogMAR (Sloan)':'logMAR(Sloan)','Letter chart':'文字視標','Tumbling E':'ランダムE','Illiterate / pediatric':'非識字 / 小児','Landolt C':'ランドルト環','Ring gap':'環の切れ目','Duochrome':'レッドグリーン','Red-green balance':'赤緑バランス','Astigmatic dial':'放射状視標','Axis / fan':'軸 / 扇','Amsler grid':'アムスラーチャート','Macular / central':'黄斑 / 中心','Contrast letters':'コントラスト文字','Low contrast':'低コントラスト','Color vision':'色覚','Screening demo':'スクリーニング例','Fixation target':'固視標','Central fixation':'中心固視','Blank — white':'白画面','White field':'白背景','Blank — black':'黒画面','Black field':'黒背景',
@@ -962,7 +955,7 @@
       'Annotation':'注釈','Text label':'テキスト','Outline':'輪郭',
       'Lens layout / centration':'レンズレイアウト / 芯出し','Enter frame A, B and DBL to see the centration layout.':'フレームのA・B・DBLを入力すると芯出し図が表示されます。',
       'Chart screen':'視標画面','Use this screen for charts':'この画面を視標表示に使用',
-      'Control (main)':'コントロール(メイン)','This is the control window screen':'これは操作ウィンドウの画面です',
+      'Control (main)':'コントロール(メイン)','This is the control window screen':'これは操作ウィンドウの画面です','Tap to assign':'タップで割り当て','Tap: main → chart → none':'タップ: メイン → 視標 → なし',
       'Screen calibration':'画面キャリブレーション','Patient ↔ screen distance':'患者↔画面の距離',
       'Charts are sized for a real viewing distance and physical pixel size, so acuity is accurate. Set both:':'視標は実際の視距離と物理的なピクセルサイズに合わせて表示され、視力が正確になります。両方を設定してください：',
       "Hold a standard card (credit / ID, 85.6 mm wide) against the box and drag the slider until it matches the card's width.":'標準カード(クレジット/ID、85.6mm)を枠に当て、幅が一致するまでスライダーを調整します。',
@@ -974,7 +967,7 @@
       'Fixed shows the classic chart letters in their original order; Randomize scrambles them. The Shuffle button re-randomizes any time.':'「固定」は従来の並び順で文字を表示し、「ランダム」は並びをシャッフルします。シャッフルボタンでいつでも再ランダム化できます。',
       testsNote:'選択した視標を別ウィンドウで開きます — 患者側の画面に置き、ここから操作します。ディスプレイ・距離・実寸キャリブレーションは<b>設定</b>(歯車アイコン)で行います。',
       monHint:'別モニターへの表示にはブラウザのウィンドウ管理許可を使います。許可がない場合はこの画面に開くので、ドラッグして移動し<b>F</b>で全画面にします。',
-      emptyP:'眼底または前眼部の写真をここにドロップするか読み込むと、乳頭・陥凹・中心窩をマークして自動でC/D比を算出できます。屈折検査や眼鏡調製だけなら<b>屈折検査</b>または<b>調製</b>タブへ — 画像は不要です。すべてブラウザ内で処理され、何もアップロードされません。',
+      emptyP:'眼底または前眼部の写真をここにドロップするか読み込むと、乳頭・陥凹・中心窩をマークして自動でC/D比を算出できます。屈折検査や眼鏡調製だけなら上の<b>検査</b>ワークスペースへ — 画像は不要です。すべてブラウザ内で処理され、何もアップロードされません。',
       dispNote1:'<b>最終処方</b>だけで完結します — 写真は不要です。PDを写真から推定したい場合のみ顔写真を読み込んでください。',
       dispNote2:'眉の位置に<b>カード</b>(ID-1、85.6mm)を当てた顔写真を読み込みます。カードの長辺に<b>定規</b>を引き、次に瞳孔間に引きます。'
     }
@@ -1358,7 +1351,7 @@
     $('discDia').value=E().discDiaMm;
     applyEyeImage();writeForm();
     if(viewBoth)updateTwo();else fitToView();
-    if(panelMod==='dispensing')renderLensLayout();
+    if(panelMod==='exam')renderLensLayout();
     afterChange();
   }
 
@@ -1370,7 +1363,7 @@
     if(c.contains('dp'))return E().disp;
     return null;}
   document.querySelectorAll('.mt,.gd,.cl,.dp').forEach(el=>el.addEventListener('input',()=>{
-    const st=storeFor(el);if(st)st[el.dataset.f]=el.value;save();if(panelMod==='dispensing')renderLensLayout();}));
+    const st=storeFor(el);if(st)st[el.dataset.f]=el.value;save();if(panelMod==='exam')renderLensLayout();}));
   function writeForm(){document.querySelectorAll('.mt,.gd,.cl,.dp').forEach(el=>{const st=storeFor(el);el.value=st?(st[el.dataset.f]||''):'';});}
   const writeClinical=writeForm; // per-eye fields refresh on eye switch
   $('discDia').addEventListener('input',()=>{E().discDiaMm=parseFloat($('discDia').value)||1.5;computeMetrics();renderFindings();save();});
@@ -1437,9 +1430,9 @@
   function setMod(m){panelMod=m;
     document.querySelector('main').setAttribute('data-mode',m);
     document.querySelectorAll('#topnav button').forEach(b=>b.classList.toggle('active',b.dataset.mod===m));
-    ['imaging','refraction','dispensing','tests'].forEach(id=>$('mod-'+id).classList.toggle('hidden',id!==m));
+    ['imaging','exam','tests'].forEach(id=>$('mod-'+id).classList.toggle('hidden',id!==m));
     if(m==='imaging'&&E().img)setTimeout(()=>{if(!viewBoth)fitToView();},0);
-    if(m==='dispensing')renderLensLayout();}
+    if(m==='exam')renderLensLayout();}
 
   // ---------- PD from photo (optional estimate) ----------
   function selectedRulerLen(){const m=getMark(selectedId);if(!m||m.kind!=='ruler')return null;return Math.hypot(m.x2-m.x1,m.y2-m.y1);}
@@ -1871,7 +1864,7 @@
 
   // ======================= Settings =======================
   const SETTINGS_KEY='carino_retina_settings';
-  const settings={display:'same',distance:6,unit:'m',pxPerMm:3.7795,mirror:false,optotypeOrder:'fixed',presentScreen:null};
+  const settings={display:'same',distance:6,unit:'m',pxPerMm:3.7795,mirror:false,optotypeOrder:'fixed',presentScreen:null,mainScreen:null};
   function loadSettings(){try{const s=JSON.parse(localStorage.getItem(SETTINGS_KEY));if(s)Object.assign(settings,s);}catch(e){}}
   function saveSettings(){try{localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));}catch(e){}}
   function distanceMm(){return settings.unit==='ft'?settings.distance*304.8:settings.distance*1000;}
@@ -1881,25 +1874,34 @@
     if(!('getScreenDetails' in window)){toast('Multi-monitor placement not supported here');renderScreens();return null;}
     try{screenDetails=await window.getScreenDetails();
       if(screenDetails.addEventListener)screenDetails.addEventListener('screenschange',renderScreens);
+      if(settings.mainScreen==null){let ci=screenDetails.screens.indexOf(screenDetails.currentScreen);if(ci<0)ci=screenDetails.screens.findIndex(s=>s.isPrimary);if(ci>=0){settings.mainScreen=ci;saveSettings();}}
       renderScreens();return screenDetails;
     }catch(e){toast('Monitor permission denied');return null;}
   }
   function renderScreens(){
     const box=$('screensList');if(!box)return;box.innerHTML='';
     if(!screenDetails){box.innerHTML='<div class="screen-item"><span>'+(('getScreenDetails' in window)?'—':'API n/a')+'</span></div>';return;}
-    let curIdx=screenDetails.screens.indexOf(screenDetails.currentScreen);if(curIdx<0)curIdx=screenDetails.screens.findIndex(s=>s.isPrimary);
     screenDetails.screens.forEach((s,i)=>{
-      const isMain=(i===curIdx), isTest=(settings.presentScreen===i);
+      const isMain=(settings.mainScreen===i), isTest=(settings.presentScreen===i);
       const d=document.createElement('div');d.className='screen-item'+(isMain?' main':'')+(isTest?' test':'');
-      let role='';
+      let role;
       if(isMain)role='<span class="use">'+t('Control (main)')+'</span>';
       else if(isTest)role='<span class="use">'+t('Chart screen')+'</span>';
-      else role='<span class="'+(s.isPrimary?'pri':'')+'">'+t(s.isPrimary?'primary':'secondary')+'</span>';
-      d.innerHTML='<span>#'+(i+1)+' · '+s.width+'×'+s.height+'</span>'+role;
-      d.title=isMain?t('This is the control window screen'):t('Use this screen for charts');
-      if(!isMain)d.addEventListener('click',()=>{settings.presentScreen=(settings.presentScreen===i?null:i);saveSettings();renderScreens();});
+      else role='<span class="'+(s.isPrimary?'pri':'')+'">'+t('Tap to assign')+'</span>';
+      d.innerHTML='<span>#'+(i+1)+' · '+s.width+'×'+s.height+(s.isPrimary?' ·'+t('primary'):'')+'</span>'+role;
+      d.title=t('Tap: main → chart → none');
+      d.addEventListener('click',()=>cycleScreenRole(i));
       box.appendChild(d);
     });
+  }
+  // Click a monitor to cycle its role: none → main (gold) → chart (outline) → none.
+  function cycleScreenRole(i){
+    const cur=(settings.mainScreen===i)?'main':(settings.presentScreen===i)?'test':'none';
+    if(settings.mainScreen===i)settings.mainScreen=null;
+    if(settings.presentScreen===i)settings.presentScreen=null;
+    if(cur==='none')settings.mainScreen=i;
+    else if(cur==='main')settings.presentScreen=i;
+    saveSettings();renderScreens();
   }
 
   function openSettings(){syncSettingsUI();$('settingsModal').classList.remove('hidden');}
@@ -2040,7 +2042,7 @@
     var SLOAN_LINES=['NCKHV','DSRKN','ZVCDH','ONHRC','KDNRO','CSRHN','ZKDVO','HNVCK','ROVKD'];
     var CONTRAST_ROWS=['PECFD','EDFCZ','LPEDR','FELOP','DEFPO','NCKHV'];
     var ORDER=['snellen','sloan','tumblingE','landoltC','duochrome','astig','amsler','contrast','color','fixation','blankW','blankB'];
-    var st={test:cfg.test,line:4,mirror:!!cfg.mirror,order:(cfg.order==='random'?'random':'fixed'),seed:20200,content:null,colorNum:'5'};
+    var st={test:cfg.test,line:4,mirror:!!cfg.mirror,order:(cfg.order==='random'?'random':'fixed'),seed:20200,content:null,colorNum:'5',rowMode:'full'};
     var stage=document.getElementById('stage'),hud=document.getElementById('hud');
     function rnd(){st.seed=(st.seed*1103515245+12345)&0x7fffffff;return st.seed/0x7fffffff;}
     function seedFixed(){st.seed=987654321;}
@@ -2050,7 +2052,7 @@
     function polar(cx,cy,r,deg){var a=(deg-90)*Math.PI/180;return[cx+r*Math.cos(a),cy+r*Math.sin(a)];}
     function arc(cx,cy,r,a0,a1){var s=polar(cx,cy,r,a1),e=polar(cx,cy,r,a0),big=a1-a0<=180?'0':'1';return'M '+s[0]+' '+s[1]+' A '+r+' '+r+' 0 '+big+' 0 '+e[0]+' '+e[1];}
     function isAcuity(t){return t==='snellen'||t==='sloan'||t==='tumblingE'||t==='landoltC'||t==='contrast';}
-    function acuity(){if(st.test==='snellen')return 'full chart · '+st.order;var L=CHART[st.line];return L.sn+'  ·  '+(L.log>0?'+':'')+L.log.toFixed(2)+' logMAR';}
+    function acuity(){if(st.test==='snellen'&&st.rowMode!=='single')return 'full chart · '+st.order;var L=CHART[st.line];return L.sn+'  ·  '+(L.log>0?'+':'')+L.log.toFixed(2)+' logMAR';}
 
     // Build the optotype content once per (test / line / order / shuffle);
     // re-layout (mirror, resize, fullscreen) reuses it so letters stay stable.
@@ -2070,9 +2072,11 @@
       document.body.style.background='#fff';
       var t=st.test;
       if(t==='snellen'){
-        var h='';for(var i=0;i<CHART.length;i++){var f=fsz(CHART[i].mar);
-          h+='<div class="row"><span class="lab">'+CHART[i].sn+'</span><span class="opt" style="font-size:'+f+'px;letter-spacing:'+(f*0.24)+'px">'+st.content[i]+'</span></div>';}
-        stage.innerHTML='<div class="chart">'+h+'</div>';
+        if(st.rowMode==='single'){var f=fsz(CHART[st.line].mar);
+          stage.innerHTML='<div class="single"><span class="lab" style="margin-right:28px">'+CHART[st.line].sn+'</span><span class="opt" style="font-size:'+f+'px;letter-spacing:'+(f*0.24)+'px">'+st.content[st.line]+'</span></div>';
+        }else{var h='';for(var i=0;i<CHART.length;i++){var f2=fsz(CHART[i].mar);
+          h+='<div class="row"><span class="lab">'+CHART[i].sn+'</span><span class="opt" style="font-size:'+f2+'px;letter-spacing:'+(f2*0.24)+'px">'+st.content[i]+'</span></div>';}
+          stage.innerHTML='<div class="chart">'+h+'</div>';}
       }else if(t==='sloan'){var f=fsz(CHART[st.line].mar);stage.innerHTML='<div class="single"><span class="opt" style="font-size:'+f+'px;letter-spacing:'+(f*0.32)+'px">'+st.content+'</span></div>';
       }else if(t==='tumblingE'){var f=fsz(CHART[st.line].mar),s='';for(var i=0;i<5;i++)s+='<span class="opt" style="font-size:'+f+'px;display:inline-block;transform:rotate('+st.content[i]+'deg);margin:0 '+(f*0.28)+'px">E</span>';stage.innerHTML='<div class="single">'+s+'</div>';
       }else if(t==='landoltC'){var d=heightPx(CHART[st.line].mar),s='';for(var i=0;i<5;i++){var sw=d/5,r=(d-sw)/2,g=(sw/r)*180/Math.PI,a=st.content[i];s+='<svg width="'+d+'" height="'+d+'" viewBox="0 0 '+d+' '+d+'" style="margin:0 '+(d*0.28)+'px"><path d="'+arc(d/2,d/2,r,a+g/2,a-g/2+360)+'" fill="none" stroke="#000" stroke-width="'+sw+'"/></svg>';}stage.innerHTML='<div class="single">'+s+'</div>';
@@ -2090,7 +2094,7 @@
     function applyTransform(){
       stage.style.transformOrigin='center center';
       var tf=st.mirror?'scaleX(-1)':'';st.scaled=1;
-      if(st.test==='snellen'){var sh=stage.scrollHeight,vh=window.innerHeight*0.95;if(sh>vh){st.scaled=vh/sh;tf+=' scale('+st.scaled.toFixed(4)+')';}}
+      if(st.test==='snellen'&&st.rowMode!=='single'){var sh=stage.scrollHeight,vh=window.innerHeight*0.95;if(sh>vh){st.scaled=vh/sh;tf+=' scale('+st.scaled.toFixed(4)+')';}}
       stage.style.transform=tf;
     }
     function renderColor(){
@@ -2107,7 +2111,7 @@
     }
     function updateHud(){if(!hud)return;var parts=[cfg.names[st.test]||st.test];if(isAcuity(st.test))parts.push(acuity());parts.push(cfg.distanceLabel);
       if(st.scaled&&st.scaled<0.999)parts.push('scaled '+Math.round(st.scaled*100)+'% (not distance-true)');
-      hud.innerHTML='<b>'+parts[0]+'</b> · '+parts.slice(1).join(' · ')+'<span class="k">↑↓ size · ←→ test · R shuffle · O order · M mirror · F full · H hide</span>';}
+      hud.innerHTML='<b>'+parts[0]+'</b> · '+parts.slice(1).join(' · ')+'<span class="k">↑↓ size · ←→ test · R shuffle · O order · C rows · M mirror · F full · H hide</span>';}
     function nav(d){var i=ORDER.indexOf(st.test);st.test=ORDER[(i+d+ORDER.length)%ORDER.length];regen();render();}
     window.CARINO={
       bigger:function(){st.line=Math.max(0,st.line-1);regen();render();},
@@ -2115,9 +2119,10 @@
       shuffle:function(){st.order='random';st.seed=(st.seed+Math.floor(Math.random()*99999)+7)&0x7fffffff;regen();render();},
       order:function(o){st.order=(o==='fixed'||o==='random')?o:(st.order==='fixed'?'random':'fixed');regen();render();},
       mirror:function(){st.mirror=!st.mirror;applyTransform();updateHud();},
+      toggleRows:function(){if(st.test==='snellen'){st.rowMode=(st.rowMode==='single'?'full':'single');render();}},
       fs:function(){try{document.documentElement.requestFullscreen();}catch(e){}},
       setTest:function(id){st.test=id;regen();render();},
-      state:function(){return{test:st.test,acuity:isAcuity(st.test)?acuity():'',order:st.order};}
+      state:function(){return{test:st.test,acuity:isAcuity(st.test)?acuity():'',order:st.order,rows:st.rowMode,snellen:st.test==='snellen'};}
     };
     document.addEventListener('keydown',function(e){var k=e.key;
       if(k==='ArrowUp'){window.CARINO.bigger();e.preventDefault();}
@@ -2126,6 +2131,7 @@
       else if(k==='ArrowRight'){nav(1);e.preventDefault();}
       else if(k==='r'||k==='R'||k===' '){window.CARINO.shuffle();e.preventDefault();}
       else if(k==='o'||k==='O'){window.CARINO.order();}
+      else if(k==='c'||k==='C'){window.CARINO.toggleRows();}
       else if(k==='m'||k==='M'){window.CARINO.mirror();}
       else if(k==='f'||k==='F'){window.CARINO.fs();}
       else if(k==='h'||k==='H'){hud.classList.toggle('hide');}
@@ -2145,6 +2151,7 @@
     $('rSmaller').addEventListener('click',rc(c=>c.smaller()));
     $('rRandom').addEventListener('click',rc(c=>c.shuffle()));
     $('rMirror').addEventListener('click',rc(c=>c.mirror()));
+    $('rRows').addEventListener('click',rc(c=>c.toggleRows()));
     $('rScreenL').addEventListener('click',()=>moveWin(-1));
     $('rScreenR').addEventListener('click',()=>moveWin(1));
     $('rPrev').addEventListener('click',rc(c=>c.setTest(neighborTest(c.state().test,-1))));
