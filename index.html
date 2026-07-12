@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Carino Retina — Eye examination & dispensing suite</title>
   <script src="carino-clock.js" defer></script>
-  <script src="vendor/pdf-lib.min.js"></script>
+  <script src="vendor/pdf-lib.min.js" defer></script>
   <link href="fonts.css" rel="stylesheet">
   <style>
     :root{
@@ -53,6 +53,15 @@
 
     /* ---------- Layout ---------- */
     main{flex:1;display:flex;min-height:0}
+    .workarea{flex:1;display:flex;min-width:0;min-height:0}
+    /* Tablet/phone: stack the canvas above the panel so neither collapses */
+    @media (max-width:680px){
+      .workarea{flex-direction:column;overflow-y:auto}
+      .center{flex:none;height:46vh;min-height:220px}
+      .panel{width:100%!important;flex:none;overflow:visible}
+      .panel-eye{position:static}
+      main:not([data-mode="imaging"]) .center{display:none!important}
+    }
 
     /* Workspace nav (left) — single rail: mode switcher + imaging tools */
     .worknav{width:64px;flex-shrink:0;background:var(--surface-solid);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 5px;overflow-y:auto}
@@ -69,6 +78,8 @@
     main:not([data-mode="imaging"]) .center{display:none!important}
     /* Off-imaging: the working panel takes the reclaimed width and flows in columns */
     main:not([data-mode="imaging"]) .panel{width:auto;flex:1;border-left:none}
+    /* keep fields readable on wide screens (cap width, align left) */
+    main:not([data-mode="imaging"]) .panel>*{max-width:1180px}
     main:not([data-mode="imaging"]) #mod-refraction>.sec,
     main:not([data-mode="imaging"]) #mod-dispensing>.sec{columns:290px;column-gap:24px;padding:18px 22px}
     main:not([data-mode="imaging"]) #mod-refraction>.sec>h3,
@@ -319,6 +330,7 @@
       </div>
     </nav>
 
+    <div class="workarea">
     <!-- Center viewport -->
     <div class="center">
       <div class="vp-topbar">
@@ -342,7 +354,7 @@
 
       <div class="empty-hint" id="emptyHint">
         <h2>No image loaded</h2>
-        <p data-i18n-html="emptyP">Drop a fundus / anterior-segment photo here, or load one, to mark the disc, cup and fovea for an automatic cup-to-disc ratio. Prefer to just refract or dispense? Switch to the <b>Refraction</b> or <b>Dispensing</b> tab — no image needed. Everything stays in your browser; nothing is uploaded.</p>
+        <p data-i18n-html="emptyP">Drop a fundus / anterior-segment photo here, or load one, to mark the disc, cup and fovea for an automatic cup-to-disc ratio. Prefer to just refract or dispense? Open the <b>Refraction</b> or <b>Dispensing</b> workspace on the left — no image needed. Everything stays in your browser; nothing is uploaded.</p>
         <div style="display:flex;gap:10px" class="pointer-on">
           <button class="btn" id="loadBtn">Load image…</button>
           <button class="btn ghost" id="sampleBtn">Load sample fundus</button>
@@ -616,6 +628,7 @@
         <button class="btn wide" id="clearEye" style="margin-top:8px;background:transparent;border:1px solid var(--err);color:var(--err)">Clear this eye's marks</button>
       </div>
     </div>
+    </div><!-- /.workarea -->
   </main>
 
   <input type="file" id="fileInput" accept="image/*" class="hidden">
