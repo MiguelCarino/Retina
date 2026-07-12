@@ -46,6 +46,25 @@ step 1° and wrap 1–180.
 - **Fitting** — segment / OC heights per eye.
 - **Contact lens** — brand, base curve, diameter, power per eye.
 
+## Eye exam tests (Tests tab)
+Launch patient-facing chart windows and drive them from the main screen:
+- **Charts** — Snellen & LogMAR (Sloan) letters, Tumbling E, Landolt C, Duochrome
+  (red-green), astigmatic dial, Amsler grid, low-contrast letters, a colour-vision
+  **screening demo** (clearly non-diagnostic), a fixation target and blank white/black
+  fields.
+- **Remote control** — from the panel (or in the chart window with the keyboard): change
+  letter size, shuffle/rotate optotypes, step through tests, mirror, and read the live
+  acuity (Snellen + logMAR).
+- **True-size** — charts are drawn to physical size from the **test distance** and a
+  one-time **card calibration** (match an 85.6 mm card on screen), so 20/20 really is
+  20/20 at your lane length.
+
+Open **Settings** (gear icon) to choose the display (same screen / second monitor / ask),
+run monitor detection, set the distance and units, calibrate true size, and enable mirror
+mode for mirrored exam rooms. Second-monitor placement uses the browser's window-management
+permission; without it the window opens on the current screen (drag it over and press **F**
+for fullscreen).
+
 ## Export
 - **Study PDF** — the full encounter: both eyes with embedded annotated images, disc
   metrics, refraction, and a binocular dispensing summary.

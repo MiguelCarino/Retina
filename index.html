@@ -179,6 +179,45 @@
     .panel::-webkit-scrollbar,.toolrail::-webkit-scrollbar{width:8px}
     .panel::-webkit-scrollbar-thumb,.toolrail::-webkit-scrollbar-thumb{background:#222;border-radius:4px}
 
+    /* ---------- Tests module ---------- */
+    .test-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .test-card{display:flex;flex-direction:column;gap:4px;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-md);padding:10px;cursor:pointer;transition:.15s;text-align:left;color:var(--text)}
+    .test-card:hover{border-color:var(--accent);background:var(--accent-faint);transform:translateY(-1px)}
+    .test-card .tc-ico{font-size:1.1rem;line-height:1}
+    .test-card .tc-name{font-size:.76rem;font-weight:600}
+    .test-card .tc-sub{font-family:var(--mono);font-size:.55rem;color:var(--text-muted)}
+    .remote{background:var(--surface-solid);border:1px solid var(--accent);border-radius:var(--r-md);padding:10px;margin-bottom:12px}
+    .remote .r-head{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+    .remote .r-head .dot{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok)}
+    .remote .r-acuity{font-family:var(--mono);font-size:1.1rem;font-weight:700;text-align:center;margin:2px 0 8px}
+    .remote .r-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+    .remote .r-grid.two{grid-template-columns:1fr 1fr}
+    .remote button{background:transparent;border:1px solid var(--border);color:var(--text-dim);border-radius:var(--r-sm);font-family:var(--font);font-size:.72rem;font-weight:600;padding:8px 4px;cursor:pointer;transition:.15s}
+    .remote button:hover{border-color:var(--accent);color:var(--accent)}
+    .remote button.danger{border-color:var(--err);color:var(--err)}
+    .remote button.danger:hover{background:var(--err);color:#050505}
+
+    /* ---------- Settings modal ---------- */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;z-index:600;padding:20px}
+    .modal-overlay.hidden{display:none!important}
+    .modal{width:min(520px,100%);max-height:88vh;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:0 24px 70px rgba(0,0,0,.6)}
+    .modal-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--border);position:sticky;top:0;background:linear-gradient(180deg,#101010,#0b0b0b);z-index:1}
+    .modal-head h2{font-family:var(--font);font-weight:800;font-size:1.05rem}
+    .modal-head .x{background:transparent;border:none;color:var(--text-muted);font-size:1.4rem;line-height:1;cursor:pointer;padding:2px 6px}
+    .modal-head .x:hover{color:var(--err)}
+    .modal-body{padding:16px 18px}
+    .set-group{margin-bottom:18px}
+    .set-group>.sg-title{font-family:var(--mono);font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px}
+    .seg{display:flex;gap:4px;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-md);padding:3px}
+    .seg button{flex:1;background:transparent;border:none;color:var(--text-muted);font-family:var(--mono);font-size:.68rem;font-weight:700;padding:8px 6px;border-radius:var(--r-sm);cursor:pointer;transition:.15s}
+    .seg button.active{background:var(--accent);color:#050505}
+    .seg button:not(.active):hover{color:var(--text)}
+    .cal-card{height:54mm;max-height:120px;width:85.6mm;max-width:100%;border:2px dashed var(--accent);border-radius:10px;background:linear-gradient(135deg,rgba(234,179,8,.12),transparent);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.62rem;color:var(--text-dim);margin:8px 0}
+    .screens-list{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+    .screen-item{font-family:var(--mono);font-size:.68rem;color:var(--text-dim);background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-sm);padding:7px 9px;display:flex;justify-content:space-between}
+    .screen-item .pri{color:var(--accent)}
+    .hint-line{font-size:.7rem;color:var(--text-muted);line-height:1.5;margin-top:6px}
+
     /* ---------- Print report ---------- */
     #printReport{display:none}
     @media print{
@@ -211,6 +250,9 @@
         <button data-lang="ja">日本語</button>
       </div>
       <div class="social-row">
+        <button class="icon-btn" id="settingsBtn" title="Settings" aria-label="Settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
         <a href="https://github.com/MiguelCarino/Carino-Ophthalmology" target="_blank" rel="noopener" class="icon-btn" title="GitHub" aria-label="GitHub">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
         </a>
@@ -285,6 +327,7 @@
         <button data-mod="imaging" class="active" title="Fundus imaging & annotation">Imaging</button>
         <button data-mod="refraction" title="Acuity & refraction">Refraction</button>
         <button data-mod="dispensing" title="Dispensing & optics">Dispensing</button>
+        <button data-mod="tests" title="Eye exam test charts">Tests</button>
       </div>
 
       <!-- Patient / encounter (always visible) -->
@@ -454,6 +497,34 @@
         </div>
       </div>
 
+      <!-- ==================== TESTS MODULE ==================== -->
+      <div class="mod hidden" id="mod-tests">
+        <div class="sec">
+          <h3>Eye exam tests</h3>
+          <div class="note-box" data-i18n-html="testsNote">Opens the chosen chart in a separate window — put it on the patient-facing screen and control it from here. Set the display, distance and true-size calibration in <b>Settings</b> (gear icon).</div>
+
+          <div class="remote hidden" id="remote">
+            <div class="r-head"><span class="dot"></span><span class="i18n">Presenting</span> · <span id="remoteTest">—</span></div>
+            <div class="r-acuity" id="remoteAcuity">—</div>
+            <div class="r-grid" style="margin-bottom:6px">
+              <button id="rBigger" title="Bigger (easier)">A+</button>
+              <button id="rRandom" title="Randomize / flip"><span class="i18n">Shuffle</span></button>
+              <button id="rSmaller" title="Smaller (harder)">A−</button>
+            </div>
+            <div class="r-grid two" style="margin-bottom:6px">
+              <button id="rPrev">◀ <span class="i18n">Prev</span></button>
+              <button id="rNext"><span class="i18n">Next</span> ▶</button>
+            </div>
+            <div class="r-grid two">
+              <button id="rMirror"><span class="i18n">Mirror</span></button>
+              <button id="rClose" class="danger"><span class="i18n">Close</span></button>
+            </div>
+          </div>
+
+          <div class="test-grid" id="testGrid"></div>
+        </div>
+      </div>
+
       <!-- Export (always visible) -->
       <div class="sec">
         <h3>Export</h3>
@@ -482,6 +553,54 @@
   <input type="file" id="jsonInput" accept="application/json,.json" class="hidden">
   <div class="toast" id="toast"></div>
   <div id="printReport"></div>
+
+  <!-- Settings modal -->
+  <div class="modal-overlay hidden" id="settingsModal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="setTitle">
+      <div class="modal-head">
+        <h2 id="setTitle" class="i18n">Settings</h2>
+        <button class="x" id="settingsClose" aria-label="Close">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="set-group">
+          <div class="sg-title i18n">Test display</div>
+          <div class="seg" id="setDisplay">
+            <button data-v="same" class="i18n">Same screen</button>
+            <button data-v="secondary" class="i18n">Second monitor</button>
+            <button data-v="ask" class="i18n">Ask each time</button>
+          </div>
+          <button class="btn ghost wide" id="detectScreens" style="margin-top:8px"><span class="i18n">Detect monitors</span></button>
+          <div class="screens-list" id="screensList"></div>
+          <div class="hint-line" data-i18n-html="monHint">Placing a chart on a second monitor uses your browser's window-management permission. If it isn't granted, the window opens here — drag it across and press <b>F</b> for fullscreen.</div>
+        </div>
+
+        <div class="set-group">
+          <div class="sg-title i18n">Test distance</div>
+          <div class="row2">
+            <div class="field"><label class="i18n">Distance</label><input id="setDistance" type="number" step="0.1" min="0.3" value="6"></div>
+            <div class="field"><label class="i18n">Unit</label>
+              <div class="seg" id="setUnit"><button data-v="m">m</button><button data-v="ft">ft</button></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="set-group">
+          <div class="sg-title i18n">True-size calibration</div>
+          <div class="hint-line i18n">Hold a standard card (credit / ID, 85.6 mm wide) against the box below and drag the slider until the box matches its width. This makes acuity charts physically correct.</div>
+          <div class="cal-card" id="calCard"><span class="i18n">85.6 mm card</span></div>
+          <input id="calSlider" type="range" min="2.0" max="6.5" step="0.01" value="3.7795" style="width:100%">
+          <div class="hint-line"><span class="i18n">Display density</span>: <span id="calPpi">—</span></div>
+        </div>
+
+        <div class="set-group">
+          <div class="sg-title i18n">Mirror chart</div>
+          <div class="seg" id="setMirror"><button data-v="off" class="i18n">Off</button><button data-v="on" class="i18n">On (mirrored room)</button></div>
+        </div>
+
+        <button class="btn wide" id="settingsSave"><span class="i18n">Save settings</span></button>
+      </div>
+    </div>
+  </div>
 
 <script>
 (function(){
@@ -562,6 +681,15 @@
       'Optic disc center':'Centro del disco óptico','Optic disc margin':'Borde del disco óptico','Optic cup margin':'Borde de la excavación',
       'No marks yet.':'Sin marcas todavía.','Lesion':'Lesión','point':'punto','lesion pin':'marca de lesión',
       'right eye (OD)':'ojo derecho (OD)','left eye (OS)':'ojo izquierdo (OS)',
+      // tests & settings
+      'Tests':'Pruebas','Eye exam tests':'Pruebas oculares',
+      'Presenting':'Presentando','Shuffle':'Mezclar','Prev':'Ant.','Next':'Sig.','Mirror':'Espejo','Close':'Cerrar',
+      'Settings':'Ajustes','Test display':'Pantalla de prueba','Same screen':'Misma pantalla','Second monitor':'Segundo monitor','Ask each time':'Preguntar','Detect monitors':'Detectar monitores',
+      'Test distance':'Distancia de prueba','Distance':'Distancia','Unit':'Unidad','True-size calibration':'Calibración de tamaño real','85.6 mm card':'Tarjeta 85,6 mm','Display density':'Densidad de pantalla','Mirror chart':'Optotipo en espejo','Off':'No','On (mirrored room)':'Sí (sala con espejo)','Save settings':'Guardar ajustes',
+      'Snellen letters':'Letras de Snellen','Distance acuity':'Agudeza de lejos','LogMAR (Sloan)':'LogMAR (Sloan)','Letter chart':'Optotipo de letras','Tumbling E':'E giratoria','Illiterate / pediatric':'Iletrados / pediátrico','Landolt C':'Anillo de Landolt','Ring gap':'Abertura del anillo','Duochrome':'Bicromático','Red-green balance':'Equilibrio rojo-verde','Astigmatic dial':'Esfera astigmática','Axis / fan':'Eje / abanico','Amsler grid':'Rejilla de Amsler','Macular / central':'Macular / central','Contrast letters':'Letras de contraste','Low contrast':'Bajo contraste','Color vision':'Visión del color','Screening demo':'Demo de cribado','Fixation target':'Punto de fijación','Central fixation':'Fijación central','Blank — white':'Blanco','White field':'Campo blanco','Blank — black':'Negro','Black field':'Campo negro',
+      'Settings saved':'Ajustes guardados','Popup blocked — allow popups for this site':'Ventana bloqueada — permite ventanas emergentes','primary':'principal','secondary':'secundario','Move the chart to the second monitor?':'¿Mover el optotipo al segundo monitor?',
+      testsNote:'Abre el optotipo elegido en otra ventana — colócala en la pantalla del paciente y contrólala desde aquí. Configura la pantalla, la distancia y la calibración de tamaño real en <b>Ajustes</b> (icono de engranaje).',
+      monHint:'Colocar un optotipo en un segundo monitor usa el permiso de gestión de ventanas del navegador. Si no se concede, la ventana se abre aquí — arrástrala y pulsa <b>F</b> para pantalla completa.',
       // html blocks
       emptyP:'Arrastra aquí una foto de fondo de ojo o segmento anterior, o cárgala, para marcar el disco, la excavación y la fóvea y obtener la relación excavación/disco automática. ¿Solo quieres refractar o montar lentes? Cambia a la pestaña <b>Refracción</b> u <b>Óptica</b> — no hace falta imagen. Todo permanece en tu navegador; no se sube nada.',
       dispNote1:'Funciona por completo con la <b>Rx final</b> — sin foto. Carga una foto del rostro solo si quieres estimar la DIP a partir de ella.',
@@ -608,6 +736,14 @@
       'Optic disc center':'視神経乳頭中心','Optic disc margin':'乳頭辺縁','Optic cup margin':'陥凹辺縁',
       'No marks yet.':'まだマークがありません。','Lesion':'病変','point':'点','lesion pin':'病変ピン',
       'right eye (OD)':'右眼 (OD)','left eye (OS)':'左眼 (OS)',
+      'Tests':'検査表','Eye exam tests':'眼科検査表',
+      'Presenting':'提示中','Shuffle':'シャッフル','Prev':'前へ','Next':'次へ','Mirror':'反転','Close':'閉じる',
+      'Settings':'設定','Test display':'検査ディスプレイ','Same screen':'同じ画面','Second monitor':'別モニター','Ask each time':'毎回確認','Detect monitors':'モニターを検出',
+      'Test distance':'検査距離','Distance':'距離','Unit':'単位','True-size calibration':'実寸キャリブレーション','85.6 mm card':'85.6mm カード','Display density':'画面密度','Mirror chart':'鏡像表示','Off':'オフ','On (mirrored room)':'オン(鏡室)','Save settings':'設定を保存',
+      'Snellen letters':'スネレン文字','Distance acuity':'遠見視力','LogMAR (Sloan)':'logMAR(Sloan)','Letter chart':'文字視標','Tumbling E':'ランダムE','Illiterate / pediatric':'非識字 / 小児','Landolt C':'ランドルト環','Ring gap':'環の切れ目','Duochrome':'レッドグリーン','Red-green balance':'赤緑バランス','Astigmatic dial':'放射状視標','Axis / fan':'軸 / 扇','Amsler grid':'アムスラーチャート','Macular / central':'黄斑 / 中心','Contrast letters':'コントラスト文字','Low contrast':'低コントラスト','Color vision':'色覚','Screening demo':'スクリーニング例','Fixation target':'固視標','Central fixation':'中心固視','Blank — white':'白画面','White field':'白背景','Blank — black':'黒画面','Black field':'黒背景',
+      'Settings saved':'設定を保存しました','Popup blocked — allow popups for this site':'ポップアップがブロックされました — 許可してください','primary':'メイン','secondary':'サブ','Move the chart to the second monitor?':'視標を別モニターに移動しますか？',
+      testsNote:'選択した視標を別ウィンドウで開きます — 患者側の画面に置き、ここから操作します。ディスプレイ・距離・実寸キャリブレーションは<b>設定</b>(歯車アイコン)で行います。',
+      monHint:'別モニターへの表示にはブラウザのウィンドウ管理許可を使います。許可がない場合はこの画面に開くので、ドラッグして移動し<b>F</b>で全画面にします。',
       emptyP:'眼底または前眼部の写真をここにドロップするか読み込むと、乳頭・陥凹・中心窩をマークして自動でC/D比を算出できます。屈折検査や眼鏡調製だけなら<b>屈折検査</b>または<b>調製</b>タブへ — 画像は不要です。すべてブラウザ内で処理され、何もアップロードされません。',
       dispNote1:'<b>最終処方</b>だけで完結します — 写真は不要です。PDを写真から推定したい場合のみ顔写真を読み込んでください。',
       dispNote2:'眉の位置に<b>カード</b>(ID-1、85.6mm)を当てた顔写真を読み込みます。カードの長辺に<b>定規</b>を引き、次に瞳孔間に引きます。'
@@ -615,7 +751,7 @@
   };
   let lang=localStorage.getItem('carino_lang')||'en';
   function t(k){if(lang==='en'||!k)return k;const d=I18N[lang];return (d&&d[k]!=null)?d[k]:k;}
-  const I18N_SEL=['#greeting','.pmod button','.sec h3','.subhead','.field label','.metric .k','.legend div','.btn','.eye-switch button','.vp-chip label','.mini-btn','.empty-hint h2','#pdPhotoState'];
+  const I18N_SEL=['#greeting','.pmod button','.sec h3','.subhead','.field label','.metric .k','.legend div','.btn','.eye-switch button','.vp-chip label','.mini-btn','.empty-hint h2','#pdPhotoState','.i18n','.modal h2','.test-card .tc-name','.test-card .tc-sub','.seg button'];
   const I18N_TITLE_SEL=['.tool','#lesionType','.vp-zoom button'];
   const i18nReg=[], i18nTitleReg=[]; let i18nCollected=false;
   function firstTextNode(el){for(const n of el.childNodes){if(n.nodeType===3&&n.nodeValue.trim())return n;}return null;}
@@ -1004,7 +1140,7 @@
   $('pmod').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;setMod(b.dataset.mod);});
   function setMod(m){panelMod=m;
     document.querySelectorAll('#pmod button').forEach(b=>b.classList.toggle('active',b.dataset.mod===m));
-    ['imaging','refraction','dispensing'].forEach(id=>$('mod-'+id).classList.toggle('hidden',id!==m));}
+    ['imaging','refraction','dispensing','tests'].forEach(id=>$('mod-'+id).classList.toggle('hidden',id!==m));}
 
   // ---------- PD from photo (optional estimate) ----------
   function selectedRulerLen(){const m=getMark(selectedId);if(!m||m.kind!=='ruler')return null;return Math.hypot(m.x2-m.x1,m.y2-m.y1);}
@@ -1428,12 +1564,209 @@
     function esc(s){return String(s).replace(/[<>&]/g,ch=>({'<':'&lt;','>':'&gt;','&':'&amp;'})[ch]);}
   }
 
+  // ======================= Settings =======================
+  const SETTINGS_KEY='carino_retina_settings';
+  const settings={display:'same',distance:6,unit:'m',pxPerMm:3.7795,mirror:false};
+  function loadSettings(){try{const s=JSON.parse(localStorage.getItem(SETTINGS_KEY));if(s)Object.assign(settings,s);}catch(e){}}
+  function saveSettings(){try{localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));}catch(e){}}
+  function distanceMm(){return settings.unit==='ft'?settings.distance*304.8:settings.distance*1000;}
+
+  let screenDetails=null;
+  async function detectScreens(){
+    if(!('getScreenDetails' in window)){toast('Multi-monitor placement not supported here');renderScreens();return null;}
+    try{screenDetails=await window.getScreenDetails();
+      if(screenDetails.addEventListener)screenDetails.addEventListener('screenschange',renderScreens);
+      renderScreens();return screenDetails;
+    }catch(e){toast('Monitor permission denied');return null;}
+  }
+  function renderScreens(){
+    const box=$('screensList');if(!box)return;box.innerHTML='';
+    if(!screenDetails){box.innerHTML='<div class="screen-item"><span>'+(('getScreenDetails' in window)?'—':'API n/a')+'</span></div>';return;}
+    screenDetails.screens.forEach((s,i)=>{
+      const d=document.createElement('div');d.className='screen-item';
+      d.innerHTML='<span>#'+(i+1)+' · '+s.width+'×'+s.height+'</span><span class="'+(s.isPrimary?'pri':'')+'">'+t(s.isPrimary?'primary':'secondary')+'</span>';
+      box.appendChild(d);
+    });
+  }
+
+  function openSettings(){syncSettingsUI();$('settingsModal').classList.remove('hidden');}
+  function closeSettings(){$('settingsModal').classList.add('hidden');}
+  function setSegActive(id,v){document.querySelectorAll('#'+id+' button').forEach(b=>b.classList.toggle('active',b.dataset.v===v));}
+  function updateCal(){const px=settings.pxPerMm;$('calCard').style.width=(85.6*px)+'px';$('calPpi').textContent=Math.round(px*25.4)+' ppi (~'+px.toFixed(2)+' px/mm)';}
+  function syncSettingsUI(){
+    setSegActive('setDisplay',settings.display);setSegActive('setUnit',settings.unit);setSegActive('setMirror',settings.mirror?'on':'off');
+    $('setDistance').value=settings.distance;$('calSlider').value=settings.pxPerMm;updateCal();renderScreens();
+  }
+  function wireSeg(id,key,map){document.querySelectorAll('#'+id+' button').forEach(b=>b.addEventListener('click',()=>{
+    settings[key]=map?map(b.dataset.v):b.dataset.v;setSegActive(id,b.dataset.v);saveSettings();}));}
+  $('settingsBtn').addEventListener('click',openSettings);
+  $('settingsClose').addEventListener('click',closeSettings);
+  $('settingsModal').addEventListener('click',e=>{if(e.target.id==='settingsModal')closeSettings();});
+  $('settingsSave').addEventListener('click',()=>{saveSettings();closeSettings();toast(t('Settings saved'));});
+  wireSeg('setDisplay','display');wireSeg('setUnit','unit');wireSeg('setMirror','mirror',v=>v==='on');
+  $('setDistance').addEventListener('input',()=>{settings.distance=parseFloat($('setDistance').value)||6;saveSettings();});
+  $('calSlider').addEventListener('input',()=>{settings.pxPerMm=parseFloat($('calSlider').value)||3.7795;updateCal();saveSettings();});
+  $('detectScreens').addEventListener('click',()=>detectScreens());
+  window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('settingsModal').classList.contains('hidden'))closeSettings();});
+
+  // ======================= Eye exam tests =======================
+  const TESTS=[
+    {id:'snellen',ico:'🔠',name:'Snellen letters',sub:'Distance acuity'},
+    {id:'sloan',ico:'🔡',name:'LogMAR (Sloan)',sub:'Letter chart'},
+    {id:'tumblingE',ico:'∃',name:'Tumbling E',sub:'Illiterate / pediatric'},
+    {id:'landoltC',ico:'◔',name:'Landolt C',sub:'Ring gap'},
+    {id:'duochrome',ico:'🟥',name:'Duochrome',sub:'Red-green balance'},
+    {id:'astig',ico:'✳',name:'Astigmatic dial',sub:'Axis / fan'},
+    {id:'amsler',ico:'▦',name:'Amsler grid',sub:'Macular / central'},
+    {id:'contrast',ico:'◑',name:'Contrast letters',sub:'Low contrast'},
+    {id:'color',ico:'🎨',name:'Color vision',sub:'Screening demo'},
+    {id:'fixation',ico:'✚',name:'Fixation target',sub:'Central fixation'},
+    {id:'blankW',ico:'⬜',name:'Blank — white',sub:'White field'},
+    {id:'blankB',ico:'⬛',name:'Blank — black',sub:'Black field'}
+  ];
+  const TEST_NAMES={};TESTS.forEach(x=>TEST_NAMES[x.id]=x.name);
+  const TEST_ORDER=TESTS.map(x=>x.id);
+  function neighborTest(id,d){let i=TEST_ORDER.indexOf(id);if(i<0)i=0;return TEST_ORDER[(i+d+TEST_ORDER.length)%TEST_ORDER.length];}
+
+  function renderTestGrid(){
+    const g=$('testGrid');if(!g)return;g.innerHTML='';
+    TESTS.forEach(x=>{const b=document.createElement('button');b.className='test-card';b.dataset.id=x.id;
+      b.innerHTML='<span class="tc-ico">'+x.ico+'</span><span class="tc-name">'+x.name+'</span><span class="tc-sub">'+x.sub+'</span>';
+      b.addEventListener('click',()=>openTest(x.id));g.appendChild(b);});
+  }
+
+  let presentWin=null, presentTestId=null;
+  function presentActive(){return presentWin&&!presentWin.closed;}
+  function escHtml(s){return String(s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[c]);}
+
+  async function openTest(id){
+    if(!presentActive()){
+      const w=Math.min(1280,screen.availWidth),h=Math.min(920,screen.availHeight);
+      const feats='width='+w+',height='+h+',left='+Math.round((screen.availWidth-w)/2)+',top='+Math.round((screen.availHeight-h)/2)+',menubar=no,toolbar=no,location=no,status=no';
+      presentWin=window.open('','carinoRetinaTest',feats);   // open synchronously to keep the user-gesture
+    }
+    if(!presentWin){toast(t('Popup blocked — allow popups for this site'));return;}
+    const cfg={test:id,pxPerMm:settings.pxPerMm,distanceMm:distanceMm(),mirror:settings.mirror,
+      distanceLabel:(settings.unit==='ft'?settings.distance+' ft':settings.distance+' m'),names:TEST_NAMES};
+    presentWin.document.open();presentWin.document.write(buildPresentHtml(cfg));presentWin.document.close();
+    presentTestId=id;showRemote(id);
+    if(settings.display!=='same')placeOnMonitor();
+    try{presentWin.focus();}catch(e){}
+  }
+  async function placeOnMonitor(){
+    try{
+      if(!screenDetails&&('getScreenDetails' in window))await detectScreens();
+      if(!screenDetails)return;
+      const secondary=screenDetails.screens.find(s=>!s.isPrimary);
+      let target=null;
+      if(settings.display==='secondary')target=secondary;
+      else if(settings.display==='ask'){if(secondary&&window.confirm(t('Move the chart to the second monitor?')))target=secondary;}
+      if(target&&presentActive()){presentWin.moveTo(target.availLeft,target.availTop);presentWin.resizeTo(target.availWidth,target.availHeight);}
+    }catch(e){}
+  }
+
+  function buildPresentHtml(cfg){
+    const style="html,body{height:100%;margin:0}body{display:flex;align-items:center;justify-content:center;background:#fff;overflow:hidden;font-family:Arial,'Liberation Sans',sans-serif;cursor:default}#stage{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%}.opt{font-family:Arial,'Liberation Sans',sans-serif;font-weight:700;color:#000;line-height:1}.single{display:flex;align-items:center;justify-content:center;flex-wrap:wrap}.chart{display:flex;flex-direction:column;gap:1.6vh;align-items:center}.row{display:flex;align-items:center;gap:26px}.lab{font-family:monospace;font-size:15px;color:#999;width:64px;text-align:right}.duo{position:fixed;inset:0;display:flex}.duo .half{flex:1;display:flex;align-items:center;justify-content:center}.cnote{position:fixed;bottom:12px;left:0;right:0;text-align:center;font-family:sans-serif;font-size:13px;color:#666}#hud{position:fixed;top:10px;left:12px;font-family:monospace;font-size:13px;color:#333;background:rgba(255,255,255,.82);padding:4px 9px;border:1px solid #ccc;border-radius:4px;max-width:96vw}#hud.hide{display:none}#hud b{color:#000}#hud .k{color:#999;margin-left:10px;font-size:11px}";
+    return '<!doctype html><html><head><meta charset="utf-8"><title>Carino Retina — '+escHtml(TEST_NAMES[cfg.test]||'Test')+'</title><style>'+style+'</style></head><body><div id="stage"></div><div id="hud"></div>'
+      +'<scr'+'ipt>('+presentEngine.toString()+')('+JSON.stringify(cfg)+');</scr'+'ipt></body></html>';
+  }
+
+  // Self-contained engine that runs INSIDE the popup (no closure over app state).
+  function presentEngine(cfg){
+    var LINES=[{sn:'20/200',mar:10,log:1.0},{sn:'20/100',mar:5,log:0.7},{sn:'20/70',mar:3.5,log:0.54},{sn:'20/50',mar:2.5,log:0.4},{sn:'20/40',mar:2,log:0.3},{sn:'20/30',mar:1.5,log:0.18},{sn:'20/25',mar:1.25,log:0.1},{sn:'20/20',mar:1.0,log:0.0},{sn:'20/15',mar:0.75,log:-0.12}];
+    var SLOAN='CDHKNORSVZ', ORDER=['snellen','sloan','tumblingE','landoltC','duochrome','astig','amsler','contrast','color','fixation','blankW','blankB'];
+    var st={test:cfg.test,line:4,mirror:!!cfg.mirror,chart:false,seed:12345};
+    var stage=document.getElementById('stage'),hud=document.getElementById('hud');
+    function rnd(){st.seed=(st.seed*1103515245+12345)&0x7fffffff;return st.seed/0x7fffffff;}
+    function heightPx(mar){return cfg.distanceMm*0.0014544*mar*cfg.pxPerMm;}
+    function fsz(mar){return heightPx(mar)/0.72;}
+    function acuity(){var L=LINES[st.line];return L?L.sn+'  ·  '+(L.log>0?'+':'')+L.log.toFixed(2)+' logMAR':'';}
+    function opts(n){var s='';for(var i=0;i<n;i++)s+=SLOAN[Math.floor(rnd()*SLOAN.length)];return s;}
+    function polar(cx,cy,r,deg){var a=(deg-90)*Math.PI/180;return[cx+r*Math.cos(a),cy+r*Math.sin(a)];}
+    function arc(cx,cy,r,a0,a1){var s=polar(cx,cy,r,a1),e=polar(cx,cy,r,a0),big=a1-a0<=180?'0':'1';return'M '+s[0]+' '+s[1]+' A '+r+' '+r+' 0 '+big+' 0 '+e[0]+' '+e[1];}
+    function isAcuity(t){return t==='snellen'||t==='sloan'||t==='tumblingE'||t==='landoltC'||t==='contrast';}
+    function render(){
+      stage.style.transform=st.mirror?'scaleX(-1)':'none';stage.innerHTML='';document.body.style.background='#fff';
+      var t=st.test;
+      if(t==='snellen'||t==='sloan'){
+        if(st.chart){var h='';for(var i=0;i<LINES.length;i++)h+='<div class="row"><span class="lab">'+LINES[i].sn+'</span><span class="opt" style="font-size:'+fsz(LINES[i].mar)+'px">'+opts(5)+'</span></div>';stage.innerHTML='<div class="chart">'+h+'</div>';}
+        else{var f=fsz(LINES[st.line].mar);stage.innerHTML='<div class="single"><span class="opt" style="font-size:'+f+'px;letter-spacing:'+(f*0.35)+'px">'+opts(5)+'</span></div>';}
+      }else if(t==='tumblingE'){var f=fsz(LINES[st.line].mar),s='',R=[0,90,180,270];for(var i=0;i<5;i++)s+='<span class="opt" style="font-size:'+f+'px;display:inline-block;transform:rotate('+R[Math.floor(rnd()*4)]+'deg);margin:0 '+(f*0.28)+'px">E</span>';stage.innerHTML='<div class="single">'+s+'</div>';
+      }else if(t==='landoltC'){var d=heightPx(LINES[st.line].mar),s='',D=[0,45,90,135,180,225,270,315];for(var i=0;i<5;i++){var sw=d/5,r=(d-sw)/2,g=(sw/r)*180/Math.PI,a=D[Math.floor(rnd()*8)];s+='<svg width="'+d+'" height="'+d+'" viewBox="0 0 '+d+' '+d+'" style="margin:0 '+(d*0.28)+'px"><path d="'+arc(d/2,d/2,r,a+g/2,a-g/2+360)+'" fill="none" stroke="#000" stroke-width="'+sw+'"/></svg>';}stage.innerHTML='<div class="single">'+s+'</div>';
+      }else if(t==='duochrome'){var f=fsz(LINES[Math.min(LINES.length-1,Math.max(3,st.line))].mar);stage.innerHTML='<div class="duo"><div class="half" style="background:#c0161d"><span class="opt" style="font-size:'+f+'px;letter-spacing:'+(f*0.3)+'px">'+opts(3)+'</span></div><div class="half" style="background:#0a8a2a"><span class="opt" style="font-size:'+f+'px;letter-spacing:'+(f*0.3)+'px">'+opts(3)+'</span></div></div>';
+      }else if(t==='astig'){var R=Math.min(innerWidth,innerHeight)*0.42,sw=Math.max(2,R*0.015),L='';for(var d2=0;d2<180;d2+=30){var p1=[R+Math.cos(d2*Math.PI/180)*R,R+Math.sin(d2*Math.PI/180)*R],p2=[R-Math.cos(d2*Math.PI/180)*R,R-Math.sin(d2*Math.PI/180)*R];L+='<line x1="'+p1[0]+'" y1="'+p1[1]+'" x2="'+p2[0]+'" y2="'+p2[1]+'" stroke="#000" stroke-width="'+sw+'"/>';}stage.innerHTML='<svg width="'+(2*R)+'" height="'+(2*R)+'" viewBox="0 0 '+(2*R)+' '+(2*R)+'">'+L+'<circle cx="'+R+'" cy="'+R+'" r="'+(sw*1.4)+'" fill="#000"/></svg>';
+      }else if(t==='amsler'){document.body.style.background='#000';var side=Math.min(innerWidth,innerHeight)*0.82,n=20,step=side/n,L='';for(var i=0;i<=n;i++){var p=i*step;L+='<line x1="'+p+'" y1="0" x2="'+p+'" y2="'+side+'" stroke="#fff" stroke-width="1"/><line x1="0" y1="'+p+'" x2="'+side+'" y2="'+p+'" stroke="#fff" stroke-width="1"/>';}L+='<circle cx="'+(side/2)+'" cy="'+(side/2)+'" r="'+(step*0.32)+'" fill="#fff"/>';stage.innerHTML='<svg width="'+side+'" height="'+side+'" viewBox="0 0 '+side+' '+side+'">'+L+'</svg>';
+      }else if(t==='contrast'){var C=[1,0.5,0.25,0.12,0.06,0.03],f=fsz(LINES[4].mar),s='';for(var i=0;i<C.length;i++){var g=Math.round(255*(1-C[i]));s+='<div class="row"><span class="opt" style="font-size:'+f+'px;color:rgb('+g+','+g+','+g+')">'+opts(5)+'</span></div>';}stage.innerHTML='<div class="chart">'+s+'</div>';
+      }else if(t==='color'){renderColor();
+      }else if(t==='fixation'){stage.innerHTML='<svg width="220" height="220" viewBox="0 0 220 220"><line x1="110" y1="16" x2="110" y2="204" stroke="#000" stroke-width="6"/><line x1="16" y1="110" x2="204" y2="110" stroke="#000" stroke-width="6"/><circle cx="110" cy="110" r="11" fill="#e11d1d"/></svg>';
+      }else if(t==='blankW'){document.body.style.background='#fff';
+      }else if(t==='blankB'){document.body.style.background='#000';}
+      updateHud();
+    }
+    function renderColor(){
+      var size=Math.min(innerWidth,innerHeight)*0.72,num=String(Math.floor(rnd()*8)+2);
+      var m=document.createElement('canvas');m.width=size;m.height=size;var mx=m.getContext('2d');
+      mx.fillStyle='#000';mx.font='bold '+(size*0.66)+'px Arial';mx.textAlign='center';mx.textBaseline='middle';mx.fillText(num,size/2,size/2);
+      var md=mx.getImageData(0,0,size,size).data;
+      var c=document.createElement('canvas');c.width=size;c.height=size;var x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,size,size);
+      var fig=['#d97a1e','#e08a24','#cf6a2a','#d76a1a'],gnd=['#6f9e57','#5f9b6f','#88a24e','#5a9457'],R2=(size/2)*(size/2);
+      for(var i=0;i<2800;i++){var px=rnd()*size,py=rnd()*size,dx=px-size/2,dy=py-size/2;if(dx*dx+dy*dy>R2)continue;
+        var on=md[(Math.floor(py)*size+Math.floor(px))*4+3]>128,r=size*0.006+rnd()*size*0.013;
+        x.fillStyle=(on?fig:gnd)[Math.floor(rnd()*4)];x.beginPath();x.arc(px,py,r,0,7);x.fill();}
+      stage.innerHTML='';stage.appendChild(c);var nt=document.createElement('div');nt.className='cnote';nt.textContent='Screening demonstration — not a substitute for standardized pseudoisochromatic plates.';stage.appendChild(nt);
+    }
+    function updateHud(){if(!hud)return;var parts=[cfg.names[st.test]||st.test];if(isAcuity(st.test))parts.push(acuity());parts.push(cfg.distanceLabel);
+      hud.innerHTML='<b>'+parts[0]+'</b> · '+parts.slice(1).join(' · ')+'<span class="k">↑↓ size · ←→ test · R shuffle · M mirror · C chart · F full · H hide</span>';}
+    function nav(d){var i=ORDER.indexOf(st.test);st.test=ORDER[(i+d+ORDER.length)%ORDER.length];render();}
+    window.CARINO={
+      bigger:function(){st.line=Math.max(0,st.line-1);render();},
+      smaller:function(){st.line=Math.min(LINES.length-1,st.line+1);render();},
+      shuffle:function(){st.seed=(st.seed+Math.floor(Math.random()*99999)+7)&0x7fffffff;render();},
+      mirror:function(){st.mirror=!st.mirror;render();},
+      toggleChart:function(){st.chart=!st.chart;render();},
+      fs:function(){try{document.documentElement.requestFullscreen();}catch(e){}},
+      setTest:function(id){st.test=id;render();},
+      state:function(){return{test:st.test,acuity:isAcuity(st.test)?acuity():''};}
+    };
+    document.addEventListener('keydown',function(e){var k=e.key;
+      if(k==='ArrowUp'){window.CARINO.bigger();e.preventDefault();}
+      else if(k==='ArrowDown'){window.CARINO.smaller();e.preventDefault();}
+      else if(k==='ArrowLeft'){nav(-1);e.preventDefault();}
+      else if(k==='ArrowRight'){nav(1);e.preventDefault();}
+      else if(k==='r'||k==='R'||k===' '){window.CARINO.shuffle();e.preventDefault();}
+      else if(k==='m'||k==='M'){window.CARINO.mirror();}
+      else if(k==='c'||k==='C'){window.CARINO.toggleChart();}
+      else if(k==='f'||k==='F'){window.CARINO.fs();}
+      else if(k==='h'||k==='H'){hud.classList.toggle('hide');}
+    });
+    window.addEventListener('resize',render);
+    render();
+  }
+
+  // Remote control (main window drives the popup)
+  function showRemote(id){const r=$('remote');if(!r)return;r.classList.remove('hidden');$('remoteTest').textContent=t(TEST_NAMES[id]||id);updateRemote();}
+  function hideRemote(){const r=$('remote');if(r)r.classList.add('hidden');}
+  function updateRemote(){if(!presentActive()){hideRemote();return;}
+    try{const s=presentWin.CARINO&&presentWin.CARINO.state();if(s){presentTestId=s.test;$('remoteTest').textContent=t(TEST_NAMES[s.test]||s.test);$('remoteAcuity').textContent=s.acuity||'—';}}catch(e){}}
+  function rc(fn){return()=>{if(!presentActive()){hideRemote();return;}try{fn(presentWin.CARINO);}catch(e){}updateRemote();};}
+  function wireRemote(){
+    $('rBigger').addEventListener('click',rc(c=>c.bigger()));
+    $('rSmaller').addEventListener('click',rc(c=>c.smaller()));
+    $('rRandom').addEventListener('click',rc(c=>c.shuffle()));
+    $('rMirror').addEventListener('click',rc(c=>c.mirror()));
+    $('rPrev').addEventListener('click',rc(c=>c.setTest(neighborTest(c.state().test,-1))));
+    $('rNext').addEventListener('click',rc(c=>c.setTest(neighborTest(c.state().test,1))));
+    $('rClose').addEventListener('click',()=>{if(presentActive())presentWin.close();hideRemote();});
+    setInterval(()=>{if(presentActive())updateRemote();else hideRemote();},1200);
+  }
+
   // ---------- Boot ----------
   window.addEventListener('resize',()=>{if(E().img)applyTransform();});
   function boot(){
-    restore();
+    restore();loadSettings();
     if(!study.meta.date){study.meta.date=new Date().toISOString().slice(0,10);}
     setMod('imaging');
+    renderTestGrid();wireRemote();
     initSteppers();       // wire numeric fields before first populate
     switchEye('OD');      // switchEye → writeForm() populates all meta/clinical/disp/dispense fields
     setTool('select');
@@ -1442,7 +1775,7 @@
   }
   boot();
   // expose a little for debugging/testing
-  window.__ophtha={study,setImage,makeSampleFundus,switchEye,setTool,setMod,applyLang,E,metricsFor,generateStudyPdf,generateRxPdf,generateOrderPdf,dicomEncapsulatedPdf,renderEyePngBytes};
+  window.__ophtha={study,settings,setImage,makeSampleFundus,switchEye,setTool,setMod,applyLang,openTest,openSettings,buildPresentHtml,E,metricsFor,generateStudyPdf,generateRxPdf,generateOrderPdf,dicomEncapsulatedPdf,renderEyePngBytes};
 })();
 </script>
 </body>
