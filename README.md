@@ -123,3 +123,18 @@ records are portable across languages.
 ## Notes
 This is a documentation / annotation aid, **not a diagnostic device**. Exported
 prescriptions and orders must be verified and (where required) signed before use.
+
+## License
+
+Licensed under the **Mozilla Public License 2.0** (MPL-2.0) — see [LICENSE](LICENSE).
+
+MPL is file-level copyleft: modifications to existing source files must be shared
+under the MPL, but the tool may be combined with, or integrated into, proprietary
+software. MPL-2.0 also carries an explicit patent grant. Each source file should
+carry the standard header:
+
+```
+This Source Code Form is subject to the terms of the Mozilla Public License, v.
+2.0. If a copy of the MPL was not distributed with this file, You can obtain one
+at http://mozilla.org/MPL/2.0/.
+```
