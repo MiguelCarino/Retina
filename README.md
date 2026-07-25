@@ -5,7 +5,7 @@ image for an automatic **cup-to-disc ratio**, run a full **refraction**, and wor
 **spectacle / contact-lens dispense** — then export the whole encounter. Everything runs
 in the browser; **no image or data is ever uploaded**.
 
-Part of [Carino Systems](https://carino.systems). Live at **ophtha.carino.systems**.
+Part of [Carino Systems](https://carino.systems). Live at **retina.carino.systems**.
 
 The suite is organised as an **encounter** with two workspaces in the top navbar —
 **Imaging** and **Exam** (refraction + dispensing) — plus a **Tests** button that opens the
