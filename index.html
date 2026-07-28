@@ -85,7 +85,7 @@
     .app-tag:hover{border-color:var(--accent);background:rgba(234,179,8,.12)}
     .header-clock{display:flex;align-items:baseline;gap:8px;border-left:1px solid var(--border);padding-left:18px}
     .clock-time{font-family:var(--mono);font-size:1.05rem;font-weight:700}
-    .clock-tz{font-family:var(--mono);font-size:.58rem;font-weight:700;color:#050505;background:var(--accent);padding:2px 5px;border-radius:3px}
+    .clock-tz{font-family:var(--mono);font-size:.6rem;font-weight:700;color:#050505;background:var(--accent);padding:2px 5px;border-radius:3px}
     .brand-greeting{font-family:var(--mono);font-size:.68rem;color:var(--text-muted)}
     .social-row{display:flex;gap:8px}
     .lang-row{display:flex;gap:4px;border-right:1px solid var(--border);padding-right:10px;margin-right:2px}
@@ -113,7 +113,7 @@
 
     /* Workspace nav (left) — single rail: mode switcher + imaging tools */
     .worknav{width:64px;flex-shrink:0;background:var(--surface-solid);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 5px;overflow-y:auto}
-    .worknav>button{display:flex;flex-direction:column;align-items:center;gap:4px;width:100%;background:transparent;border:1px solid transparent;border-radius:var(--r-md);color:var(--text-muted);font-family:var(--font);font-size:.55rem;font-weight:600;padding:8px 2px;cursor:pointer;transition:.15s}
+    .worknav>button{display:flex;flex-direction:column;align-items:center;gap:4px;width:100%;background:transparent;border:1px solid transparent;border-radius:var(--r-md);color:var(--text-muted);font-family:var(--font);font-size:.6rem;font-weight:600;padding:8px 2px;cursor:pointer;transition:.15s}
     .worknav>button svg{width:19px;height:19px}
     .worknav>button:hover{color:var(--text);background:var(--surface-hover)}
     .worknav>button.active{color:var(--accent);border-color:var(--border-glow);background:var(--accent-faint)}
@@ -147,7 +147,7 @@
     .tool svg{width:20px;height:20px}
     .tool:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-faint)}
     .tool.active{border-color:var(--accent);color:#050505;background:var(--accent)}
-    .tool[data-key]::after{content:attr(data-key);position:absolute;bottom:1px;right:3px;font-family:var(--mono);font-size:.5rem;opacity:.5}
+    .tool[data-key]::after{content:attr(data-key);position:absolute;bottom:1px;right:3px;font-family:var(--mono);font-size:.6rem;opacity:.5}
     .rail-sep{width:32px;height:1px;background:var(--border);margin:4px 0}
 
     /* ---------- Center viewport ---------- */
@@ -161,7 +161,7 @@
     #overlay text{font-family:var(--mono);paint-order:stroke;stroke:#000;stroke-width:3px;stroke-linejoin:round}
 
     .empty-hint{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:var(--text-muted);text-align:center;padding:24px;pointer-events:none}
-    .empty-hint h2{font-family:var(--font);font-weight:800;text-transform:uppercase;letter-spacing:.02em;color:var(--text-dim);font-size:1.3rem}
+    .empty-hint h2{font-family:'Red Hat Display',var(--font);font-weight:900;text-transform:uppercase;letter-spacing:.02em;color:var(--text-dim);font-size:1.3rem}
     .empty-hint p{max-width:42ch;font-size:.9rem}
     .empty-hint .pointer-on{pointer-events:auto}
 
@@ -194,14 +194,14 @@
 
     .metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px}
     .metric{background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-md);padding:10px}
-    .metric .k{font-family:var(--mono);font-size:.56rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted)}
+    .metric .k{font-family:var(--mono);font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted)}
     .metric .v{font-family:var(--mono);font-size:1.15rem;font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums}
     .metric .v.warn{color:var(--warn)} .metric .v.err{color:var(--err)} .metric .v.ok{color:var(--ok)}
     .metric .u{font-size:.6rem;color:var(--text-muted);font-weight:400}
     .metric.wide{grid-column:1 / -1}
 
     .field{margin-bottom:8px}
-    .field label{display:block;font-family:var(--mono);font-size:.58rem;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px}
+    .field label{display:block;font-family:var(--mono);font-size:.6rem;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px}
     .field input,.field select,.field textarea{width:100%;background:#000;border:1px solid var(--border);color:var(--text);border-radius:var(--r-sm);padding:7px 9px;font-family:var(--font);font-size:.82rem;transition:.15s}
     .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent)}
     .field textarea{resize:vertical;min-height:52px;font-family:var(--font)}
@@ -216,18 +216,18 @@
     input.step:hover{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='16' viewBox='0 0 9 16'%3E%3Cpath d='M4.5 1L8 5H1z' fill='%23eab308'/%3E%3Cpath d='M4.5 15L1 11h7z' fill='%23eab308'/%3E%3C/svg%3E")}
     input.step.scrubbing{cursor:ns-resize;border-color:var(--accent);user-select:none;background-color:var(--accent-faint)}
     input.step::-webkit-outer-spin-button,input.step::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
-    .subhead{font-family:var(--mono);font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:14px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px}
+    .subhead{font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:14px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px}
     .subhead:first-child{margin-top:0}
-    .subhead .hint{margin-left:auto;color:var(--text-muted);letter-spacing:.04em;text-transform:none;font-size:.58rem}
+    .subhead .hint{margin-left:auto;color:var(--text-muted);letter-spacing:.04em;text-transform:none;font-size:.6rem}
     /* Rx grid: row-labelled OD/OS table for sphere/cyl/axis/add */
     .rxgrid{display:grid;grid-template-columns:34px repeat(4,1fr);gap:5px;align-items:center;margin-bottom:6px}
-    .rxgrid .h{font-family:var(--mono);font-size:.52rem;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);text-align:center}
+    .rxgrid .h{font-family:var(--mono);font-size:.6rem;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);text-align:center}
     .rxgrid .rl{font-family:var(--mono);font-size:.66rem;font-weight:700;color:var(--accent)}
     .rxgrid input{width:100%;background:#000;border:1px solid var(--border);color:var(--text);border-radius:var(--r-sm);padding:6px 4px;font-family:var(--mono);font-size:.74rem;text-align:center}
     .rxgrid input:focus{border-color:var(--accent)}
     /* Merged OD/OS grid used across the Exam workspace (both eyes at once) */
     .duo{display:grid;gap:5px 6px;align-items:center;margin-bottom:6px}
-    .duo .h{font-family:var(--mono);font-size:.52rem;letter-spacing:.05em;text-transform:uppercase;color:var(--text-muted);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .duo .h{font-family:var(--mono);font-size:.6rem;letter-spacing:.05em;text-transform:uppercase;color:var(--text-muted);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .duo .rl{font-family:var(--mono);font-size:.66rem;font-weight:700;color:var(--accent)}
     .duo input,.duo select{width:100%;min-width:0;background:#000;border:1px solid var(--border);color:var(--text);border-radius:var(--r-sm);padding:6px 4px;font-family:var(--mono);font-size:.74rem;text-align:center}
     .duo select{text-align:left}
@@ -292,7 +292,7 @@
     .test-card:hover{border-color:var(--accent);background:var(--accent-faint);transform:translateY(-1px)}
     .test-card .tc-ico{font-size:1.1rem;line-height:1}
     .test-card .tc-name{font-size:.76rem;font-weight:600}
-    .test-card .tc-sub{font-family:var(--mono);font-size:.55rem;color:var(--text-muted)}
+    .test-card .tc-sub{font-family:var(--mono);font-size:.6rem;color:var(--text-muted)}
     .remote{background:var(--surface-solid);border:1px solid var(--accent);border-radius:var(--r-md);padding:10px;margin-bottom:12px}
     .remote .r-head{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
     .remote .r-head .dot{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok)}
@@ -309,7 +309,7 @@
     .modal-overlay.hidden{display:none!important}
     .modal{width:min(520px,100%);max-height:88vh;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:0 24px 70px rgba(0,0,0,.6)}
     .modal-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--border);position:sticky;top:0;background:linear-gradient(180deg,#101010,#0b0b0b);z-index:1}
-    .modal-head h2{font-family:var(--font);font-weight:800;font-size:1.05rem}
+    .modal-head h2{font-family:'Red Hat Display',var(--font);font-weight:900;font-size:1.05rem}
     .modal-head .x{background:transparent;border:none;color:var(--text-muted);font-size:1.4rem;line-height:1;cursor:pointer;padding:2px 6px}
     .modal-head .x:hover{color:var(--err)}
     .modal-body{padding:16px 18px}
@@ -374,14 +374,14 @@
     /* Lens centration layout */
     .lens-layout{background:#0a0a0a;border:1px solid var(--border);border-radius:var(--r-md);padding:10px;margin-top:6px}
     .lens-layout svg{width:100%;height:auto;display:block}
-    .lens-note{font-family:var(--mono);font-size:.58rem;color:var(--text-muted);margin-top:6px;line-height:1.5}
+    .lens-note{font-family:var(--mono);font-size:.6rem;color:var(--text-muted);margin-top:6px;line-height:1.5}
 
     /* Monitor selection */
     .screen-item{cursor:pointer}
     .screen-item.main{background:var(--accent);border-color:var(--accent)}
     .screen-item.main span{color:#050505}
     .screen-item.test{border:2px solid var(--accent);background:var(--accent-faint)}
-    .screen-item .use{font-family:var(--mono);font-size:.58rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+    .screen-item .use{font-family:var(--mono);font-size:.6rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
     .screen-item.main .use{color:#050505}
 
     /* Export modal */
