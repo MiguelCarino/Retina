@@ -53,6 +53,7 @@
   </script>
   <script src="carino-clock.js" defer></script>
   <script src="carino-lang.js" defer></script>
+  <script src="i18n.js" defer></script>
   <script src="vendor/pdf-lib.min.js" defer></script>
   <link href="fonts/carino-fonts.css" rel="stylesheet">
   <style>
@@ -89,11 +90,6 @@
     .clock-tz{font-family:var(--mono);font-size:.6rem;font-weight:700;color:#050505;background:var(--accent);padding:2px 5px;border-radius:3px}
     .brand-greeting{font-family:var(--mono);font-size:.68rem;color:var(--text-muted)}
     .social-row{display:flex;gap:8px}
-    .lang-row{display:flex;gap:4px;border-right:1px solid var(--border);padding-right:10px;margin-right:2px}
-    .lang-row button{background:transparent;border:1px solid var(--border);color:var(--text-muted);font-family:var(--mono);font-size:.6rem;font-weight:700;letter-spacing:.06em;padding:5px 8px;border-radius:4px;cursor:pointer;transition:.2s;white-space:nowrap}
-    .lang-row button:hover{border-color:var(--accent);color:var(--accent)}
-    .lang-row button.active{background:var(--accent);color:#050505;border-color:var(--accent)}
-    @media (max-width:700px){.lang-row{display:none}}
     .icon-btn{width:32px;height:32px;border:1px solid var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:.2s;text-decoration:none;background:transparent;cursor:pointer}
     .icon-btn:hover{border-color:var(--accent);color:#050505;background:var(--accent);transform:translateY(-2px);box-shadow:0 4px 12px var(--accent-glow)}
     .icon-btn svg{width:15px;height:15px}
@@ -433,11 +429,6 @@
       </nav>
     </div>
     <div class="header-right">
-      <div class="lang-row" id="langRow" title="Language / Idioma / 言語">
-        <button data-lang="en">EN</button>
-        <button data-lang="es">ES</button>
-        <button data-lang="ja">日本語</button>
-      </div>
       <div class="social-row">
         <button class="icon-btn" id="settingsBtn" title="Settings" aria-label="Settings">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -498,8 +489,8 @@
         <option value="Neovascularization (NVD/NVE)"></option><option value="Laser scar"></option>
         <option value="Pigment / RPE change"></option><option value="Aneurysm"></option><option value="Other finding"></option>
       </datalist>
-      <div class="pane-tag left" id="tagOD">OD · Right</div>
-      <div class="pane-tag right" id="tagOS">OS · Left</div>
+      <div class="pane-tag left" id="tagOD" data-i18n>OD · Right</div>
+      <div class="pane-tag right" id="tagOS" data-i18n>OS · Left</div>
 
       <div id="viewport">
         <div id="stage">
@@ -577,9 +568,9 @@
       <!-- ==================== EXAM MODULE (refraction + dispensing) ==================== -->
       <div class="mod hidden" id="mod-exam">
         <div class="pmod" id="examTabs">
-          <button data-etab="refraction" class="active">Refraction</button>
-          <button data-etab="dispensing">Dispensing &amp; optics</button>
-          <button data-action="export" class="ex-tab" title="Export report">Export ↗</button>
+          <button data-etab="refraction" class="active" data-i18n>Refraction</button>
+          <button data-etab="dispensing" data-i18n>Dispensing &amp; optics</button>
+          <button data-action="export" class="ex-tab" title="Export report" data-i18n>Export ↗</button>
         </div>
         <div class="esub" id="esub-refraction">
         <div class="sec">
@@ -588,7 +579,7 @@
           <div class="subsec">
             <div class="subhead">Visual acuity</div>
             <div class="duo" style="grid-template-columns:24px 1fr 1fr 1fr">
-              <div class="h"></div><div class="h">Dist UC</div><div class="h">Dist CC</div><div class="h">Near</div>
+              <div class="h"></div><div class="h" data-i18n>Dist UC</div><div class="h" data-i18n>Dist CC</div><div class="h" data-i18n>Near</div>
               <div class="rl">OD</div>
                 <input class="cl" data-eye="OD" data-f="vaUC" placeholder="20/40">
                 <input class="cl" data-eye="OD" data-f="vaCC" placeholder="20/20">
@@ -603,7 +594,7 @@
           <div class="subsec">
             <div class="subhead">Autorefraction / retinoscopy</div>
             <div class="duo" style="grid-template-columns:24px 1fr 1fr 1fr">
-              <div class="h"></div><div class="h">Sph</div><div class="h">Cyl</div><div class="h">Axis</div>
+              <div class="h"></div><div class="h">Sph</div><div class="h">Cyl</div><div class="h" data-i18n>Axis</div>
               <div class="rl">OD</div>
                 <input class="cl" data-eye="OD" data-f="arSph" data-step="0.25" data-fmt="dpt" placeholder="−1.25">
                 <input class="cl" data-eye="OD" data-f="arCyl" data-step="0.25" data-fmt="dpt" placeholder="−0.50">
@@ -618,7 +609,7 @@
           <div class="subsec">
             <div class="subhead">Subjective — final Rx</div>
             <div class="duo" style="grid-template-columns:24px 1fr 1fr 1fr 1fr">
-              <div class="h"></div><div class="h">Sph</div><div class="h">Cyl</div><div class="h">Axis</div><div class="h">Add</div>
+              <div class="h"></div><div class="h">Sph</div><div class="h">Cyl</div><div class="h" data-i18n>Axis</div><div class="h" data-i18n>Add</div>
               <div class="rl">OD</div>
                 <input class="cl" data-eye="OD" data-f="sph" data-step="0.25" data-fmt="dpt" placeholder="−1.25">
                 <input class="cl" data-eye="OD" data-f="cyl" data-step="0.25" data-fmt="dpt" placeholder="−0.50">
@@ -636,7 +627,7 @@
           <div class="subsec">
             <div class="subhead">Keratometry</div>
             <div class="duo" style="grid-template-columns:24px 1fr 1fr 1fr">
-              <div class="h"></div><div class="h">K1</div><div class="h">K2</div><div class="h">Axis</div>
+              <div class="h"></div><div class="h">K1</div><div class="h">K2</div><div class="h" data-i18n>Axis</div>
               <div class="rl">OD</div>
                 <input class="cl" data-eye="OD" data-f="k1" data-step="0.25" data-fmt="k" data-min="30" data-max="60" placeholder="43.25">
                 <input class="cl" data-eye="OD" data-f="k2" data-step="0.25" data-fmt="k" data-min="30" data-max="60" placeholder="44.00">
@@ -651,7 +642,7 @@
           <div class="subsec">
             <div class="subhead">Pressures & anterior segment</div>
             <div class="duo" style="grid-template-columns:24px 1fr 1fr 1.3fr">
-              <div class="h"></div><div class="h">IOP</div><div class="h">Pachy</div><div class="h">Lens status</div>
+              <div class="h"></div><div class="h" data-i18n>IOP</div><div class="h" data-i18n>Pachy</div><div class="h" data-i18n>Lens status</div>
               <div class="rl">OD</div>
                 <input class="cl" data-eye="OD" data-f="iop" data-step="1" data-fmt="num" data-min="0" data-max="80" inputmode="numeric" placeholder="16">
                 <input class="cl" data-eye="OD" data-f="pachy" data-step="5" data-fmt="num" data-min="300" data-max="800" inputmode="numeric" placeholder="545">
@@ -666,11 +657,11 @@
           <div class="subsec">
             <div class="subhead">Diagnosis / impression</div>
             <div class="duo" style="grid-template-columns:24px 1fr">
-              <div class="h"></div><div class="h" style="text-align:left">Impression</div>
+              <div class="h"></div><div class="h" style="text-align:left" data-i18n>Impression</div>
               <div class="rl">OD</div><input class="cl" data-eye="OD" data-f="dx" style="text-align:left" placeholder="e.g. POAG">
               <div class="rl">OS</div><input class="cl" data-eye="OS" data-f="dx" style="text-align:left" placeholder="e.g. normal">
             </div>
-            <div class="field" style="margin-top:6px"><label>Notes <span class="hint" style="text-transform:none">shared</span></label><textarea id="examNotes" placeholder="Free text…"></textarea></div>
+            <div class="field" style="margin-top:6px"><label>Notes <span class="hint" style="text-transform:none" data-i18n>shared</span></label><textarea id="examNotes" placeholder="Free text…"></textarea></div>
           </div>
 
         </div>
@@ -679,14 +670,14 @@
         <div class="sec">
           <div class="subsec">
             <div class="note-box" data-i18n-html="dispNote1">Runs entirely from the <b>final Rx</b> — no photo required. Load a face photo only if you want to estimate PD from it.</div>
-            <div class="subhead">Interpupillary distance <span class="hint">binocular, mm</span></div>
+            <div class="subhead">Interpupillary distance <span class="hint" data-i18n>binocular, mm</span></div>
             <div class="row2">
               <div class="field"><label>PD distance</label><input class="gd" data-f="pdDist" data-step="0.5" data-fmt="num" data-min="40" data-max="80" inputmode="decimal" placeholder="63"></div>
               <div class="field"><label>PD near</label><input class="gd" data-f="pdNear" data-step="0.5" data-fmt="num" data-min="40" data-max="80" inputmode="decimal" placeholder="60"></div>
             </div>
             <div class="subhead">Monocular PD <span class="hint">mm</span></div>
             <div class="duo" style="grid-template-columns:24px 1fr 1fr">
-              <div class="h"></div><div class="h">Mono dist</div><div class="h">Mono near</div>
+              <div class="h"></div><div class="h" data-i18n>Mono dist</div><div class="h" data-i18n>Mono near</div>
               <div class="rl">OD</div>
                 <input class="dp" data-eye="OD" data-f="pdMonoDist" data-step="0.5" data-fmt="num" data-min="20" data-max="40" inputmode="decimal" placeholder="31.5">
                 <input class="dp" data-eye="OD" data-f="pdMonoNear" data-step="0.5" data-fmt="num" data-min="20" data-max="40" inputmode="decimal" placeholder="30">
@@ -697,7 +688,7 @@
           </div>
 
           <div class="subsec">
-            <div class="subhead">PD from photo <span class="hint">optional · estimate only</span></div>
+            <div class="subhead">PD from photo <span class="hint" data-i18n>optional · estimate only</span></div>
             <div class="note-box" data-i18n-html="dispNote2">Load a face photo with a <b>card</b> (ID-1, 85.6 mm) held to the brow. Draw a <b>ruler</b> across the card's long edge, then across pupil-to-pupil.</div>
             <div class="field"><label>Reference width (mm)</label><input id="pdRefMm" type="number" step="0.1" value="85.6"></div>
             <button class="mini-btn" id="pdSetScale" style="margin-bottom:6px"><span class="n">1</span>Selected ruler = reference width</button>
@@ -708,7 +699,7 @@
           <div class="subsec">
             <div class="subhead">Prism</div>
             <div class="duo" style="grid-template-columns:24px 1fr 1.4fr">
-              <div class="h"></div><div class="h">Amount Δ</div><div class="h">Base</div>
+              <div class="h"></div><div class="h" data-i18n>Amount Δ</div><div class="h" data-i18n>Base</div>
               <div class="rl">OD</div>
                 <input class="dp" data-eye="OD" data-f="prism" data-step="0.25" data-fmt="k" data-min="0" data-max="20" placeholder="2.0">
                 <select class="dp i18n-opts" data-eye="OD" data-f="base"><option value="">—</option><option value="Base up">Base up</option><option value="Base down">Base down</option><option value="Base in">Base in</option><option value="Base out">Base out</option></select>
@@ -719,7 +710,7 @@
           </div>
 
           <div class="subsec">
-            <div class="subhead">Lens <span class="hint">binocular</span></div>
+            <div class="subhead">Lens <span class="hint" data-i18n>binocular</span></div>
             <div class="field"><label>Lens type</label>
               <select class="gd i18n-opts" data-f="lensType"><option value="">—</option><option value="Single vision">Single vision</option><option value="Bifocal">Bifocal</option><option value="Trifocal">Trifocal</option><option value="Progressive">Progressive</option><option value="Office / occupational">Office / occupational</option></select>
             </div>
@@ -733,7 +724,7 @@
           </div>
 
           <div class="subsec">
-            <div class="subhead">Frame <span class="hint">boxing system, mm</span></div>
+            <div class="subhead">Frame <span class="hint" data-i18n>boxing system, mm</span></div>
             <div class="row4">
               <div class="field"><label>A (eye)</label><input class="gd" data-f="frameA" data-step="0.5" data-fmt="num" data-min="40" data-max="70" inputmode="decimal" placeholder="52"></div>
               <div class="field"><label>B (vert)</label><input class="gd" data-f="frameB" data-step="0.5" data-fmt="num" data-min="20" data-max="60" inputmode="decimal" placeholder="34"></div>
@@ -745,7 +736,7 @@
           <div class="subsec">
             <div class="subhead">Fitting</div>
             <div class="duo" style="grid-template-columns:24px 1fr 1fr">
-              <div class="h"></div><div class="h">Seg ht</div><div class="h">OC ht</div>
+              <div class="h"></div><div class="h" data-i18n>Seg ht</div><div class="h" data-i18n>OC ht</div>
               <div class="rl">OD</div>
                 <input class="dp" data-eye="OD" data-f="segHt" data-step="0.5" data-fmt="num" data-min="0" data-max="50" inputmode="decimal" placeholder="mm">
                 <input class="dp" data-eye="OD" data-f="fitHt" data-step="0.5" data-fmt="num" data-min="0" data-max="50" inputmode="decimal" placeholder="mm">
@@ -761,7 +752,7 @@
           </div>
 
           <div class="subsec">
-            <div class="subhead">Lens layout / centration <span class="hint">from PD, frame &amp; heights</span></div>
+            <div class="subhead">Lens layout / centration <span class="hint" data-i18n>from PD, frame &amp; heights</span></div>
             <div class="lens-layout" id="lensLayout"></div>
             <div class="lens-note" data-i18n-html="lensNote">Gold cross = optical center / fitting cross per lens; dashed line = frame midline &amp; datum. "dec" is horizontal decentration from the box center, "h" the fitting height.</div>
           </div>
@@ -769,7 +760,7 @@
           <div class="subsec">
             <div class="subhead">Contact lens</div>
             <div class="duo" style="grid-template-columns:24px 1.5fr 1fr 1fr 1fr">
-              <div class="h"></div><div class="h">Brand</div><div class="h">BC</div><div class="h">DIA</div><div class="h">Power</div>
+              <div class="h"></div><div class="h" data-i18n>Brand</div><div class="h">BC</div><div class="h">DIA</div><div class="h" data-i18n>Power</div>
               <div class="rl">OD</div>
                 <input class="dp" data-eye="OD" data-f="clBrand" style="text-align:left" placeholder="Oasys">
                 <input class="dp" data-eye="OD" data-f="clBC" data-step="0.1" data-fmt="num" data-min="8" data-max="10" inputmode="decimal" placeholder="8.4">
@@ -960,165 +951,11 @@
   const E=()=>study.eyes[eye];
 
   // ---------- i18n (UI labels & concepts; data model stays canonical English) ----------
-  const I18N={
-    es:{
-      // header / tabs
-      'Fundus, refraction & dispensing':'Fondo de ojo, refracción y óptica',
-      'Imaging':'Imagen','Refraction':'Refracción','Dispensing':'Óptica','Exam':'Examen',
-      // section headers
-      'Patient / encounter':'Paciente / consulta','Disc analysis':'Análisis del disco',
-      'Findings':'Hallazgos','Legend':'Leyenda','Refraction —':'Refracción —',
-      'Dispensing & optics':'Óptica y montaje','Export':'Exportar',
-      // subheads
-      'Visual acuity':'Agudeza visual','Autorefraction / retinoscopy':'Autorrefracción / retinoscopía',
-      'Subjective — final Rx':'Subjetivo — Rx final','Keratometry':'Queratometría',
-      'Pressures & anterior segment':'Presiones y segmento anterior','Interpupillary distance':'Distancia interpupilar',
-      'Monocular PD':'DIP monocular','PD from photo':'DIP desde foto','Prism':'Prisma','Lens':'Lente',
-      'Frame':'Montura','Fitting':'Ajuste','Contact lens':'Lente de contacto',
-      // labels
-      'Patient ID':'ID del paciente','Exam date':'Fecha de examen','Name / initials':'Nombre / iniciales',
-      'Date of birth':'Fecha de nacimiento','Provider / clinic':'Profesional / clínica','Chief complaint / reason':'Motivo de consulta',
-      'Distance UC':'Lejos SC','Distance CC':'Lejos CC','Near':'Cerca','Add':'Adición','Prva / dominance':'Ojo dominante',
-      'Axis':'Eje','IOP (mmHg)':'PIO (mmHg)','Pachymetry (µm)':'Paquimetría (µm)','Lens status':'Estado del cristalino',
-      'Diagnosis / impression':'Diagnóstico / impresión','Notes':'Notas','PD distance':'DIP lejos','PD near':'DIP cerca',
-      'Mono distance':'Mono lejos','Mono near':'Mono cerca','Reference width (mm)':'Ancho de referencia (mm)','Amount (Δ)':'Cantidad (Δ)',
-      'Base':'Base','Lens type':'Tipo de lente','Material':'Material','Tint':'Tinte','Coatings / options':'Tratamientos / opciones',
-      'A (eye)':'A (aro)','B (vert)':'B (vert)','DBL':'DBL','ED':'ED','Seg / fit height':'Altura seg / montaje',
-      'OC / fit height':'Altura CO / montaje','Panto (°)':'Pantoscópico (°)','Vertex (mm)':'Vértice (mm)','Wrap (°)':'Envolvente (°)',
-      'Brand / design':'Marca / diseño','Power':'Potencia','Disc Ø':'Ø disco',
-      // metrics
-      'Vertical CDR':'CDR vertical','Horizontal CDR':'CDR horizontal','Disc diameter':'Diámetro del disco',
-      'Disc area':'Área del disco','Disc → fovea':'Disco → fóvea',
-      // legend / concepts
-      'Disc center':'Centro del disco','Fovea center':'Centro de la fóvea','Disc margin':'Borde del disco',
-      'Cup margin':'Borde de la excavación','Lesion pin':'Marca de lesión','Measurement':'Medición',
-      // buttons
-      'Study PDF':'PDF del estudio','Study DICOM':'DICOM del estudio','Spectacle Rx':'Receta óptica','Lens order':'Pedido de lentes',
-      'Load image':'Cargar imagen','Sample':'Ejemplo','Save PNG':'Guardar PNG','Save JSON':'Guardar JSON','Open JSON':'Abrir JSON',
-      'Print report':'Imprimir informe',"Clear this eye's marks":'Borrar marcas de este ojo','Load image…':'Cargar imagen…',
-      'Load sample fundus':'Cargar fondo de ejemplo',
-      // eye switch / mini / states
-      'OD · Right':'OD · Derecho','OS · Left':'OS · Izquierdo',
-      'Selected ruler = reference width':'Regla seleccionada = ancho de referencia','Selected ruler → PD distance':'Regla seleccionada → DIP lejos',
-      'No photo scale set':'Sin escala de foto','No image loaded':'Sin imagen cargada',
-      // tool titles
-      'Select / move (V)':'Seleccionar / mover (V)','Pan / hand (H)':'Desplazar / mano (H)','Optic disc center (1)':'Centro del disco óptico (1)',
-      'Fovea center (2)':'Centro de la fóvea (2)','Optic disc margin (3)':'Borde del disco óptico (3)','Optic cup margin (4)':'Borde de la excavación (4)',
-      'Lesion / finding pin (5)':'Marca de lesión / hallazgo (5)','Measure distance (6)':'Medir distancia (6)',
-      'Lesion type for the pin tool':'Tipo de lesión para la herramienta','Zoom in':'Acercar','Zoom out':'Alejar','Fit to view':'Ajustar a la vista',
-      // select options
-      'Phakic':'Fáquico','Pseudophakic':'Pseudofáquico','Aphakic':'Afáquico',
-      'Single vision':'Monofocal','Bifocal':'Bifocal','Trifocal':'Trifocal','Progressive':'Progresivo','Office / occupational':'Ocupacional',
-      'Polycarbonate':'Policarbonato','Hi-index 1.60':'Alto índice 1.60','Hi-index 1.67':'Alto índice 1.67','Hi-index 1.74':'Alto índice 1.74',
-      'Base up':'Base superior','Base down':'Base inferior','Base in':'Base nasal','Base out':'Base temporal',
-      'Microaneurysm':'Microaneurisma','Dot/blot hemorrhage':'Hemorragia punto/mancha','Flame hemorrhage':'Hemorragia en llama',
-      'Hard exudate':'Exudado duro','Cotton-wool spot':'Mancha algodonosa','Drusen':'Drusas',
-      'Neovascularization (NVD/NVE)':'Neovascularización (NVD/NVE)','Laser scar':'Cicatriz de láser',
-      'Pigment / RPE change':'Cambio de pigmento / EPR','Aneurysm':'Aneurisma','Other finding':'Otro hallazgo',
-      // dynamic
-      'Optic disc center':'Centro del disco óptico','Optic disc margin':'Borde del disco óptico','Optic cup margin':'Borde de la excavación',
-      'No marks yet.':'Sin marcas todavía.','Lesion':'Lesión','point':'punto','lesion pin':'marca de lesión',
-      'right eye (OD)':'ojo derecho (OD)','left eye (OS)':'ojo izquierdo (OS)',
-      // tests & settings
-      'Tests':'Pruebas','Eye exam tests':'Pruebas oculares','Back to tests':'Volver a las pruebas',
-      'Presenting':'Presentando','Shuffle':'Mezclar','Prev':'Ant.','Next':'Sig.','Mirror':'Espejo','Close':'Cerrar','Rows':'Filas',
-      'Settings':'Ajustes','Test display':'Pantalla de prueba','Same screen':'Misma pantalla','Second monitor':'Segundo monitor','Ask each time':'Preguntar','Detect monitors':'Detectar monitores',
-      'Test distance':'Distancia de prueba','Distance':'Distancia','Unit':'Unidad','True-size calibration':'Calibración de tamaño real','85.6 mm card':'Tarjeta 85,6 mm','Display density':'Densidad de pantalla','Mirror chart':'Optotipo en espejo','Off':'No','On (mirrored room)':'Sí (sala con espejo)','Save settings':'Guardar ajustes',
-      'Snellen letters':'Letras de Snellen','Distance acuity':'Agudeza de lejos','LogMAR (Sloan)':'LogMAR (Sloan)','Letter chart':'Optotipo de letras','Tumbling E':'E giratoria','Illiterate / pediatric':'Iletrados / pediátrico','Landolt C':'Anillo de Landolt','Ring gap':'Abertura del anillo','Duochrome':'Bicromático','Red-green balance':'Equilibrio rojo-verde','Astigmatic dial':'Esfera astigmática','Axis / fan':'Eje / abanico','Amsler grid':'Rejilla de Amsler','Macular / central':'Macular / central','Contrast letters':'Letras de contraste','Low contrast':'Bajo contraste','Color vision':'Visión del color','Screening demo':'Demo de cribado','Fixation target':'Punto de fijación','Central fixation':'Fijación central','Blank — white':'Blanco','White field':'Campo blanco','Blank — black':'Negro','Black field':'Campo negro',
-      'Settings saved':'Ajustes guardados','Popup blocked — allow popups for this site':'Ventana bloqueada — permite ventanas emergentes','primary':'principal','secondary':'secundario','Move the chart to the second monitor?':'¿Mover el optotipo al segundo monitor?',
-      'Optotype order':'Orden de optotipos','Fixed chart':'Carta fija','Randomize':'Aleatorio','Screen':'Pantalla','Could not move the window — drag it manually':'No se pudo mover la ventana — muévela manualmente',
-      '1 eye':'1 ojo','2 eyes':'2 ojos','No OD image':'Sin imagen OD','No OS image':'Sin imagen OS',
-      'Annotation':'Anotación','Text label':'Etiqueta de texto','Outline':'Contorno',
-      'Lens layout / centration':'Montaje / centrado','Enter frame A, B and DBL to see the centration layout.':'Introduce A, B y DBL de la montura para ver el centrado.',
-      'Chart screen':'Pantalla de test','Use this screen for charts':'Usar esta pantalla para los tests',
-      'Control (main)':'Control (principal)','This is the control window screen':'Esta es la pantalla de la ventana de control','Tap to assign':'Toca para asignar','Tap: main → chart → none':'Toca: principal → test → ninguno',
-      'Screen calibration':'Calibración de pantalla','Patient ↔ screen distance':'Distancia paciente ↔ pantalla',
-      'Charts are sized for a real viewing distance and physical pixel size, so acuity is accurate. Set both:':'Los optotipos se dimensionan según la distancia real y el tamaño físico del píxel, para una agudeza correcta. Configura ambos:',
-      "Hold a standard card (credit / ID, 85.6 mm wide) against the box and drag the slider until it matches the card's width.":'Coloca una tarjeta estándar (crédito / ID, 85,6 mm) sobre el recuadro y ajusta el control hasta que coincida con su ancho.',
-      'Export':'Exportar','Export ↗':'Exportar ↗','Export & data':'Exportar y datos','Building preview…':'Generando vista previa…','Preview unavailable':'Vista previa no disponible','Download PDF':'Descargar PDF','Download DICOM':'Descargar DICOM','Annotated PNG':'PNG anotado','Study JSON':'JSON del estudio','Print':'Imprimir',
-      'Camera':'Cámara','Camera device':'Dispositivo de cámara','Capture':'Capturar','Refresh devices':'Actualizar dispositivos','Take photo…':'Tomar foto…','No image':'Sin imagen',
-      "Pick your webcam or a connected fundus / slit-lamp camera. The captured frame becomes the current eye's image.":'Elige tu webcam o una cámara de fondo / lámpara de hendidura conectada. La imagen capturada se asigna al ojo actual.',
-      'Camera not available in this browser / context':'Cámara no disponible en este navegador / contexto','Camera access denied or unavailable':'Acceso a la cámara denegado o no disponible','Camera not ready':'La cámara no está lista','Photo captured':'Foto capturada','Could not switch camera':'No se pudo cambiar de cámara','Nothing to export yet — add data or an image':'Nada que exportar aún — añade datos o una imagen',
-      lensNote:'Cruz dorada = centro óptico / cruz de montaje de cada lente; línea discontinua = línea media y datum de la montura. «dec» es la descentración horizontal desde el centro de la caja, «h» la altura de montaje.',
-      'Fixed shows the classic chart letters in their original order; Randomize scrambles them. The Shuffle button re-randomizes any time.':'«Fija» muestra las letras clásicas en su orden original; «Aleatorio» las mezcla. El botón Mezclar vuelve a aleatorizar cuando quieras.',
-      testsNote:'Abre el optotipo elegido en otra ventana — colócala en la pantalla del paciente y contrólala desde aquí. Configura la pantalla, la distancia y la calibración de tamaño real en <b>Ajustes</b> (icono de engranaje).',
-      monHint:'Colocar un optotipo en un segundo monitor usa el permiso de gestión de ventanas del navegador. Si no se concede, la ventana se abre aquí — arrástrala y pulsa <b>F</b> para pantalla completa.',
-      // html blocks
-      emptyP:'Arrastra aquí una foto de fondo de ojo o segmento anterior, o cárgala, para marcar el disco, la excavación y la fóvea y obtener la relación excavación/disco automática. ¿Solo quieres refractar o montar lentes? Abre el espacio <b>Examen</b> arriba — no hace falta imagen. Todo permanece en tu navegador; no se sube nada.',
-      dispNote1:'Funciona por completo con la <b>Rx final</b> — sin foto. Carga una foto del rostro solo si quieres estimar la DIP a partir de ella.',
-      dispNote2:'Carga una foto del rostro con una <b>tarjeta</b> (ID-1, 85,6 mm) junto a la ceja. Traza una <b>regla</b> sobre el lado largo de la tarjeta y luego de pupila a pupila.'
-    },
-    ja:{
-      'Fundus, refraction & dispensing':'眼底・屈折・調製',
-      'Imaging':'画像','Refraction':'屈折検査','Dispensing':'調製','Exam':'検査',
-      'Patient / encounter':'患者 / 診察','Disc analysis':'視神経乳頭の解析',
-      'Findings':'所見','Legend':'凡例','Refraction —':'屈折 —','Dispensing & optics':'調製と光学','Export':'書き出し',
-      'Visual acuity':'視力','Autorefraction / retinoscopy':'オートレフ / 検影法','Subjective — final Rx':'自覚的 — 最終処方',
-      'Keratometry':'角膜曲率(ケラト)','Pressures & anterior segment':'眼圧・前眼部','Interpupillary distance':'瞳孔間距離(PD)',
-      'Monocular PD':'片眼PD','PD from photo':'写真からPD','Prism':'プリズム','Lens':'レンズ','Frame':'フレーム',
-      'Fitting':'フィッティング','Contact lens':'コンタクトレンズ',
-      'Patient ID':'患者ID','Exam date':'検査日','Name / initials':'氏名 / イニシャル','Date of birth':'生年月日',
-      'Provider / clinic':'担当医 / 施設','Chief complaint / reason':'主訴 / 来院理由','Distance UC':'遠見 裸眼','Distance CC':'遠見 矯正',
-      'Near':'近見','Add':'加入度(ADD)','Prva / dominance':'優位眼','Axis':'軸','IOP (mmHg)':'眼圧 (mmHg)','Pachymetry (µm)':'角膜厚 (µm)',
-      'Lens status':'水晶体の状態','Diagnosis / impression':'診断 / 印象','Notes':'メモ','PD distance':'PD 遠用','PD near':'PD 近用',
-      'Mono distance':'片眼 遠用','Mono near':'片眼 近用','Reference width (mm)':'基準幅 (mm)','Amount (Δ)':'量 (Δ)','Base':'基底方向',
-      'Lens type':'レンズ種類','Material':'素材','Tint':'カラー(染色)','Coatings / options':'コーティング / オプション',
-      'A (eye)':'A (玉型)','B (vert)':'B (縦)','DBL':'DBL(鼻幅)','ED':'ED(有効径)','Seg / fit height':'セグ / フィッティング高',
-      'OC / fit height':'光学中心 / 高さ','Panto (°)':'前傾角 (°)','Vertex (mm)':'頂点間距離 (mm)','Wrap (°)':'そり角 (°)',
-      'Brand / design':'ブランド / デザイン','Power':'度数','Disc Ø':'乳頭径 Ø',
-      'Vertical CDR':'垂直C/D比','Horizontal CDR':'水平C/D比','Disc diameter':'乳頭径','Disc area':'乳頭面積','Disc → fovea':'乳頭→中心窩',
-      'Disc center':'乳頭中心','Fovea center':'中心窩','Disc margin':'乳頭辺縁','Cup margin':'陥凹辺縁','Lesion pin':'病変ピン','Measurement':'計測',
-      'Study PDF':'検査PDF','Study DICOM':'検査DICOM','Spectacle Rx':'眼鏡処方','Lens order':'レンズ発注','Load image':'画像を読み込む',
-      'Sample':'サンプル','Save PNG':'PNG保存','Save JSON':'JSON保存','Open JSON':'JSONを開く','Print report':'レポート印刷',
-      "Clear this eye's marks":'この眼のマークを消去','Load image…':'画像を読み込む…','Load sample fundus':'サンプル眼底を読み込む',
-      'OD · Right':'OD · 右','OS · Left':'OS · 左',
-      'Selected ruler = reference width':'選択した定規 = 基準幅','Selected ruler → PD distance':'選択した定規 → PD遠用',
-      'No photo scale set':'写真スケール未設定','No image loaded':'画像がありません',
-      'Select / move (V)':'選択 / 移動 (V)','Pan / hand (H)':'移動 / ハンド (H)','Optic disc center (1)':'視神経乳頭中心 (1)',
-      'Fovea center (2)':'中心窩 (2)','Optic disc margin (3)':'乳頭辺縁 (3)','Optic cup margin (4)':'陥凹辺縁 (4)',
-      'Lesion / finding pin (5)':'病変 / 所見ピン (5)','Measure distance (6)':'距離を計測 (6)',
-      'Lesion type for the pin tool':'ピンツールの病変種別','Zoom in':'拡大','Zoom out':'縮小','Fit to view':'全体表示',
-      'Phakic':'有水晶体','Pseudophakic':'偽水晶体(IOL)','Aphakic':'無水晶体',
-      'Single vision':'単焦点','Bifocal':'二重焦点','Trifocal':'三重焦点','Progressive':'累進','Office / occupational':'中近 / オフィス',
-      'Polycarbonate':'ポリカーボネート','Hi-index 1.60':'高屈折 1.60','Hi-index 1.67':'高屈折 1.67','Hi-index 1.74':'高屈折 1.74',
-      'Base up':'基底上方(BU)','Base down':'基底下方(BD)','Base in':'基底内方(BI)','Base out':'基底外方(BO)',
-      'Microaneurysm':'毛細血管瘤','Dot/blot hemorrhage':'点状・斑状出血','Flame hemorrhage':'火炎状出血',
-      'Hard exudate':'硬性白斑','Cotton-wool spot':'軟性白斑','Drusen':'ドルーゼン',
-      'Neovascularization (NVD/NVE)':'新生血管 (NVD/NVE)','Laser scar':'レーザー瘢痕',
-      'Pigment / RPE change':'色素 / RPE変化','Aneurysm':'動脈瘤','Other finding':'その他の所見',
-      'Optic disc center':'視神経乳頭中心','Optic disc margin':'乳頭辺縁','Optic cup margin':'陥凹辺縁',
-      'No marks yet.':'まだマークがありません。','Lesion':'病変','point':'点','lesion pin':'病変ピン',
-      'right eye (OD)':'右眼 (OD)','left eye (OS)':'左眼 (OS)',
-      'Tests':'検査表','Eye exam tests':'眼科検査表','Back to tests':'検査に戻る',
-      'Presenting':'提示中','Shuffle':'シャッフル','Prev':'前へ','Next':'次へ','Mirror':'反転','Close':'閉じる','Rows':'行',
-      'Settings':'設定','Test display':'検査ディスプレイ','Same screen':'同じ画面','Second monitor':'別モニター','Ask each time':'毎回確認','Detect monitors':'モニターを検出',
-      'Test distance':'検査距離','Distance':'距離','Unit':'単位','True-size calibration':'実寸キャリブレーション','85.6 mm card':'85.6mm カード','Display density':'画面密度','Mirror chart':'鏡像表示','Off':'オフ','On (mirrored room)':'オン(鏡室)','Save settings':'設定を保存',
-      'Snellen letters':'スネレン文字','Distance acuity':'遠見視力','LogMAR (Sloan)':'logMAR(Sloan)','Letter chart':'文字視標','Tumbling E':'ランダムE','Illiterate / pediatric':'非識字 / 小児','Landolt C':'ランドルト環','Ring gap':'環の切れ目','Duochrome':'レッドグリーン','Red-green balance':'赤緑バランス','Astigmatic dial':'放射状視標','Axis / fan':'軸 / 扇','Amsler grid':'アムスラーチャート','Macular / central':'黄斑 / 中心','Contrast letters':'コントラスト文字','Low contrast':'低コントラスト','Color vision':'色覚','Screening demo':'スクリーニング例','Fixation target':'固視標','Central fixation':'中心固視','Blank — white':'白画面','White field':'白背景','Blank — black':'黒画面','Black field':'黒背景',
-      'Settings saved':'設定を保存しました','Popup blocked — allow popups for this site':'ポップアップがブロックされました — 許可してください','primary':'メイン','secondary':'サブ','Move the chart to the second monitor?':'視標を別モニターに移動しますか？',
-      'Optotype order':'視標の順序','Fixed chart':'固定','Randomize':'ランダム','Screen':'画面','Could not move the window — drag it manually':'ウィンドウを移動できませんでした — 手動で移動してください',
-      '1 eye':'片眼','2 eyes':'両眼','No OD image':'OD画像なし','No OS image':'OS画像なし',
-      'Annotation':'注釈','Text label':'テキスト','Outline':'輪郭',
-      'Lens layout / centration':'レンズレイアウト / 芯出し','Enter frame A, B and DBL to see the centration layout.':'フレームのA・B・DBLを入力すると芯出し図が表示されます。',
-      'Chart screen':'視標画面','Use this screen for charts':'この画面を視標表示に使用',
-      'Control (main)':'コントロール(メイン)','This is the control window screen':'これは操作ウィンドウの画面です','Tap to assign':'タップで割り当て','Tap: main → chart → none':'タップ: メイン → 視標 → なし',
-      'Screen calibration':'画面キャリブレーション','Patient ↔ screen distance':'患者↔画面の距離',
-      'Charts are sized for a real viewing distance and physical pixel size, so acuity is accurate. Set both:':'視標は実際の視距離と物理的なピクセルサイズに合わせて表示され、視力が正確になります。両方を設定してください：',
-      "Hold a standard card (credit / ID, 85.6 mm wide) against the box and drag the slider until it matches the card's width.":'標準カード(クレジット/ID、85.6mm)を枠に当て、幅が一致するまでスライダーを調整します。',
-      'Export':'書き出し','Export ↗':'書き出し ↗','Export & data':'書き出しとデータ','Building preview…':'プレビューを生成中…','Preview unavailable':'プレビューを表示できません','Download PDF':'PDFを保存','Download DICOM':'DICOMを保存','Annotated PNG':'注釈付きPNG','Study JSON':'検査JSON','Print':'印刷',
-      'Camera':'カメラ','Camera device':'カメラデバイス','Capture':'撮影','Refresh devices':'デバイス更新','Take photo…':'撮影…','No image':'画像なし',
-      "Pick your webcam or a connected fundus / slit-lamp camera. The captured frame becomes the current eye's image.":'ウェブカメラまたは接続した眼底/細隙灯カメラを選択します。撮影した画像が現在の眼の画像になります。',
-      'Camera not available in this browser / context':'このブラウザ/環境ではカメラを利用できません','Camera access denied or unavailable':'カメラへのアクセスが拒否されたか利用できません','Camera not ready':'カメラの準備ができていません','Photo captured':'撮影しました','Could not switch camera':'カメラを切り替えられませんでした','Nothing to export yet — add data or an image':'書き出す内容がありません — データまたは画像を追加してください',
-      lensNote:'金の十字＝各レンズの光学中心／フィッティングクロス、破線＝フレーム中心線とデータム。「dec」は玉型中心からの水平偏心、「h」はフィッティング高さです。',
-      'Fixed shows the classic chart letters in their original order; Randomize scrambles them. The Shuffle button re-randomizes any time.':'「固定」は従来の並び順で文字を表示し、「ランダム」は並びをシャッフルします。シャッフルボタンでいつでも再ランダム化できます。',
-      testsNote:'選択した視標を別ウィンドウで開きます — 患者側の画面に置き、ここから操作します。ディスプレイ・距離・実寸キャリブレーションは<b>設定</b>(歯車アイコン)で行います。',
-      monHint:'別モニターへの表示にはブラウザのウィンドウ管理許可を使います。許可がない場合はこの画面に開くので、ドラッグして移動し<b>F</b>で全画面にします。',
-      emptyP:'眼底または前眼部の写真をここにドロップするか読み込むと、乳頭・陥凹・中心窩をマークして自動でC/D比を算出できます。屈折検査や眼鏡調製だけなら上の<b>検査</b>ワークスペースへ — 画像は不要です。すべてブラウザ内で処理され、何もアップロードされません。',
-      dispNote1:'<b>最終処方</b>だけで完結します — 写真は不要です。PDを写真から推定したい場合のみ顔写真を読み込んでください。',
-      dispNote2:'眉の位置に<b>カード</b>(ID-1、85.6mm)を当てた顔写真を読み込みます。カードの長辺に<b>定規</b>を引き、次に瞳孔間に引きます。'
-    }
-  };
-  let lang=localStorage.getItem('carino_lang')||'en';
-  function t(k){if(lang==='en'||!k)return k;const d=I18N[lang];return (d&&d[k]!=null)?d[k]:k;}
+  // Dictionaries live in the external fleet dictionary file (window.I18N —
+  // English keys; es / pt-BR / ja / ru), loaded deferred in the head. The language
+  // preference itself is owned by the fleet lang script (AUTO button + cookie).
+  let lang='en'; // the fleet language is applied from CarinoLang once the DOM is ready
+  function t(k){if(lang==='en'||!k)return k;const d=window.I18N&&window.I18N[lang];return (d&&d[k]!=null)?d[k]:k;}
   const I18N_SEL=['#greeting','.topnav button span','.sec h3','.subhead','.field label','.metric .k','.legend div','.btn','.eye-switch button','.eye-view button','.vp-chip label','.mini-btn','.empty-hint h2','#pdPhotoState','.i18n','.modal h2','.test-card .tc-name','.test-card .tc-sub','.seg button','.cmp-empty'];
   const I18N_TITLE_SEL=['.tool','#lesionType','.vp-zoom button'];
   const i18nReg=[], i18nTitleReg=[]; let i18nCollected=false;
@@ -1130,17 +967,21 @@
   }
   function refreshEyeLabels(){document.querySelectorAll('.clinEye').forEach(el=>el.textContent=t(eye==='OD'?'right eye (OD)':'left eye (OS)'));}
   function applyLang(l){
-    lang=(I18N[l]||l==='en')?l:'en'; localStorage.setItem('carino_lang',lang); document.documentElement.lang=lang;
+    lang=((window.I18N&&window.I18N[l])||l==='en')?l:'en'; document.documentElement.lang=lang;
     if(!i18nCollected)i18nCollect();
     i18nReg.forEach(r=>{r.n.nodeValue=r.pad.replace(r.base,t(r.base));});
     i18nTitleReg.forEach(r=>{r.el.title=t(r.base);});
     document.querySelectorAll('[data-i18n-html]').forEach(el=>{if(el.__enHtml==null)el.__enHtml=el.innerHTML;
-      el.innerHTML=(lang==='en')?el.__enHtml:((I18N[lang]&&I18N[lang][el.dataset.i18nHtml])||el.__enHtml);});
+      el.innerHTML=(lang==='en')?el.__enHtml:((window.I18N&&window.I18N[lang]&&window.I18N[lang][el.dataset.i18nHtml])||el.__enHtml);});
     document.querySelectorAll('select.i18n-opts option').forEach(o=>{const v=o.getAttribute('value');o.textContent=(v==='')?'—':t(v);});
-    document.querySelectorAll('.lang-row button').forEach(b=>b.classList.toggle('active',b.dataset.lang===lang));
     refreshEyeLabels(); if(typeof renderFindings==='function')renderFindings();
   }
-  document.querySelectorAll('.lang-row button').forEach(b=>b.addEventListener('click',()=>applyLang(b.dataset.lang)));
+  // Fleet language (the fleet lang script owns the preference and the header
+  // button): apply once the DOM and the deferred scripts are ready, and
+  // re-apply whenever the user switches language.
+  const fleetLang=()=>((window.CarinoLang&&window.CarinoLang.current)||'en');
+  document.addEventListener('DOMContentLoaded',()=>applyLang(fleetLang()));
+  window.addEventListener('carino:langchange',()=>applyLang(fleetLang()));
 
   // ---------- Persistence ----------
   function save(){try{localStorage.setItem(STORE,JSON.stringify(study));}catch(e){}}
@@ -2567,7 +2408,7 @@
     switchEye('OD');      // switchEye → writeForm() populates all meta/clinical/disp/dispense fields
     setTool('select');
     computeMetrics();renderFindings();
-    applyLang(lang);      // localize UI to saved/default language
+    applyLang(lang);      // English pass now — the fleet language re-applies on DOMContentLoaded
   }
   boot();
   // expose a little for debugging/testing
