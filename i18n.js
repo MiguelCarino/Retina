@@ -24,6 +24,10 @@
 
 const I18N = {
     es:{
+      'Late shift.': 'Turno nocturno.',
+      'Good morning.': 'Buenos días.',
+      'Good afternoon.': 'Buenas tardes.',
+      'Good evening.': 'Buenas noches.',
       // header / tabs
       'Imaging':'Imagen','Refraction':'Refracción','Dispensing':'Óptica','Exam':'Examen',
       // section headers
@@ -118,6 +122,10 @@ const I18N = {
       dispNote2:'Carga una foto del rostro con una <b>tarjeta</b> (ID-1, 85,6 mm) junto a la ceja. Traza una <b>regla</b> sobre el lado largo de la tarjeta y luego de pupila a pupila.'
     },
     ja:{
+      'Late shift.': '夜勤お疲れさま。',
+      'Good morning.': 'おはようございます。',
+      'Good afternoon.': 'こんにちは。',
+      'Good evening.': 'こんばんは。',
       'Imaging':'画像','Refraction':'屈折検査','Dispensing':'調製','Exam':'検査',
       'Patient / encounter':'患者 / 診察','Disc analysis':'視神経乳頭の解析',
       'Findings':'所見','Refraction —':'屈折 —','Dispensing & optics':'調製と光学','Export':'書き出し',
@@ -194,6 +202,10 @@ const I18N = {
     }
     ,
     'pt-BR':{
+      'Late shift.': 'Turno da noite.',
+      'Good morning.': 'Bom dia.',
+      'Good afternoon.': 'Boa tarde.',
+      'Good evening.': 'Boa noite.',
       // header / tabs
       'Imaging':'Imagem','Refraction':'Refração','Dispensing':'Óptica','Exam':'Exame',
       // section headers
@@ -288,6 +300,10 @@ const I18N = {
       dispNote2:'Carregue uma foto do rosto com um <b>cartão</b> (ID-1, 85,6 mm) junto à sobrancelha. Trace uma <b>régua</b> sobre o lado longo do cartão e depois de pupila a pupila.'
     },
     ru:{
+      'Late shift.': 'Ночная смена.',
+      'Good morning.': 'Доброе утро.',
+      'Good afternoon.': 'Добрый день.',
+      'Good evening.': 'Добрый вечер.',
       // header / tabs
       'Imaging':'Снимки','Refraction':'Рефракция','Dispensing':'Оптика','Exam':'Осмотр',
       // section headers
