@@ -45,10 +45,19 @@ and dispense without ever loading a photo.
 - Autorefraction / retinoscopy and the **subjective final Rx** (sphere / cyl / axis / add).
 - Keratometry (K1 / K2 / axis), IOP, pachymetry, lens status, diagnosis and notes.
 
-Power, axis, keratometry, prism, PD, frame and contact-lens fields are **steppers** —
-adjust the value by scrolling over it, dragging up/down, or using the ↑/↓ arrow keys
-(hold **Shift** for a coarse ×4 step). Powers snap to 0.25 D with a signed format, axes
-step 1° and wrap 1–180.
+Every numeric field is a **stepper**: **hover it and scroll** — no click, no selecting the
+text first — or drag up/down, or use the ↑/↓ arrow keys (hold **Shift** for a coarse ×4
+step). Powers snap to 0.25 D with a signed format, axes step 1° and wrap 1–180.
+**Visual acuity** steps its own ladder instead (20/20 → 20/25 → … → CF / HM / LP / NLP, or
+the 6/6 metric ladder if that is how the value is written; near steps J1 → J16), and every
+field still accepts free text.
+
+**Dropdowns** (lens status, base direction, lens type, material) and the calibration slider
+follow the same rule.
+
+A wheel gesture that starts on the page keeps scrolling the page even when a field passes
+under the cursor, so a long form never rewrites a value by accident — only a scroll that
+*begins* over a field edits it.
 
 ## Dispensing
 - **Interpupillary distance** — binocular distance & near, plus monocular OD/OS.

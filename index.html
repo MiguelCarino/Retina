@@ -219,6 +219,12 @@
     /* numeric steppers: scroll / drag / arrow keys to adjust */
     input.step{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='16' viewBox='0 0 9 16'%3E%3Cpath d='M4.5 1L8 5H1z' fill='%23666666'/%3E%3Cpath d='M4.5 15L1 11h7z' fill='%23666666'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 7px center;background-size:8px 14px;padding-right:20px!important}
     input.step:hover{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='16' viewBox='0 0 9 16'%3E%3Cpath d='M4.5 1L8 5H1z' fill='%23eab308'/%3E%3Cpath d='M4.5 15L1 11h7z' fill='%23eab308'/%3E%3C/svg%3E")}
+    /* hovering a numeric field arms it: the wheel edits it, no click needed */
+    input.step:hover,input.seq:hover{border-color:var(--accent)}
+    input.step.bumped,input.seq.bumped,select.wsel.bumped{border-color:var(--accent);background-color:var(--accent-faint)}
+    select.wsel:hover{border-color:var(--accent)}
+    input.seq{cursor:ns-resize}
+    input[type=range]:hover{accent-color:var(--accent)}
     input.step.scrubbing{cursor:ns-resize;border-color:var(--accent);user-select:none;background-color:var(--accent-faint)}
     input.step::-webkit-outer-spin-button,input.step::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
     .subhead{font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:14px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px}
@@ -478,7 +484,7 @@
           <button data-view="one" class="active">1 eye</button>
           <button data-view="both">2 eyes</button>
         </div>
-        <div class="vp-chip"><label>Disc Ø</label><input id="discDia" type="number" step="0.1" min="0.5" max="4" value="1.5"><span>mm</span></div>
+        <div class="vp-chip"><label>Disc Ø</label><input id="discDia" type="number" step="0.1" min="0.5" max="4" value="1.5" data-step="0.1" data-fmt="num" data-min="0.5" data-max="4"><span>mm</span></div>
         <div class="lesion-pick hidden" id="lesionPick">
           <select id="lesionType" class="i18n-opts" title="Lesion type for the pin tool">
             <option value="Microaneurysm">Microaneurysm</option><option value="Dot/blot hemorrhage">Dot/blot hemorrhage</option><option value="Flame hemorrhage">Flame hemorrhage</option>
@@ -587,17 +593,17 @@
           <h3>Refraction — <span class="i18n">both eyes</span></h3>
 
           <div class="subsec">
-            <div class="subhead">Visual acuity</div>
+            <div class="subhead">Visual acuity <span class="hint" data-i18n>hover a value and scroll</span></div>
             <div class="duo" style="grid-template-columns:24px 1fr 1fr 1fr">
               <div class="h"></div><div class="h" data-i18n>Dist UC</div><div class="h" data-i18n>Dist CC</div><div class="h" data-i18n>Near</div>
               <div class="rl">OD</div>
-                <input class="cl" data-eye="OD" data-f="vaUC" placeholder="20/40">
-                <input class="cl" data-eye="OD" data-f="vaCC" placeholder="20/20">
-                <input class="cl" data-eye="OD" data-f="vaNear" placeholder="J1">
+                <input class="cl" data-eye="OD" data-f="vaUC" data-seq="va" placeholder="20/40">
+                <input class="cl" data-eye="OD" data-f="vaCC" data-seq="va" placeholder="20/20">
+                <input class="cl" data-eye="OD" data-f="vaNear" data-seq="near" placeholder="J1">
               <div class="rl">OS</div>
-                <input class="cl" data-eye="OS" data-f="vaUC" placeholder="20/40">
-                <input class="cl" data-eye="OS" data-f="vaCC" placeholder="20/20">
-                <input class="cl" data-eye="OS" data-f="vaNear" placeholder="J1">
+                <input class="cl" data-eye="OS" data-f="vaUC" data-seq="va" placeholder="20/40">
+                <input class="cl" data-eye="OS" data-f="vaCC" data-seq="va" placeholder="20/20">
+                <input class="cl" data-eye="OS" data-f="vaNear" data-seq="near" placeholder="J1">
             </div>
           </div>
 
@@ -700,7 +706,7 @@
           <div class="subsec">
             <div class="subhead">PD from photo <span class="hint" data-i18n>optional · estimate only</span></div>
             <div class="note-box" data-i18n-html="dispNote2">Load a face photo with a <b>card</b> (ID-1, 85.6 mm) held to the brow. Draw a <b>ruler</b> across the card's long edge, then across pupil-to-pupil.</div>
-            <div class="field"><label>Reference width (mm)</label><input id="pdRefMm" type="number" step="0.1" value="85.6"></div>
+            <div class="field"><label>Reference width (mm)</label><input id="pdRefMm" type="number" step="0.1" value="85.6" data-step="0.1" data-fmt="num" data-min="1" data-max="500"></div>
             <button class="mini-btn" id="pdSetScale" style="margin-bottom:6px"><span class="n">1</span>Selected ruler = reference width</button>
             <button class="mini-btn" id="pdSetPd"><span class="n">2</span>Selected ruler → PD distance</button>
             <div class="hud" id="pdPhotoState" style="position:static;margin-top:8px;display:inline-block">No photo scale set</div>
@@ -831,7 +837,7 @@
           <div class="sg-title i18n">Screen calibration</div>
           <div class="hint-line i18n">Charts are sized for a real viewing distance and physical pixel size, so acuity is accurate. Set both:</div>
           <div class="row2" style="margin:8px 0 4px">
-            <div class="field"><label class="i18n">Patient ↔ screen distance</label><input id="setDistance" type="number" step="0.1" min="0.3" value="6"></div>
+            <div class="field"><label class="i18n">Patient ↔ screen distance</label><input id="setDistance" type="number" step="0.1" min="0.3" value="6" data-step="0.1" data-fmt="num" data-min="0.3" data-max="99"></div>
             <div class="field"><label class="i18n">Unit</label>
               <div class="seg" id="setUnit"><button data-v="m">m</button><button data-v="ft">ft</button></div>
             </div>
@@ -1421,7 +1427,28 @@
   $('discDia').addEventListener('input',()=>{E().discDiaMm=parseFloat($('discDia').value)||1.5;computeMetrics();renderFindings();save();});
   $('lesionType').addEventListener('change',()=>{lesionType=$('lesionType').value;});
 
-  // ---------- Numeric steppers (scroll / drag / arrow keys) ----------
+  // ---------- Numeric steppers (hover-scroll / drag / arrow keys) ----------
+  // Hovering a numeric field arms it: the wheel edits the value with no click
+  // first. The catch is that this form is taller than the screen, so a wheel
+  // gesture meant for the page must not silently rewrite a value it happens to
+  // pass over. A gesture that started on the page therefore keeps the page —
+  // the lock is refreshed by every event it swallows, so it survives inertial
+  // scrolling — and only a wheel that *begins* over a field edits it.
+  let pageWheelAt=-1e9; const WHEEL_LOCK=350;
+  addEventListener('wheel',e=>{
+    const t=e.target;
+    if(!(t instanceof Element)||!t.closest('input[data-step],input[data-seq],input[type=range],select'))pageWheelAt=e.timeStamp;
+  },{capture:true,passive:true});
+  function wheelArmed(el,e){
+    if(el.disabled||el.readOnly)return false;
+    if(e.timeStamp-pageWheelAt<WHEEL_LOCK){pageWheelAt=e.timeStamp;return false;}
+    return true;
+  }
+  function flashStep(el){
+    clearTimeout(el._bumpT);el.classList.add('bumped');
+    el._bumpT=setTimeout(()=>el.classList.remove('bumped'),240);
+  }
+
   function fmtStep(v,fmt){
     if(v==null||isNaN(v))return '';
     if(Math.abs(v)<1e-9)v=0;
@@ -1455,12 +1482,12 @@
       const fmt=el.dataset.fmt||'num',step=parseFloat(el.dataset.step||'1');
       el.classList.add('step');
       el.setAttribute('autocomplete','off');
-      if(!el.title)el.title='Scroll, drag, or ↑/↓ to adjust';
+      if(!el.title)el.title='Hover and scroll, drag, or ↑/↓ to adjust (Shift = ×4)';
       el.addEventListener('keydown',e=>{
         if(e.key==='ArrowUp'){e.preventDefault();bumpStep(el,1,e.shiftKey);}
         else if(e.key==='ArrowDown'){e.preventDefault();bumpStep(el,-1,e.shiftKey);}
       });
-      el.addEventListener('wheel',e=>{if(document.activeElement!==el)return;e.preventDefault();bumpStep(el,e.deltaY<0?1:-1,e.shiftKey);},{passive:false});
+      el.addEventListener('wheel',e=>{if(!wheelArmed(el,e))return;e.preventDefault();e.stopPropagation();bumpStep(el,e.deltaY<0?1:-1,e.shiftKey);flashStep(el);},{passive:false});
       let sc=null;
       el.addEventListener('pointerdown',e=>{if(e.button!==0)return;sc={y:e.clientY,acc:0,moved:false,pid:e.pointerId};});
       el.addEventListener('pointermove',e=>{
@@ -1474,6 +1501,75 @@
       el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end);
       el.addEventListener('blur',()=>{const v=parseStep(el.value,fmt);
         if(v!=null){el.value=fmtStep(clampStep(Math.round(v/step)*step,el),fmt);el.dispatchEvent(new Event('input',{bubbles:true}));}});
+    });
+  }
+
+  // ---------- Acuity ladders (visual acuity is a sequence, not an arithmetic step) ----------
+  const SEQ={
+    va20:['20/10','20/15','20/20','20/25','20/30','20/40','20/50','20/60','20/70','20/80','20/100','20/125','20/160','20/200','20/400','CF','HM','LP','NLP'],
+    va6:['6/3','6/4.5','6/6','6/7.5','6/9','6/12','6/15','6/18','6/21','6/24','6/30','6/60','CF','HM','LP','NLP'],
+    near:['J1+','J1','J2','J3','J4','J5','J6','J7','J8','J10','J12','J14','J16']
+  };
+  // metric charts are written 6/6 — step the ladder the value is already using
+  function seqList(el){const k=el.dataset.seq;
+    if(k==='va')return /^\s*6\s*\//.test(el.value||'')?SEQ.va6:SEQ.va20;
+    return SEQ[k]||[];}
+  function bumpSeq(el,dir){
+    const list=seqList(el);if(!list.length)return;
+    const cur=String(el.value||'').trim().toUpperCase();
+    let i=list.findIndex(v=>v.toUpperCase()===cur);
+    if(i<0){i=list.indexOf(el.placeholder);if(i<0)i=0;}          // unrecognised or empty: seed at the placeholder
+    else i=Math.min(list.length-1,Math.max(0,i-dir));            // scroll up = better acuity = earlier in the list
+    el.value=list[i];
+    el.dispatchEvent(new Event('input',{bubbles:true}));
+  }
+  function initSeqFields(){
+    document.querySelectorAll('input[data-seq]').forEach(el=>{
+      el.classList.add('seq');el.setAttribute('autocomplete','off');
+      if(!el.title)el.title='Hover and scroll or ↑/↓ to step the acuity ladder — free text still accepted';
+      el.addEventListener('keydown',e=>{
+        if(e.key==='ArrowUp'){e.preventDefault();bumpSeq(el,1);}
+        else if(e.key==='ArrowDown'){e.preventDefault();bumpSeq(el,-1);}
+      });
+      el.addEventListener('wheel',e=>{if(!wheelArmed(el,e))return;e.preventDefault();e.stopPropagation();bumpSeq(el,e.deltaY<0?1:-1);flashStep(el);},{passive:false});
+    });
+  }
+
+  // ---------- Dropdowns take the wheel on hover too ----------
+  // Same arming rule as the numeric fields, so a page scroll never rewrites a
+  // lens material in passing. preventDefault also suppresses Firefox's own
+  // wheel-over-select behaviour, which would otherwise double-step.
+  function initSelectWheel(){
+    document.querySelectorAll('select').forEach(el=>{
+      if(el.multiple||el.size>1)return;
+      el.classList.add('wsel');
+      if(!el.title)el.title='Hover and scroll to change';
+      el.addEventListener('wheel',e=>{
+        if(!wheelArmed(el,e))return;
+        const opts=[...el.options].filter(o=>!o.disabled);
+        if(opts.length<2)return;
+        e.preventDefault();e.stopPropagation();
+        let i=opts.indexOf(el.selectedOptions[0]);if(i<0)i=0;
+        const n=Math.min(opts.length-1,Math.max(0,i+(e.deltaY<0?-1:1)));
+        if(n===i)return;
+        el.value=opts[n].value;
+        el.dispatchEvent(new Event('input',{bubbles:true}));
+        el.dispatchEvent(new Event('change',{bubbles:true}));
+        flashStep(el);
+      },{passive:false});
+    });
+  }
+
+  // ---------- Sliders take the wheel on hover too ----------
+  function initRangeWheel(){
+    document.querySelectorAll('input[type=range]').forEach(el=>{
+      el.addEventListener('wheel',e=>{
+        if(!wheelArmed(el,e))return;e.preventDefault();e.stopPropagation();
+        const st=parseFloat(el.step)||1,mn=parseFloat(el.min),mx=parseFloat(el.max);
+        let v=(parseFloat(el.value)||0)+(e.deltaY<0?1:-1)*st*(e.shiftKey?10:1);
+        if(!isNaN(mn))v=Math.max(mn,v);if(!isNaN(mx))v=Math.min(mx,v);
+        el.value=v;el.dispatchEvent(new Event('input',{bubbles:true}));
+      },{passive:false});
     });
   }
 
@@ -2412,6 +2508,9 @@
     setMod('imaging');
     renderTestGrid();wireRemote();
     initSteppers();       // wire numeric fields before first populate
+    initSeqFields();      // acuity ladders
+    initRangeWheel();
+    initSelectWheel();    // dropdowns follow the same rule
     // Each eye starts with a sample fundus so the Imaging workspace is never empty.
     // (Samples are placeholders — see eyeHasImaging: un-annotated ones are left out of exports.)
     loadSampleBoth();
