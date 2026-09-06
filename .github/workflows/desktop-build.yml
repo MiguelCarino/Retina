@@ -1,0 +1,200 @@
+name: Build desktop app
+
+# One runner per operating system, and every architecture from that runner.
+# Retina is pure Electron — no native modules, no frozen Python engine — so
+# nothing here needs a machine of its own architecture to build. Do NOT unify
+# this with Carino-PACS's six-leg per-arch matrix: that shape exists because
+# PyInstaller cannot cross-compile, and it drags in a system-fpm workaround
+# that this repo has no use for.
+#
+# Runners are PINNED rather than -latest. A floating label silently raises the
+# AppImage's glibc floor or moves a macOS major in the middle of a release
+# series, and neither of those should happen without review. macos-15 is the
+# arm64 image; the Intel dmg and zip are cross-built from it, which costs
+# nothing because there is no native code to compile.
+#
+# Signing is optional. Five secrets, all of them: leave them unset and the
+# build produces working, unsigned artifacts.
+#   CSC_LINK                     base64 .p12 (macOS or Windows)
+#   CSC_KEY_PASSWORD             its password
+#   APPLE_ID                     Apple ID for notarisation
+#   APPLE_APP_SPECIFIC_PASSWORD  app-specific password for that Apple ID
+#   APPLE_TEAM_ID                Apple Developer team id
+# There is no pull_request trigger, so a fork PR can never put any of them in
+# scope. That is the guard; the shell loop below is only for "configured but
+# empty".
+
+on:
+  workflow_dispatch: {}
+  push:
+    tags: ["v*"]
+
+# Never cancel-in-progress on a release workflow: two tag pushes in quick
+# succession would otherwise race two release jobs against the same tag.
+concurrency:
+  group: desktop-${{ github.ref }}
+  cancel-in-progress: false
+
+# The floor for every job. Only the release job below raises it, and only to
+# contents: write — the build legs read the checkout and nothing else.
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      # A release run should report every broken platform at once. Nothing
+      # partial escapes: the build never publishes (--publish never) and the
+      # release job has needs: build.
+      fail-fast: false
+      # `expect` is the manifest each leg must leave in desktop/dist.
+      # upload-artifact's if-no-files-found: error fires only when NOTHING
+      # matches ANY pattern, so a Linux leg that dropped five of six files
+      # would still be green. This is what actually catches a lost architecture.
+      #
+      # The names come from desktop/package.json's explicit artifactName for
+      # mac, win and linux, plus builder-util's per-format arch respellings:
+      # x64 is x86_64 for AppImage and rpm but amd64 for deb; arm64 is aarch64
+      # for rpm alone. NSIS given both arches emits ONE combined installer,
+      # which is why win.artifactName has no ${arch}.
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            expect: |
+              Carino-Retina-1.0.0-x86_64.AppImage
+              Carino-Retina-1.0.0-arm64.AppImage
+              Carino-Retina-1.0.0-x86_64.rpm
+              Carino-Retina-1.0.0-aarch64.rpm
+              Carino-Retina-1.0.0-amd64.deb
+              Carino-Retina-1.0.0-arm64.deb
+          - os: macos-15
+            expect: |
+              Carino-Retina-1.0.0-x64.dmg
+              Carino-Retina-1.0.0-arm64.dmg
+              Carino-Retina-1.0.0-x64.zip
+              Carino-Retina-1.0.0-arm64.zip
+          - os: windows-2025
+            expect: |
+              Carino-Retina-Setup-1.0.0.exe
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+
+      # rpmbuild for the .rpm target. Nothing else is needed: electron-builder
+      # ships its own fpm (so no fakeroot/dpkg-dev), and appimagetool creates
+      # without FUSE (FUSE is a runtime requirement on the end user's machine).
+      - name: Install Linux packaging tools
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y rpm
+
+      - name: Install desktop dependencies
+        working-directory: desktop
+        run: npm ci
+
+      # An EMPTY CSC_LINK is worse than an absent one: electron-builder then
+      # tries to sign with an empty certificate path and fails ("desktop not a
+      # file") on macOS and Windows. Absent means unsigned, which succeeds. So
+      # only non-empty values are exported.
+      # shell: bash is required for ${!v} indirection on the Windows leg.
+      # Secrets arrive through env: and are never inlined into the script body.
+      - name: Configure code signing (only when secrets are set)
+        shell: bash
+        env:
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          for v in CSC_LINK CSC_KEY_PASSWORD APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID; do
+            val="${!v}"
+            if [ -n "$val" ]; then
+              { echo "$v<<__EOF__"; printf '%s\n' "$val"; echo "__EOF__"; } >> "$GITHUB_ENV"
+              echo "signing: $v is set"
+            fi
+          done
+
+      # No platform flag: electron-builder falls back to the current platform
+      # while still honouring --x64 --arm64. Both arch flags are load-bearing —
+      # without them only the runner's own architecture is built, which is how
+      # Carino DICOM v1.1.0-rc02 shipped an arm64 dmg and no Intel one.
+      - name: Build
+        working-directory: desktop
+        run: npx --no-install electron-builder --publish never --x64 --arm64
+
+      - name: Verify this leg produced everything it promised
+        shell: bash
+        run: |
+          missing=0
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            if [ -f "desktop/dist/$f" ]; then echo "ok       $f"
+            else echo "MISSING  $f"; missing=1; fi
+          done <<'__EXPECT__'
+          ${{ matrix.expect }}
+          __EXPECT__
+          # Printed BEFORE the exit, so a miss can be told apart from a
+          # mistranscribed name in the manifest above.
+          echo; echo "--- desktop/dist ---"; ls -l desktop/dist
+          { echo "### ${{ matrix.os }}"; echo; echo '```'; ls -l desktop/dist; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          exit $missing
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: carino-retina-${{ matrix.os }}
+          if-no-files-found: error
+          path: |
+            desktop/dist/*.AppImage
+            desktop/dist/*.rpm
+            desktop/dist/*.deb
+            desktop/dist/*.dmg
+            desktop/dist/*.zip
+            desktop/dist/*.exe
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    # The only write grant in the file. The default token is read-only in repos
+    # configured that way, and a silent 403 at the end of a 40-minute matrix is
+    # worse than never running.
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: dist
+          merge-multiple: true      # safe: every filename carries its architecture
+
+      - name: Publish the release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          ls -l dist
+          # A hyphen in the tag (v1.0.1-rc01) means pre-release. Not cosmetic:
+          # /releases/latest skips pre-releases.
+          case "$GITHUB_REF_NAME" in
+            *-*) flag="--prerelease" ;;
+            *)   flag="--latest" ;;
+          esac
+          # Idempotent, so a re-run of a failed leg does not fail the release.
+          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" dist/* --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" dist/* \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "$GITHUB_REF_NAME" \
+              --notes "The eye examination, refraction and dispensing suite as a desktop application, for every supported platform and architecture. The builds are unsigned — see the README's Desktop application section for what the warnings mean and how to get past them." \
+              $flag
+          fi

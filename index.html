@@ -845,6 +845,10 @@
           <div class="hint-line i18n">Hold a standard card (credit / ID, 85.6 mm wide) against the box and drag the slider until it matches the card's width.</div>
           <div class="cal-card" id="calCard"><span class="i18n">85.6 mm card</span></div>
           <input id="calSlider" type="range" min="2.0" max="6.5" step="0.01" value="3.7795" style="width:100%">
+          <!-- Desktop only: draws the card on the chart display, so the value can
+               be measured where it is used. Hidden in a browser, which has no way
+               to know what display the chart is on. -->
+          <button id="calOnChartBtn" class="btn hidden" type="button">Calibrate on chart screen</button>
           <div class="hint-line"><span class="i18n">Display density</span>: <span id="calPpi">—</span></div>
         </div>
 
@@ -990,7 +994,13 @@
     document.querySelectorAll('[data-i18n-html]').forEach(el=>{if(el.__enHtml==null)el.__enHtml=el.innerHTML;
       el.innerHTML=(lang==='en')?el.__enHtml:((window.I18N&&window.I18N[lang]&&window.I18N[lang][el.dataset.i18nHtml])||el.__enHtml);});
     document.querySelectorAll('select.i18n-opts option').forEach(o=>{const v=o.getAttribute('value');o.textContent=(v==='')?'—':t(v);});
-    refreshEyeLabels(); if(typeof renderFindings==='function')renderFindings();
+    refreshEyeLabels();
+    // The calibrate-on-chart button's label is state, not static text: clicking it
+    // swaps the text node out from under i18nReg, so re-derive it from calOnChart
+    // rather than letting a stale cached node carry the translation.
+    const _cb=$('calOnChartBtn');
+    if(_cb)_cb.textContent=t(calOnChart?'Done — back to the test':'Calibrate on chart screen');
+    if(typeof renderFindings==='function')renderFindings();
   }
   // Fleet language (the fleet lang script owns the preference and the header
   // button): apply once the DOM and the deferred scripts are ready, and
@@ -2024,10 +2034,52 @@
 
   // ======================= Settings =======================
   const SETTINGS_KEY='carino_retina_settings';
-  const settings={display:'same',distance:6,unit:'m',pxPerMm:3.7795,mirror:false,optotypeOrder:'fixed',presentScreen:null,mainScreen:null,screenGeoms:null};
+  const settings={display:'same',distance:6,unit:'m',pxPerMm:3.7795,mirror:false,optotypeOrder:'fixed',presentScreen:null,mainScreen:null,screenGeoms:null,
+    // Desktop only. pxPerMmAnchorKey records WHICH display pxPerMm was measured
+    // on, so a carry-across to another display has a real anchor instead of an
+    // assumed one; pxPerMmByKey holds values measured on a specific display.
+    pxPerMmAnchorKey:null,pxPerMmByKey:{}};
   function loadSettings(){try{const s=JSON.parse(localStorage.getItem(SETTINGS_KEY));if(s)Object.assign(settings,s);}catch(e){}}
   function saveSettings(){try{localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));}catch(e){}}
   function distanceMm(){return settings.unit==='ft'?settings.distance*304.8:settings.distance*1000;}
+
+  // ---- Desktop shell (Electron). Undefined in every browser. -------------
+  // The shell knows each display's scale factor, which the web platform does not
+  // expose anywhere: ScreenDetail has no scaleFactor. That single number is the
+  // difference between "the chart is 20/20" and "the chart is 20/20 on the
+  // monitor the card was measured on".
+  const DESK=(window.carinoDesktop&&typeof window.carinoDesktop.screens==='function')?window.carinoDesktop:null;
+  // True while the calibration card is being measured on the chart display
+  // instead of this one. Declared here, next to DESK, because updateCal() and
+  // the slider handler both read it long before the button that toggles it is
+  // wired up further down.
+  let calOnChart=false;
+  function deskScreens(){return DESK?DESK.screens():null;}
+  function displayByKey(k){const s=deskScreens();if(!s||!k)return null;return (s.displays||[]).find(d=>d.key===k)||null;}
+  // The display the chart is on right now, or the one it is about to open on.
+  function chartKey(){const s=deskScreens();if(!s)return null;
+    if(s.chartKey)return s.chartKey;
+    const g=chosenScreen();
+    if(g&&g.key)return g.key;
+    return s.panelKey;}
+  // px per mm on the CHART display, and whether that number was measured there.
+  //
+  // One CSS px on a display occupies scaleFactor x pitch millimetres. The shell
+  // reports scaleFactor exactly and can report nothing at all about pitch — no
+  // operating system hands out a panel's physical size — so a value carried from
+  // another display can only ever have its SCALE half corrected. The remaining
+  // pitch error is why the chart says so.
+  function chartCal(){
+    const base=settings.pxPerMm;
+    if(!DESK)return{px:base,estimated:false};
+    const ck=chartKey();
+    const map=settings.pxPerMmByKey||{};
+    if(ck&&map[ck]!=null)return{px:map[ck],estimated:false};
+    const anchor=displayByKey(settings.pxPerMmAnchorKey);
+    const target=displayByKey(ck);
+    if(anchor&&target&&anchor.scaleFactor&&target.scaleFactor&&anchor.key!==target.key)
+      return{px:base*(target.scaleFactor/anchor.scaleFactor),estimated:true};
+    return{px:base,estimated:(!ck||!map[ck])&&!!(anchor&&target&&anchor.key!==target.key)};}
 
   let screenDetails=null;
   async function detectScreens(){
@@ -2043,7 +2095,14 @@
   // that only expose the coordinates once.
   function snapshotScreens(){
     if(!screenDetails)return;
-    settings.screenGeoms=screenDetails.screens.map(s=>({left:s.left,top:s.top,availLeft:s.availLeft,availTop:s.availTop,
+    // `key` is the shell's per-display fingerprint, undefined in a browser; it is
+    // what a stored calibration hangs off, and JSON.stringify drops it when absent.
+    // The pairing is by index because both lists come from the same OS enumeration
+    // in the same order; if the lengths ever differ, dks[i] is undefined and this
+    // degrades to the browser behaviour instead of mispairing a calibration.
+    const dks=(deskScreens()||{}).displays||null;
+    settings.screenGeoms=screenDetails.screens.map((s,i)=>({key:(dks&&dks[i])?dks[i].key:undefined,
+      left:s.left,top:s.top,availLeft:s.availLeft,availTop:s.availTop,
       availWidth:s.availWidth,availHeight:s.availHeight,width:s.width,height:s.height,isPrimary:s.isPrimary}));
     saveSettings();
   }
@@ -2085,7 +2144,10 @@
   function openSettings(){syncSettingsUI();$('settingsModal').classList.remove('hidden');}
   function closeSettings(){$('settingsModal').classList.add('hidden');}
   function setSegActive(id,v){document.querySelectorAll('#'+id+' button').forEach(b=>b.classList.toggle('active',b.dataset.v===v));}
-  function updateCal(){const px=settings.pxPerMm;$('calCard').style.width=(85.6*px)+'px';$('calPpi').textContent=Math.round(px*25.4)+' ppi (~'+px.toFixed(2)+' px/mm)';}
+  function updateCal(){const px=settings.pxPerMm;$('calCard').style.width=(85.6*px)+'px';$('calPpi').textContent=Math.round(px*25.4)+' ppi (~'+px.toFixed(2)+' px/mm)';
+    // Say which display the number belongs to while the card is on the chart, so
+    // the reading is not mistaken for this screen's density.
+    if(calOnChart)$('calPpi').textContent+=' · '+t('chart screen');}
   function syncSettingsUI(){
     setSegActive('setDisplay',settings.display);setSegActive('setUnit',settings.unit);setSegActive('setMirror',settings.mirror?'on':'off');setSegActive('setOrder',settings.optotypeOrder);
     $('setDistance').value=settings.distance;$('calSlider').value=settings.pxPerMm;updateCal();renderScreens();
@@ -2098,10 +2160,13 @@
   $('settingsSave').addEventListener('click',()=>{saveSettings();closeSettings();toast(t('Settings saved'));});
   // Push the current viewing distance / calibration / mirror / order into a live
   // presenting chart so the optotypes rescale in real time as you tune the settings.
-  function syncPresent(){if(presentActive()&&presentWin.CARINO&&presentWin.CARINO.setCfg)presentWin.CARINO.setCfg({
-    distanceMm:distanceMm(),pxPerMm:settings.pxPerMm,
-    distanceLabel:(settings.unit==='ft'?settings.distance+' ft':settings.distance+' m'),
-    mirror:settings.mirror,order:settings.optotypeOrder});}
+  function syncPresent(){if(presentActive()&&presentWin.CARINO&&presentWin.CARINO.setCfg){
+    const cal=chartCal();
+    presentWin.CARINO.setCfg({
+      distanceMm:distanceMm(),pxPerMm:cal.px,calEstimated:cal.estimated,
+      distanceLabel:(settings.unit==='ft'?settings.distance+' ft':settings.distance+' m'),
+      mirror:settings.mirror,order:settings.optotypeOrder});
+    lastPushed={distanceMm:distanceMm(),pxPerMm:cal.px};}}
   wireSeg('setDisplay','display');wireSeg('setMirror','mirror',v=>v==='on');wireSeg('setOrder','optotypeOrder');
   // Unit toggle converts the stored distance so the physical distance stays the same.
   document.querySelectorAll('#setUnit button').forEach(b=>b.addEventListener('click',()=>{
@@ -2112,7 +2177,34 @@
     setSegActive('setUnit',nu);saveSettings();syncPresent();}));
   document.querySelectorAll('#setMirror button,#setOrder button').forEach(b=>b.addEventListener('click',syncPresent));
   $('setDistance').addEventListener('input',()=>{settings.distance=parseFloat($('setDistance').value)||6;saveSettings();syncPresent();});
-  $('calSlider').addEventListener('input',()=>{settings.pxPerMm=parseFloat($('calSlider').value)||3.7795;updateCal();saveSettings();syncPresent();});
+  $('calSlider').addEventListener('input',()=>{settings.pxPerMm=parseFloat($('calSlider').value)||3.7795;
+    // Record which display this card was measured on. Without it, every
+    // carry-across to another display is computed against an assumed anchor.
+    if(DESK){const s=deskScreens();
+      if(calOnChart&&s&&s.chartKey){settings.pxPerMmByKey[s.chartKey]=settings.pxPerMm;}
+      else if(s&&s.panelKey){settings.pxPerMmAnchorKey=s.panelKey;settings.pxPerMmByKey[s.panelKey]=settings.pxPerMm;}}
+    updateCal();saveSettings();
+    if(calOnChart&&presentActive()){try{presentWin.CARINO.setCal(settings.pxPerMm);}catch(e){}}
+    syncPresent();});
+  // Desktop only: put the card on the chart display, so the value is measured
+  // where it is used instead of carried across from this one.
+  (function(){const b=$('calOnChartBtn');if(!b)return;
+    if(DESK)b.classList.remove('hidden');
+    b.addEventListener('click',()=>{
+      // No chart means nothing to calibrate on, and it also means a mode left
+      // over from a chart that has since been closed. Clear it here or the
+      // button stays stuck on "Done" and the slider keeps writing the chart
+      // display's value while the card is sitting on this one.
+      if(!presentActive()){
+        calOnChart=false;
+        b.textContent=t('Calibrate on chart screen');
+        updateCal();
+        toast(t('Open a chart on the screen you want to calibrate first'));return;}
+      calOnChart=!calOnChart;
+      b.textContent=t(calOnChart?'Done — back to the test':'Calibrate on chart screen');
+      try{presentWin.CARINO.setCal(calOnChart?(chartCal().px):null);}catch(e){}
+      updateCal();
+      if(!calOnChart)syncPresent();});})();
   $('detectScreens').addEventListener('click',()=>detectScreens());
   window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('settingsModal').classList.contains('hidden'))closeSettings();});
 
@@ -2143,7 +2235,16 @@
   }
 
   let presentWin=null, presentTestId=null;
-  function presentActive(){return presentWin&&!presentWin.closed;}
+  // The last calibration/distance handed to the chart, so what it echoes back can
+  // be checked against what was sent.
+  let lastPushed=null;
+  // presentWin.closed is not enough on the desktop build: a window.open issued in
+  // the same task as the previous chart's close() returns a truthy proxy that no
+  // BrowserWindow backs, so the remote goes on driving a chart nobody can see.
+  // The shell knows whether a window actually exists; trust it when it is there.
+  function presentActive(){
+    if(DESK){try{const s=DESK.screens();if(s&&!s.chartOpen)return false;}catch(e){}}
+    return presentWin&&!presentWin.closed;}
   function escHtml(s){return String(s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[c]);}
 
   // The screen the chart should open on — prefer the live handle, fall back to the
@@ -2169,20 +2270,27 @@
   }
   async function openTest(id){
     const target=chosenScreen();
+    let justOpened=false;
     if(!presentActive()){
       let feats;
       if(target){const b=screenBox(target);feats='popup,left='+b.L+',top='+b.T+',width='+b.W+',height='+b.H+',menubar=no,toolbar=no,location=no,status=no';}
       else{const w=Math.min(1280,screen.availWidth),h=Math.min(920,screen.availHeight);feats='popup,width='+w+',height='+h+',left='+Math.round((screen.availWidth-w)/2)+',top='+Math.round((screen.availHeight-h)/2)+',menubar=no,toolbar=no,location=no,status=no';}
       presentWin=window.open('','carinoRetinaTest',feats);   // open synchronously to keep the user-gesture
+      justOpened=true;
     }
     if(!presentWin){toast(t('Popup blocked — allow popups for this site'));return;}
-    const cfg={test:id,pxPerMm:settings.pxPerMm,distanceMm:distanceMm(),mirror:settings.mirror,order:settings.optotypeOrder,
+    const cal=chartCal();
+    const cfg={test:id,pxPerMm:cal.px,calEstimated:cal.estimated,distanceMm:distanceMm(),mirror:settings.mirror,order:settings.optotypeOrder,
       distanceLabel:(settings.unit==='ft'?settings.distance+' ft':settings.distance+' m'),names:TEST_NAMES};
     presentWin.document.open();presentWin.document.write(buildPresentHtml(cfg));presentWin.document.close();
     presentTestId=id;showRemote(id);
     if(target){presentWin.__scrIdx=(settings.presentScreen!=null?settings.presentScreen:currentScreenIndex());placeWindow(presentWin,target);}
     else if(settings.display!=='same'||settings.presentScreen!=null){placeOnMonitor();}
-    try{presentWin.focus();}catch(e){}
+    // In a browser, focus every time (a popup that stays behind its opener is
+    // worse than one that steals focus). In the desktop app the clinician's hands
+    // are on the remote in this window, so only a NEW chart takes focus; a test
+    // change must not cost a click to get focus back.
+    if(!DESK||justOpened){try{presentWin.focus();}catch(e){}}
   }
   async function placeOnMonitor(){
     try{
@@ -2295,6 +2403,15 @@
       }else if(t==='blankB'){document.body.style.background='#000';stage.innerHTML='';}
       applyTransform();updateHud();
     }
+    // The 85.6 mm calibration card, drawn on THIS display so the clinician can
+    // hold a real card against it where the chart actually lives.
+    function renderCal(){
+      document.body.style.background='#fff';stage.style.transform='';
+      var px=st.cal;
+      stage.innerHTML='<div style="width:'+(85.6*px)+'px;height:'+(53.98*px)+'px;border:2px solid #000;'
+        +'display:flex;align-items:center;justify-content:center;font:14px sans-serif;color:#666">85.6 mm</div>';
+      if(hud)hud.innerHTML='<b>Calibration</b> · '+Math.round(px*25.4)+' ppi'
+        +'<span class="k">hold a card against the box and match its width</span>';}
     // Fit the tall Snellen pyramid to the viewport (scaled charts aren't distance-accurate).
     function applyTransform(){
       stage.style.transformOrigin='center center';
@@ -2316,6 +2433,10 @@
     }
     function updateHud(){if(!hud)return;var parts=[cfg.names[st.test]||st.test];if(isAcuity(st.test))parts.push(acuity());parts.push(cfg.distanceLabel);
       if(st.scaled&&st.scaled<0.999)parts.push('scaled '+Math.round(st.scaled*100)+'% (not distance-true)');
+      // Same honesty as the line above: when the number is not trustworthy, print
+      // that. This one fires when the calibration was carried across from another
+      // display and corrected for scale but not for physical pixel pitch.
+      if(cfg.calEstimated)parts.push('calibration estimated for this screen');
       hud.innerHTML='<b>'+parts[0]+'</b> · '+parts.slice(1).join(' · ')+'<span class="k">↑↓ size · ←→ test · R shuffle · O order · C rows · M mirror · F full · H hide</span>';}
     function nav(d){var i=ORDER.indexOf(st.test);st.test=ORDER[(i+d+ORDER.length)%ORDER.length];regen();render();}
     window.CARINO={
@@ -2325,7 +2446,7 @@
       order:function(o){st.order=(o==='fixed'||o==='random')?o:(st.order==='fixed'?'random':'fixed');regen();render();},
       mirror:function(){st.mirror=!st.mirror;applyTransform();updateHud();},
       toggleRows:function(){if(st.test==='snellen'){st.rowMode=(st.rowMode==='single'?'full':'single');render();}},
-      fs:function(){try{document.documentElement.requestFullscreen();}catch(e){}},
+      fs:function(){try{var p=document.documentElement.requestFullscreen();if(p&&p.catch)p.catch(function(){});}catch(e){}},
       setTest:function(id){st.test=id;regen();render();},
       // Live-apply settings changes (distance, calibration, mirror, order) without
       // reopening — so adjusting the viewing distance actually rescales the optotypes.
@@ -2333,10 +2454,24 @@
         if(o.distanceMm!=null)cfg.distanceMm=o.distanceMm;
         if(o.pxPerMm!=null)cfg.pxPerMm=o.pxPerMm;
         if(o.distanceLabel!=null)cfg.distanceLabel=o.distanceLabel;
+        if(o.calEstimated!=null)cfg.calEstimated=!!o.calEstimated;
         if(o.mirror!=null)st.mirror=!!o.mirror;
         if(o.order)st.order=(o.order==='random'?'random':'fixed');
+        // While the calibration card is up, the value being measured must not be
+        // overwritten by the value being pushed — the slider drives setCal, and a
+        // render() here would wipe the card mid-measurement.
+        if(st.cal!=null){renderCal();return;}
         regen();render();},
-      state:function(){return{test:st.test,acuity:isAcuity(st.test)?acuity():'',order:st.order,rows:st.rowMode,snellen:st.test==='snellen'};}
+      // Draw the 85.6 mm card ON THIS display, so it can be measured where it is
+      // actually used. px==null leaves calibration mode and re-renders the test.
+      setCal:function(px){
+        if(px==null){st.cal=null;regen();render();return;}
+        st.cal=px;cfg.pxPerMm=px;renderCal();},
+      state:function(){return{test:st.test,acuity:isAcuity(st.test)?acuity():'',order:st.order,rows:st.rowMode,snellen:st.test==='snellen',
+        // Echo the configuration this chart is ACTUALLY rendering with, so the
+        // panel can tell a setCfg that landed from one that was dropped.
+        applied:{distanceMm:cfg.distanceMm,pxPerMm:cfg.pxPerMm,calEstimated:!!cfg.calEstimated},
+        cal:st.cal!=null};}
     };
     document.addEventListener('keydown',function(e){var k=e.key;
       if(k==='ArrowUp'){window.CARINO.bigger();e.preventDefault();}
@@ -2366,7 +2501,19 @@
   function showRemote(id){$('remoteTest').textContent=t(TEST_NAMES[id]||id);setTestsView('remote');updateRemote();}
   function hideRemote(){if(!$('testsModal').classList.contains('hidden'))setTestsView('grid');}
   function updateRemote(){if(!presentActive()){hideRemote();return;}
-    try{const s=presentWin.CARINO&&presentWin.CARINO.state();if(s){presentTestId=s.test;$('remoteTest').textContent=t(TEST_NAMES[s.test]||s.test);$('remoteAcuity').textContent=s.acuity||'—';}}catch(e){}}
+    try{const s=presentWin.CARINO&&presentWin.CARINO.state();if(s){presentTestId=s.test;$('remoteTest').textContent=t(TEST_NAMES[s.test]||s.test);$('remoteAcuity').textContent=s.acuity||'—';
+      // The chart echoes the configuration it actually applied. A setCfg that was
+      // dropped (the chart was still being written when it arrived) would otherwise
+      // leave the panel showing one distance while the patient reads another, with
+      // nothing anywhere saying so. Retry once, then say it out loud.
+      if(DESK&&lastPushed&&s.applied){
+        const off=Math.abs(s.applied.pxPerMm-lastPushed.pxPerMm)>0.001||Math.abs(s.applied.distanceMm-lastPushed.distanceMm)>0.5;
+        if(off){if(!updateRemote._retry){updateRemote._retry=1;syncPresent();}
+                else{$('remoteAcuity').textContent='⚠ '+t('chart not in sync');}}
+        else updateRemote._retry=0;}
+      const m=DESK&&(deskScreens()||{}).metrics;
+      if(m&&m.zoomOk===false)$('remoteTest').textContent+=' · ⚠ '+t('chart window zoom is not 1.00');
+    }}catch(e){}}
   function rc(fn){return()=>{if(!presentActive()){hideRemote();return;}try{fn(presentWin.CARINO);}catch(e){}updateRemote();};}
   function wireRemote(){
     $('rBigger').addEventListener('click',rc(c=>c.bigger()));
@@ -2380,6 +2527,11 @@
     $('rNext').addEventListener('click',rc(c=>c.setTest(neighborTest(c.state().test,1))));
     $('rClose').addEventListener('click',()=>{if(presentActive())presentWin.close();hideRemote();});
     setInterval(()=>{if(presentActive())updateRemote();else hideRemote();},1200);
+    // The shell tells us when the chart window lands on a different display —
+    // at open, and every time the clinician drags it to another monitor — so the
+    // calibration can be re-sent for that display's scale factor.
+    if(DESK){DESK.onChartDisplayChanged(()=>{syncPresent();updateRemote();});
+             DESK.onScreensChanged(()=>{if(!$('settingsModal').classList.contains('hidden'))renderScreens();});}
   }
 
   // ---------- Eye view (single / compare both) ----------

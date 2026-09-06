@@ -1,0 +1,108 @@
+name: CI
+
+# The cheap gate. desktop-build.yml only fires on tags and workflow_dispatch,
+# which is right for a packaging job and useless as a safety net: by the time a
+# tag is cut, the typo is weeks old. This is the net. It has no secrets and no
+# write permission, so a fork PR running it is harmless.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch: {}
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with: { node-version: "22" }
+
+      # vendor/ is third-party (pdf-lib) and is not ours to lint.
+      # No depth limit: the three directories we do not own are pruned by name, so
+      # the search stays cheap while still reaching desktop/build/notarize.js and
+      # anything added below it later. A depth bound would quietly drop those and
+      # the step would still report success.
+      - name: node --check every JavaScript file we own
+        shell: bash
+        run: |
+          set -euo pipefail
+          n=0
+          while IFS= read -r -d '' f; do
+            node --check "$f"; echo "ok  $f"; n=$((n+1))
+          done < <(find . \( -path './vendor' \
+                             -o -path './desktop/node_modules' \
+                             -o -path './desktop/dist' \
+                             -o -path './.git' \) -prune \
+                     -o -name '*.js' -print0 | sort -zu)
+          if [ "$n" -eq 0 ]; then
+            echo "::error::no JavaScript matched — the glob is wrong, not the code"
+            exit 1
+          fi
+
+      # A block scalar, not a plain one: the message below contains ": ", which
+      # a plain YAML scalar cannot carry — GitHub rejects the whole file.
+      - name: index.html has no unbalanced script block
+        run: |
+          node -e "const s=require('fs').readFileSync('index.html','utf8');const o=(s.match(/<script/gi)||[]).length,c=(s.match(/<\/script>/gi)||[]).length;if(o!==c){console.error('script tags: '+o+' open, '+c+' close');process.exit(1)}"
+
+      # The dictionaries use the English source string AS the key, so a missing
+      # entry never raises: the page renders English in the middle of a Japanese
+      # sentence, still looks finished, and only a reader of that language ever
+      # notices. A short dictionary is still perfectly valid JavaScript, so the
+      # syntax gate above has nothing to say about it and there is no build step
+      # between i18n.js and the browser that would. This is the only thing in the
+      # repository that catches it.
+      #
+      # Compared against the UNION of all four locales rather than a nominated
+      # reference, so a string added to es alone is reported against ja, pt-BR
+      # and ru instead of silently setting the bar. desktop/i18n.js is not
+      # covered: its STRINGS table is module-private and there is nothing to
+      # read it through.
+      - name: every locale carries the same keys
+        shell: bash
+        run: |
+          node - <<'JS'
+          const path = require('path');
+          // i18n.js is a browser IIFE that only touches window and
+          // document.addEventListener; two stubs are the whole harness.
+          globalThis.window = { addEventListener() {} };
+          globalThis.document = { addEventListener() {} };
+          require(path.resolve('i18n.js'));
+
+          const I18N = globalThis.window.I18N;
+          if (!I18N) {
+            console.error('::error file=i18n.js::i18n.js did not set window.I18N');
+            process.exit(1);
+          }
+          const locales = Object.keys(I18N);
+          if (locales.length === 0) {
+            console.error('::error file=i18n.js::window.I18N is empty');
+            process.exit(1);
+          }
+          const every = new Set(locales.flatMap((l) => Object.keys(I18N[l])));
+
+          let bad = 0;
+          for (const l of locales) {
+            const missing = [...every].filter((k) => !(k in I18N[l]));
+            if (missing.length === 0) {
+              console.log(`ok  ${l}  ${Object.keys(I18N[l]).length} keys`);
+              continue;
+            }
+            bad += 1;
+            // The first few by name: a count alone sends the reader back to a
+            // 53 KB file with no idea what to look for.
+            console.error(`::error file=i18n.js::${l} is missing ${missing.length} key(s), starting with: ` +
+              missing.slice(0, 5).map((k) => JSON.stringify(k)).join(', '));
+          }
+          process.exit(bad ? 1 : 0);
+          JS

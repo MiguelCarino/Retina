@@ -1,0 +1,68 @@
+{
+  "name": "carino-retina-desktop",
+  "productName": "Carino Retina",
+  "version": "1.0.0",
+  "description": "Desktop window for Carino Retina — fundus annotation, cup-to-disc ratio, refraction and dispensing on your own machine",
+  "author": { "name": "Miguel Carino", "email": "hello@carino.systems" },
+  "homepage": "https://github.com/MiguelCarino/Retina",
+  "repository": { "type": "git", "url": "https://github.com/MiguelCarino/Retina.git" },
+  "license": "MPL-2.0",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder"
+  },
+  "devDependencies": {
+    "@electron/notarize": "^2.5.0",
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "systems.carino.retina",
+    "productName": "Carino-Retina",
+    "afterSign": "build/notarize.js",
+    "files": ["main.js", "preload.js", "i18n.js", "assets/icon.png"],
+    "extraResources": [
+      { "from": "../index.html", "to": "web/index.html" },
+      { "from": "../i18n.js", "to": "web/i18n.js" },
+      { "from": "../carino-lang.js", "to": "web/carino-lang.js" },
+      { "from": "../carino-clock.js", "to": "web/carino-clock.js" },
+      { "from": "../logo.webp", "to": "web/logo.webp" },
+      { "from": "../LICENSE", "to": "web/LICENSE" },
+      { "from": "../fonts", "to": "web/fonts" },
+      { "from": "../vendor", "to": "web/vendor" }
+    ],
+    "mac": {
+      "target": ["dmg", "zip"],
+      "artifactName": "${productName}-${version}-${arch}.${ext}",
+      "icon": "build/icon.icns",
+      "category": "public.app-category.medical",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "extendInfo": {
+        "NSCameraUsageDescription": "Carino Retina uses a connected camera to capture a fundus or anterior-segment image into the current examination. The image stays on this machine."
+      }
+    },
+    "win": {
+      "target": ["nsis"],
+      "artifactName": "${productName}-Setup-${version}.${ext}",
+      "icon": "build/icon.ico"
+    },
+    "linux": {
+      "target": ["AppImage", "rpm", "deb"],
+      "artifactName": "${productName}-${version}-${arch}.${ext}",
+      "icon": "build/icons",
+      "category": "Science;MedicalSoftware;",
+      "maintainer": "Carino Systems <hello@carino.systems>",
+      "synopsis": "Eye examination, refraction and dispensing suite — fundus annotation and cup-to-disc ratio, offline",
+      "executableName": "carino-retina",
+      "desktop": {
+        "Name": "Carino Retina"
+      }
+    },
+    "deb": { "packageCategory": "science" }
+  }
+}
