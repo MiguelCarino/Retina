@@ -1,0 +1,75 @@
+# i18n-invariants.txt — strings the UI hands to t() that must NOT be translated.
+# The gate in tools/i18n-check.js reads this file. Adding a line is a decision:
+# say why. Removing a line means the string now needs four translations.
+#
+# This is not a suppression file. A line here is a recorded decision with a
+# reason beside it; anything not here and not in a dictionary fails CI.
+
+# --- laterality: OD/OS are data keys (data-eye, DICOM laterality, filenames),
+# --- and the .duo .rl row labels hard-code them with no translation hook at all.
+# --- An "OI"/"OE" here would contradict every row label in the exam grids.
+OD
+OS
+
+# --- Rx column codes printed on prescription blanks worldwide. See ruling R3:
+# --- the four markets diverge on the code itself (ES ESF, JP S, RU SPH) and the
+# --- .duo .h clips at 60.5px. Axis/Add/Power/Base ARE translated — they are words.
+Sph
+Cyl
+K1
+K2
+BC
+DIA
+DBL
+ED
+
+# --- units and notation
+m           # SI symbol; invariant by definition. See ruling R4.
+ft
+mm
+mm²
+%
+Δ
+mmHg
+ppi
+20/40       # and every other 20/x — ALSO load-bearing, see index.html:1530
+J1          # Jaeger — likewise
+−1.25       # and every numeric placeholder in the exam grids
+85.6 mm     # a physical card width the clinician matches against a real card
+logMAR      # ja deliberately corrects the source's "LogMAR" casing; do not "fix" it
+
+# --- eponyms and standard chart names (the surrounding words ARE translated)
+Snellen
+Sloan
+Landolt
+Amsler
+Jaeger
+
+# --- product / format names
+DICOM
+PDF
+PNG
+JSON
+Rx
+CR-39 (1.50)
+Trivex
+GitHub
+LinkedIn
+
+# --- clinical abbreviations that are Latin in every one of these markets
+NVD/NVE
+RPE
+IOL
+CDR
+
+# --- glyph-only buttons (removed from I18N_SEL by M1, listed so a future
+# --- selector change does not silently reintroduce them)
+→
+◂
+—
+×
++
+−
+FIT
+A+
+A−

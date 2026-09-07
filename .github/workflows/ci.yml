@@ -106,3 +106,24 @@ jobs:
           }
           process.exit(bad ? 1 : 0);
           JS
+
+      # Parity (above) proves the four locales agree with EACH OTHER. It cannot
+      # see a string all four are missing: the page renders English inside a
+      # Japanese sentence, still looks finished, and only a reader of that
+      # language notices. This step reconstructs every English string index.html
+      # will hand to t() — t() literals, the I18N_SEL first-text-node registry,
+      # I18N_TITLE_SEL titles, [data-i18n] / [data-i18n-html] / [data-i18n-attr]
+      # and the translated <option> labels — and fails when a locale has none.
+      #
+      # It also fails when one element is claimed by BOTH appliers. That pairing
+      # is not merely redundant: i18n.js caches an element's live text as its
+      # English key, and it always runs after the app's own applier, so on a
+      # non-English first load it caches the TRANSLATED string as the key and
+      # freezes that element in that language for good. There is no console
+      # message when it happens and no way to notice in English.
+      #
+      # A green check here is not a translated UI. The script's header says what
+      # it cannot see — desktop/i18n.js, string length, translation quality, and
+      # the false negatives in its dead-key warning. Read it before trusting it.
+      - name: every string the UI asks for has a translation
+        run: node tools/i18n-check.js .
