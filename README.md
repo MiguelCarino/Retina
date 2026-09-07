@@ -80,13 +80,30 @@ The **Tests** button opens a dialog with all the charts; pick one and the dialog
 the remote** for the presenting window (Back returns to the chart list):
 - **Charts** — a classic **Snellen** pyramid (one big letter, then two, three…),
   single-line **LogMAR (Sloan)**, Tumbling E, Landolt C, Duochrome (red-green), astigmatic
-  dial, Amsler grid, low-contrast letters, a colour-vision **screening demo** (clearly
-  non-diagnostic), a fixation target and blank white/black fields.
+  dial, Amsler grid, low-contrast letters, a colour-vision **screening plate** (clearly
+  non-diagnostic — see below), a fixation target and blank white/black fields.
 - **Snellen full / per-row** — show the whole chart or one row at a time, stepping through
   rows (the **Rows** remote button or `C`; `↑/↓` change the row).
 - **Optotype order** — choose **Fixed chart** (canonical letters in their original order)
   or **Randomize** in Settings; the Shuffle button re-randomizes at any time to prevent
-  memorization.
+  memorization. Randomized rows never repeat a letter and never run the same E or C
+  orientation three times — both give an answer away without the patient resolving
+  anything. Shuffle is inert on the charts that have nothing to randomize (Amsler, the
+  astigmatic dial, fixation, blank fields) and says so rather than silently switching the
+  whole session to random.
+- **Colour vision** — a two-axis screening plate: a red-green plate, a blue-yellow plate
+  and a **control plate everyone can read**. Each shuffle re-samples the dot mosaic, the
+  figure (one or two digits, never the same figure twice running) and the axis. The
+  figure and ground colours are isoluminant by construction — they differ in hue only, so
+  the number cannot be read by brightness — which is also why the plate is worthless on a
+  wrong display. **Results are invalid on an uncalibrated or wide-gamut screen, and with
+  Night Shift / f.lux / an OS colour filter on: those filters simulate colour blindness.**
+  The remote panel says so whenever the plate is up. A missed plate is a reason to refer
+  for standardized plates. It is never a finding, and the app will not name a deficiency
+  type.
+- **Answer key** — the remote shows what the chart is currently displaying (the letters,
+  the C and E orientations, or the plate's figure), because once a chart is shuffled the
+  clinician standing at the panel has no other way to know.
 - **Remote control** — from the panel (or in the chart window with the keyboard): change
   letter size, shuffle optotypes, toggle order, step through tests, mirror, **move the
   window between monitors**, and read the live acuity (Snellen + logMAR).
@@ -119,11 +136,78 @@ row of downloads:
 - **Lens order** — a lab order (Rx + lens spec + PD + frame/fitting).
 - Annotated PNG, re-openable study JSON, and a printable report.
 
+Every exported page carries a footer: `Page N of M`, the patient ID, and `Carino Retina`.
+The provenance line has no setting that removes it — these are unsigned computer output
+whose disclaimers say exactly that, and stripping the tool's name would leave those
+disclaimers with nobody making them. It is not a claim of authenticity: there is no
+signature and no tamper evidence, and none is implied.
+
+## Report branding
+**Settings → Report branding** puts a clinic's own identity on the exported documents:
+practice name, department, address, phone, email, website, tax ID, prescriber name and
+title, a registration/licence number, a footer line, a logo and an accent colour. It is
+off by default, and off is a real code path — an unbranded export is the standard Carino
+letterhead, not a letterhead full of blanks.
+
+- **The three documents differ on purpose.** The study report gets a quiet caption,
+  because the clinician and the patient both already know where they are. The spectacle Rx
+  gets the full block with the registration numbers, because it may be dispensed by a
+  stranger in another shop. The lens order sets the **phone number in dark 9 pt under a
+  `Call back to` label**, because the lab will ring about an ambiguous prism and that is
+  the most consequential string on the sheet.
+- **The licence line is guarded.** The study's own Examiner field wins wherever it is
+  filled in; the profile's prescriber is used only when it is blank. The profile's title
+  and registration number print **only when the two names match** — a prescription naming
+  one prescriber and carrying another's credentials is a forged qualification, not a
+  formatting slip.
+- **The logo** may be PNG, JPEG, WebP, GIF or SVG. Everything is re-encoded through one
+  canvas step to fit 600 × 200 px and stay under 256 KB, so pdf-lib only ever receives
+  bytes a browser has already decoded. It is stored under its own key, and a logo that
+  will not fit is **rolled back** — including if the re-save of the study is what no
+  longer fits. A branding decision must never cost a patient's data. A logo that fails to
+  decode at export time costs the letterhead its picture and nothing else; the report
+  still comes out.
+- **The accent colour** is used only by the exported documents — the application keeps
+  Carino gold, so you can always tell the app apart from the document it produces. A pale
+  brand colour keeps its band and is darkened only for the title, until it clears the
+  3:1 large-text contrast floor on white paper.
+- **Export / Import profile** writes `carino-branding.json` with the logo inside it, so a
+  second machine is set up by importing one file. An imported logo is re-run through the
+  whole validation pipeline: a hand-edited file is untrusted input.
+- **DICOM** now carries `InstitutionName`, `InstitutionAddress` and
+  `ReferringPhysicianName` from the profile. Those are the encounter's own identifiers,
+  the same class of data as `PatientName`; Carino's own vocabulary (`Manufacturer`,
+  `SeriesDescription`, `DocumentTitle`) stays canonical English.
+- **Printing is branded too**, in the same change — a branded PDF shipping beside an
+  unbranded Print is a gap nobody notices until a clinic prints instead of exporting.
+
+Nothing leaves the computer: the profile lives in this browser's local storage only.
+
 ## Languages
-The interface (page names and clinical concepts) is available in **English**, **Spanish**
-and **Japanese** — pick a language from the header (EN / ES / 日本語); the choice is
-remembered. The underlying data model and exported documents stay in canonical English so
-records are portable across languages.
+The interface (page names and clinical concepts) is available in **English**, **Spanish**,
+**Portuguese (Brazil)**, **Japanese** and **Russian** — pick a language from the header;
+the choice is remembered.
+
+**The exported documents follow it.** The report, the spectacle Rx and the lens order are
+all drawn in the interface language, which needs an embedded Unicode font: pdf-lib's
+built-in Helvetica is WinAnsi and would drop every Japanese and Russian label to nothing.
+`fonts/pdf/` holds the subsetted faces (see the README there) and they are fetched on the
+first export, not at page load. If a font cannot be loaded the exporter falls back to
+Helvetica **and** to English, because a half-drawn Russian report is worse than a complete
+English one.
+
+The stored data model stays canonical English — a lens material is `Trivex` in the study
+JSON whatever the interface says — so records stay portable and re-openable across
+languages. DICOM identifiers stay English for the same reason; only the encapsulated PDF
+inside the object, and the institution/physician fields the clinic itself typed, follow
+the interface.
+
+Opening `index.html` straight off the filesystem is the case where this matters most: the
+fonts are `fetch`ed, and `fetch` is blocked on `file://`, so that path always takes the
+Helvetica fallback. Labels survive it because they revert to English — **data does not**,
+so a Cyrillic or Japanese practice name would be silently dropped. The exporter detects
+that and says so once per session. Open Retina from the desktop app or a web server for
+full text.
 
 ## Keyboard
 `V` select · `H` pan · `1` disc center · `2` fovea · `3` disc · `4` cup ·

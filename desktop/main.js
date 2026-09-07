@@ -154,6 +154,11 @@ const CONTENT_TYPES = {
   ".ico": "image/x-icon",
   ".woff": "font/woff",
   ".woff2": "font/woff2",
+  // fonts/pdf/*.ttf — the Unicode faces the PDF exporter fetches and embeds so the
+  // report can be written in Japanese or Russian. Without a type they served as
+  // application/octet-stream, which fetch() accepts, but naming them costs nothing.
+  ".ttf": "font/ttf",
+  ".otf": "font/otf",
   ".txt": "text/plain; charset=utf-8",
   ".md": "text/plain; charset=utf-8",
 };
@@ -753,7 +758,15 @@ function broadcastScreens() {
 // ---- window ------------------------------------------------------------
 function createWindow() {
   win = new BrowserWindow({
-    width: 1280, height: 880, minWidth: 900, minHeight: 600, show: false,
+    // useContentSize because every one of these four numbers is a statement about
+    // the page, not about the frame: without it minHeight 600 is the OUTER height
+    // and the title bar plus the app menu bar from setApplicationMenu() take ~63px
+    // off the top, leaving ~537px of web contents and a ~480px canvas. The floating
+    // tool overlay is 556px of fixed-width buttons, so at that size two annotation
+    // tools sit outside the canvas with no way to reach them. The overlay is being
+    // taught to scroll and to dock horizontally when the window is short, which is
+    // the actual fix; 700 content pixels is this window admitting what the UI needs.
+    width: 1280, height: 880, minWidth: 900, minHeight: 700, useContentSize: true, show: false,
     title: "Carino Retina", icon: path.join(ASSETS, "icon.png"),
     backgroundColor: "#050505",   // index.html's own body background — no white flash
     webPreferences: {
