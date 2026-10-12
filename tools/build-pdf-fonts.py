@@ -76,6 +76,20 @@ def subset(src, out, unicodes, text_file=None):
         args.append(f"--text-file={text_file}")
     run(*args)
 
+def pad_glyphs(path):
+    """Pad every glyph to a 4-byte boundary, in place.
+
+    Noto Sans JP is big enough to need the long 'loca' format, and pyftsubset keeps that
+    format WITHOUT padding, so about half its glyphs start at odd offsets. pdf-lib's
+    fontkit subsetter copies glyphs byte for byte and then writes the (small) subset with
+    the SHORT format, which stores offset/2: every odd offset was rounded away and those
+    glyphs drew as empty boxes in every viewer. Plex never showed it because it already
+    uses the short format, whose glyphs are padded by definition."""
+    from fontTools.ttLib import TTFont
+    f = TTFont(path)
+    f["glyf"].padding = 4
+    f.save(path)
+
 def main():
     plex_var, jp_var, outdir = sys.argv[1], sys.argv[2], sys.argv[3]
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -101,6 +115,7 @@ def main():
         subset(j, os.path.join(outdir, f"NotoSansJP-{tag}.ttf"),
                BASE + ",U+3000-303F,U+3040-30FF,U+31F0-31FF,U+4E00,U+FF01-FF60,U+FFE0-FFE6",
                jp_txt)
+        pad_glyphs(os.path.join(outdir, f"NotoSansJP-{tag}.ttf"))
     for f in sorted(os.listdir(outdir)):
         print(f"{f:24s} {os.path.getsize(os.path.join(outdir, f)) / 1024:8.0f} KB")
 

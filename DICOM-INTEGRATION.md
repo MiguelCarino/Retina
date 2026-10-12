@@ -4,8 +4,12 @@ How Retina becomes an eye-care **modality** rather than an annotation tool, work
 against any PACS without knowing which one it is, and answers the structured-data
 question without Carino ever running a database.
 
-Status: design document. Nothing here is implemented yet beyond the Encapsulated
-PDF export already in `index.html`.
+Status: design document, partly built. Built (see "What is built" below): the
+Encapsulated PDF report, Ophthalmic Photography 8 Bit images with laterality, one
+persisted Study UID per visit, STOW-RS send with a settings profile, and the retry
+outbox, the Inbox of device exports, and a local patient / visit registry. Where the
+design text below disagrees with what was built, a *Superseded* or *Built* note says so
+and "What is built" is authoritative. Everything else here is still design.
 
 ---
 
@@ -64,6 +68,20 @@ extension and belongs there, not in the browser.
 The discipline that follows: **if it is not in the archive, it did not happen.**
 Everything Retina keeps locally is a draft, and is labelled as one.
 
+> **Superseded in part by what was built.** The shipped product keeps a lasting local
+> registry: patients and their visits (with images) in the on-device IndexedDB
+> database, keyed by visit id rather than StudyInstanceUID, with search, encounter
+> history, Recently deleted and `.retinabak` backups (README, "Patients and visits").
+> Nothing is cleared when the archive acknowledges a STOW. The reason is the clinics
+> Retina actually serves: many have no archive at all, or one that cannot show an
+> earlier visit back to the clinician, and a visit that disappeared on acknowledgement
+> would leave them with no record of their own. The parts of this section that still
+> hold: Carino runs no server and holds no PHI (option (a) stays rejected); the archive,
+> when there is one, is where the objects are filed; and the unfiled-visit counter
+> exists (Patients ▸ Unfiled visits). The local registry is the clinic's own data on
+> its own machine, so backing it up is the clinic's job, which is why Settings ▸
+> Storage shows when the last backup was made.
+
 ### Where local state is unavoidable, and what it is allowed to be
 
 Three cases, and all three are spools rather than records:
@@ -71,6 +89,8 @@ Three cases, and all three are spools rather than records:
 - **The encounter in progress.** The patient is in the chair, the exam is half
   done, the browser can crash. Keep it in IndexedDB keyed by StudyInstanceUID,
   show it as *unfiled*, and clear it the moment the archive acknowledges the store.
+  *(Superseded: built as the lasting visit registry described above, keyed by visit
+  id; the Study UID is stored on the visit; nothing is cleared on acknowledgement.)*
 - **No archive reachable.** The same spool becomes a retry queue. This is the
   `outgoing/` directory of Carino DICOM, in a browser.
 - **Device configuration.** Screen calibration, monitor assignment, lane distance,
@@ -90,8 +110,8 @@ it cannot render; a capable one lights up. Nothing needs configuring per site.
 
 | Tier | Object | SOP Class UID | Consumed by |
 | --- | --- | --- | --- |
-| 0 | **Encapsulated PDF** — the human-readable report | `…5.1.4.1.1.104.1` | Literally everything. Already implemented. |
-| 1 | **Ophthalmic Photography 8 Bit** — the fundus image itself | `…5.1.4.1.1.77.1.5.1` | Any archive. Currently *not* emitted at all — the biggest gap. |
+| 0 | **Encapsulated PDF** — the human-readable report | `…5.1.4.1.1.104.1` | Literally everything. Built. |
+| 1 | **Ophthalmic Photography 8 Bit** — the fundus image itself | `…5.1.4.1.1.77.1.5.1` | Any archive. Built (uncompressed RGB). |
 | 2 | **GSPS** — annotations as vector overlay | `…5.1.4.1.1.11.1` | Archives that render presentation states. |
 | 3 | **Measurement SRs** — refraction, VA, keratometry, Rx | `…5.1.4.1.1.78.*` | Archives and analytics that parse SR. |
 | 3 | **Comprehensive SR** — CDR, disc metrics, lesion pins with SCOORD | `…5.1.4.1.1.88.33` | Same. |
@@ -111,9 +131,13 @@ and unattributable. Do it once, as an *optional* extra series clearly flagged
 `Burned In Annotation = YES`, for the sites whose viewer shows no presentation
 states and whose clinicians will otherwise never see the markup.
 
-**Laterality is not optional.** `Laterality (0020,0060)` = `L`/`R` per object, with
-the whole OD/OS model of the app mapping onto it. An eye study without laterality
-is clinically useless and will be rejected by anything strict.
+**Laterality is not optional.** Every object carries the eye, with the whole OD/OS
+model of the app mapping onto it. An eye study without laterality is clinically
+useless and will be rejected by anything strict. *Built, with one correction to the
+original wording:* `Laterality (0020,0060)` = `R`/`L` is written on the OP images (series
+level), together with Image Laterality (0020,0062). On an Encapsulated PDF, (0020,0060)
+is not part of the IOD and a validator rejects it there, so device reports carry **Image
+Laterality (0020,0062)** `R`/`L`/`B` instead (see "What is built").
 
 ### Structured objects worth emitting, in priority order
 
@@ -130,8 +154,8 @@ is clinically useless and will be rejected by anything strict.
 
 That last one is the clinical payoff. Once CDR is a coded, queryable measurement
 rather than a line in a PDF, **CDR trend over time** becomes possible — and
-longitudinal cup-to-disc progression is the single most valuable thing this
-application can show a glaucoma clinic.
+a clinician comparing visits sees how the measurement changed, with each value
+traceable to the marks it came from.
 
 ---
 
@@ -211,7 +235,13 @@ include a per-install identifier so two Retina installations can never collide.
 The current `Date.now() + random` construction is probably safe and is not
 principled — make it principled.
 
-**Replace the hand-rolled writer with `dcmjs`.** It is already vendored in
+~~**Replace the hand-rolled writer with `dcmjs`.**~~ *Decided against; see "What is
+built" ▸ Writer. The writer was rewritten in place instead (sorted tags, tested byte by
+byte). Of the Encapsulated PDF gaps named below: laterality is resolved, as Image
+Laterality (0020,0062) on device reports filed to an eye (the visit's own report covers
+both eyes, and the attribute is Type 3); Patient Sex is written present and empty
+(Type 2), because Retina does not collect it; Referenced Request Sequence still waits for
+the worklist (phase 2).* The original note: it is already vendored in
 DICOM-editor and the fleet knows its quirks (uppercase no-`x` hex dictionary keys —
 use the `setTag`/`getTag` helpers or writes fail silently). Emitting OP, GSPS and
 SR by hand is not a reasonable amount of byte-wrangling; emitting Encapsulated PDF
@@ -224,17 +254,96 @@ click rather than a round trip through the filesystem.
 
 ---
 
+## What is built
+
+Code: `retina-dicom.js` (writer, STOW reply parsing, outcome rules; unit-tested in
+`tools/unit-tests.js`), the archive / outbox section of `index.html`, and
+`desktop/archive.js` (the desktop app sends from its main process).
+
+**Writer.** A small dataset class that sorts tags at encode time (the old inline writer
+relied on a hand-ordered list), defined-length sequences, Explicit VR Little Endian,
+UTF-8 (`ISO_IR 192`) with byte caps that never split a code point. `dcmjs` was not
+adopted: the writer is ~300 lines, tested byte by byte, and avoids vendoring a large
+dependency.
+
+**UIDs.** Root `1.2.826.0.1.3680043.10.1401`, then `.<ms since epoch>.<random digits>`
+filled to 64 characters — never sliced, so no trailing dot or leading zero; every UID
+is checked against `^(0|[1-9]\d*)(\.(0|[1-9]\d*))*$` and length ≤ 64.
+
+| Identity | Rule |
+| --- | --- |
+| StudyInstanceUID | Minted once per visit, stored in `enc.studyUID`, shared by every object. |
+| SeriesInstanceUID | One per kind, stored: report (series 1), OD images (2), OS images (3), device reports OD / OS / both (4 / 5 / 6). |
+| Report SOP | New on every export/send; InstanceNumber = `++enc.reportSeq`. |
+| Image SOP | Stored on the image reference with `contentKey = sha256(srcSha256 \| eye \| PatientID \| PatientName \| DOB \| StudyUID \| accession \| institution)`. Same key → same SOP (a resend overwrites); changed key → new SOP. |
+| Identity change after a send | `kv sentId:<visit>` records the identity the archive confirmed. If ID, name or DOB differ at the next send, the user is warned and the visit gets a **new** Study UID (and so new series and image SOPs): one study never carries two patients. Carino DICOM files by `PatientID/Study/Series/SOP.dcm`, so the old copy is left for the archive's operator to correct or remove. |
+| Identity change while queued | Every outbox item carries the identity it was queued under. Unsent items (pending or failed) of the current Study UID under other details trigger the same warning; they are deleted in the transaction that queues the new study. While one of them is `sending`, Send is refused until it finishes. |
+| Download | The image key is always computed from the **send** identity. A download whose ANON / ANONYMOUS placeholders differ from it gets a throwaway SOP UID and changes nothing; if the visit cannot be written, the download uses transient UIDs. |
+
+Minting is written to the visit **before** any bytes leave: for a send, in the same
+IndexedDB transaction as the outbox items.
+
+**OP 8 Bit attributes** (validated with dicom-validator against PS3.3 2026d: no errors,
+no warnings):
+
+| Module | What is written |
+| --- | --- |
+| Patient / General Study | PatientName, PatientID, PatientBirthDate (from the visit), PatientSex empty; StudyInstanceUID, StudyDate (exam date), StudyTime (visit created), StudyID (visit id, 16 chars), AccessionNumber, ReferringPhysicianName |
+| General Series / OP Series | Modality `OP`, SeriesInstanceUID, SeriesNumber 2/3, Laterality R/L, SeriesDescription "Fundus photograph OD" (or slit lamp / external), PerformingPhysicianName (Provider) |
+| Synchronization (M) | Synchronization Frame of Reference UID (minted), Synchronization Trigger `NO TRIGGER`, Acquisition Time Synchronized `N` |
+| General Equipment | Manufacturer "Carino Systems", ManufacturerModelName "Carino Retina", DeviceSerialNumber (install id), SoftwareVersions |
+| General Image / OP Image | ImageType `DERIVED\PRIMARY` (Retina re-encodes a picture it was given), InstanceNumber, PatientOrientation empty, Content Date/Time = when the picture was stored, Source Image Sequence present and empty (Type 2C: the source is not a DICOM instance), AcquisitionDateTime only from a real capture time (never a file date), BurnedInAnnotation YES unless the clinic says No, LossyImageCompression `00` only for a PNG / BMP / GIF / TIFF source; anything else `01` + ratio + method (`ISO_10918_1` JPEG, `ISO_23008_2` HEIC/HEIF, `ISO_15444_1` JPEG 2000, `ISO_18181_1` JPEG XL, otherwise the MIME subtype, e.g. `WEBP` — the method's terms are Defined Terms, so extensible) |
+| Multi-frame (M) | NumberOfFrames 1, FrameIncrementPointer → Frame Time (0018,1063) = 0 (PS3.3 C.7.6.6.1.2, single-frame case) |
+| Image Pixel | RGB, SamplesPerPixel 3, PlanarConfiguration 0, 8/8/7, unsigned, uncompressed |
+| Ocular Region Imaged | ImageLaterality R/L; AnatomicRegionSequence (SCT 5665001 "Retina" for a fundus camera, SCT 81745001 "Eye" otherwise — CID 4209) |
+| OP Acquisition Parameters | Every Type 2 attribute present and empty. Exam values (IOP, refraction) are never copied here. |
+| OP Photographic Parameters | AcquisitionDeviceTypeCodeSequence (CID 4202: SCT 409898007 Fundus Camera / 397247004 Slit Lamp Biomicroscope / 409903006 External Camera, chosen in Settings); the Type 2 code sequences empty; DetectorType empty |
+| Acquisition Context | Present and empty |
+
+**Device reports filed from the Inbox** (a camera's or OCT's own PDF) are sent as their
+own Encapsulated PDF instances in the same study: one series per eye bucket (OD 4, OS 5,
+both 6, SeriesDescription "Device report OD/OS/OU"), DocumentTitle = the file name, and
+**Image Laterality (0020,0062)** R / L / B — the laterality attribute of the Encapsulated
+Document module. The series-level Laterality (0020,0060) is not part of the Encapsulated
+PDF IOD, and dicom-validator (2026d) rejects it there; with Image Laterality the object
+validates with no errors. A document keeps its SOP UID under the same `contentKey` rule as
+a picture (same bytes and identity → a resend overwrites), and the outbox freezes only its
+attributes: the Part-10 file is built at send time from the stored, immutable PDF.
+
+The Encapsulated PDF gained PatientBirthDate, AccessionNumber, BurnedInAnnotation YES,
+Concept Name Code Sequence (empty, Type 2), AcquisitionDateTime (empty, Type 2) and
+EncapsulatedDocumentLength; it no longer writes the Provider as the referring physician.
+
+**Transfer syntax.** Explicit VR Little Endian, uncompressed: every archive must accept
+it; JPEG-in-DICOM is optional for a receiver. Encapsulating the camera's JPEG as-is is a
+later optimisation.
+
+**STOW-RS and the outbox.** One POST per object to `{base}/studies`,
+`multipart/related; type="application/dicom"`, CRLF framing, `Accept:
+application/dicom+json`, bearer token. An object is sent only when its SOP UID is in
+ReferencedSOPSequence (0008,1199) — a warning still counts. FailedSOPSequence
+(0008,1198) with 0xA7xx is retried (out of resources, ≥ 5 min); any other failure reason,
+or a 2xx that does not mention the object, waits for a person. 401/403 pause the whole
+outbox at the first object; 429 honours Retry-After; 503 and other 5xx and network errors
+retry with backoff min(30 min, 15 s·2ⁿ) ±20 %. One tab sends at a time (Web Lock
+`carino-retina-outbox`); a send's completion is a compare-and-set on a per-attempt token,
+so an object discarded while it was being sent stays discarded. Items of a visit in
+Recently deleted are held (skipped by the sender, released on restore); a purge deletes
+the visit's outbox rows and `kv sentId:<visit>` in the same transaction. Desktop sends
+refuse redirects (`redirect: "error"`), as the website does; a desktop refusal before any
+request (`no-base`, `too-large`, `bad-parts`) maps to wait / failed with its own message.
+
 ## Order of work
 
 Each phase is independently shippable and independently useful.
 
-1. **Become a real modality.** `dcmjs` writer; emit OP image + GSPS alongside the
-   existing PDF; add laterality, accession and referenced request; write the
-   conformance statement.
+1. **Become a real modality.** ~~OP image alongside the existing PDF; laterality and
+   accession~~ (built, hand-written writer instead of `dcmjs`). Still to do: GSPS,
+   referenced request, the conformance statement.
 2. **Stop the typing.** MWL/UPS-RS query, patient banner, inherited Study UID,
    MPPS completion.
-3. **Stop the file dance.** STOW-RS send with a settings profile; the draft spool
-   and retry queue; the unfiled-encounter indicator.
+3. **Stop the file dance.** ~~STOW-RS send with a settings profile; the retry
+   queue~~ (built); the unfiled-encounter indicator (built as Patients ▸ Unfiled visits).
 4. **Make the measurements structured.** Subjective Refraction, VA, Keratometry and
    Spectacle Prescription SRs; the CDR measurement group with SCOORD anchors.
 5. **Read back.** QIDO/WADO to reopen a prior encounter; prior-vs-current view;

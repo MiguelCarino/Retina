@@ -212,6 +212,19 @@ if (missing.length) {
   }
 }
 
+// ---------- root modules translate nothing ----------
+// The app's own modules (retina-*.js) throw error CODES; index.html turns codes into
+// words. This gate only reads index.html, so a t('…') in a module would be a string
+// nobody checks — and its key would show up below as "dead" and invite deletion.
+for (const f of fs.readdirSync(ROOT).filter((n) => /^retina-.*\.js$/.test(n))) {
+  const src = fs.readFileSync(path.join(ROOT, f), 'utf8');
+  const m = /\b(?:t|tf|T)\(\s*['"]/.exec(src);
+  if (m) {
+    bad = 1;
+    console.error(`::error file=${f}::${f}:${src.slice(0, m.index).split('\n').length} calls a translator; keep every t() literal in index.html and throw a code instead`);
+  }
+}
+
 // ---------- the double-managed guard ----------
 // An element handled by BOTH appliers is translated twice, and i18n.js caches
 // the ALREADY-TRANSLATED text as its English key on a non-English first load,

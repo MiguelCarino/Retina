@@ -49,6 +49,31 @@ jobs:
             exit 1
           fi
 
+      # The pure parts of the root modules (record shapes, the localStorage →
+      # IndexedDB conversion, the data-URL codec, the backup format, the DICOM
+      # writer byte by byte, STOW reply handling, the desktop archive sender).
+      # The IndexedDB paths need a browser and are exercised headlessly
+      # (tools/browser-big-images.js, run by hand: it needs Chromium); this
+      # catches the logic under them.
+      - name: unit tests
+        run: node tools/unit-tests.js
+
+      # Retina talks to no Carino server: the only network path is the archive the
+      # user configures. A carino.systems address in a fetch(), in the CSP's
+      # connect-src, or as a default archive address would be a silent data path.
+      - name: no Carino server in any network path
+        shell: bash
+        run: |
+          set -euo pipefail
+          bad=0
+          if grep -nE "fetch\([^)]*carino\.systems" index.html retina-*.js desktop/*.js; then bad=1; fi
+          if grep -nE "connect-src[^;\"]*carino\.systems" index.html; then bad=1; fi
+          if grep -nE "(base|BASE)[^=]*=[^;]*['\"]https?://[^'\"]*carino\.systems" index.html retina-*.js desktop/archive.js; then bad=1; fi
+          if [ "$bad" -ne 0 ]; then
+            echo "::error::a carino.systems address appears in a network path (above)"
+            exit 1
+          fi
+
       # A block scalar, not a plain one: the message below contains ": ", which
       # a plain YAML scalar cannot carry — GitHub rejects the whole file.
       - name: index.html has no unbalanced script block

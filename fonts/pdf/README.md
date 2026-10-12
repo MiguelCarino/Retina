@@ -14,6 +14,11 @@ The Japanese faces carry JIS X 0208 level 1 plus every character the four dictio
 in `i18n.js` contain — level 1 alone is not enough, since 中心窩, 処方箋, 瘢痕 and 動脈瘤
 are all level 2 and a lesion type reaches the PDF verbatim.
 
+The Japanese faces are big enough to need the long `loca` format, and the build pads every
+glyph to an even offset: pdf-lib's subsetter writes the small embedded subset in the short
+format, and an odd offset there turned about half of all glyphs into empty boxes. The unit
+tests check it (`tools/unit-tests.js`).
+
 Rebuild with `tools/build-pdf-fonts.py`, which reads `i18n.js` so the subsets and the
 dictionaries cannot drift apart. Sources are the upstream variable fonts:
 

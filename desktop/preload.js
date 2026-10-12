@@ -3,7 +3,7 @@
    ------------------------------------------------------------
    contextIsolation stays true and nodeIntegration stays false, so this
    file is the ONLY channel between the shell and index.html. What it
-   publishes is deliberately seven members wide, plain data only:
+   publishes is deliberately nine members wide, plain data only:
 
        window.carinoDesktop = {
          appVersion,                // "1.0.0" — a string, fixed at launch
@@ -13,7 +13,30 @@
          screens(),                 // → the display/chart snapshot, cloned
          onScreensChanged(cb),      // cb() whenever that snapshot changes
          onChartDisplayChanged(cb), // cb() only when the chart moved display
+         archive: {                 // exam panel only, absent in the chart window
+           status(),                // → {base, hasToken, persistent}; never the token
+           configure(base, token),  // token: null keeps, "" clears, string sets
+           test(),                  // → {http, netError, detail}
+           send(parts, timeoutMs),  // Part-10 ArrayBuffers → {http, json, retryAfter, netError, detail}
+         },
+         inbox: {                   // exam panel only, absent in the chart window
+           pick(),                  // main's own folder dialog → {root, name, count} | {canceled} | {error}
+           start(mode),             // 'all' | 'new': watch the folder just picked
+           stop(),                  // stop watching and forget the folder
+           status(), list(),        // → plain data: the folder, skipped files, offered files (metadata)
+           rescan(),
+           read(id),                // → Uint8Array of ONE offered file | {error}
+           onFile(cb), onState(cb), // cb(plain object) when a file is offered / the state changes
+         },
        }
+
+   The inbox member reads only the folder the user picked in main's own
+   dialog (the page never names a path), never writes to it, and hands
+   over bytes only by an id main issued (see inbox-watcher.js).
+
+   The archive member is the one that reaches the network, and it does so
+   only to `${base}/studies` of the address the user saved; the page never
+   supplies a URL and never reads the token back (see archive.js).
 
    No ipcRenderer object, no require, no fs, no path — nothing the page
    could use to reach the machine. openReleasePage() takes no argument on
@@ -134,6 +157,16 @@ ipcRenderer.invoke("carino:screens").then((m) => { if (m) screens = m; }).catch(
 
 const clone = (o) => (o == null ? null : JSON.parse(JSON.stringify(o)));
 
+/* ---------------- inbox events (exam panel only) ---------------- */
+const inboxFileSubs = [];
+const inboxStateSubs = [];
+if (!isChartWindow) {
+  ipcRenderer.on("carino:inbox-file", (_e, m) => { for (const cb of inboxFileSubs) { try { cb(clone(m)); } catch (e) { /* the page's problem */ } } });
+  ipcRenderer.on("carino:inbox-state", (_e, m) => { for (const cb of inboxStateSubs) { try { cb(clone(m)); } catch (e) { /* the page's problem */ } } });
+}
+// read() answers with a Uint8Array (bytes) or a plain {error}; nothing else crosses.
+const inboxBytes = (r) => (r instanceof Uint8Array ? r : clone(r));
+
 contextBridge.exposeInMainWorld("carinoDesktop", Object.freeze({
   appVersion,
 
@@ -148,4 +181,26 @@ contextBridge.exposeInMainWorld("carinoDesktop", Object.freeze({
   screens: () => clone(screens),
   onScreensChanged: (cb) => { if (typeof cb === "function") screenSubs.push(cb); },
   onChartDisplayChanged: (cb) => { if (typeof cb === "function") chartDisplaySubs.push(cb); },
+
+  // --- DICOMweb archive: the exam panel only ---
+  // Every reply is plain data built by main; main checks the sender (fromPanel).
+  archive: isChartWindow ? undefined : Object.freeze({
+    status: () => ipcRenderer.invoke("carino:archive-status"),
+    configure: (base, token) => ipcRenderer.invoke("carino:archive-configure", String(base == null ? "" : base), token == null ? null : String(token)),
+    test: () => ipcRenderer.invoke("carino:archive-test"),
+    send: (parts, timeoutMs) => ipcRenderer.invoke("carino:archive-send", Array.isArray(parts) ? parts : [], +timeoutMs || 0),
+  }),
+
+  // --- Inbox (watched folder of device exports): the exam panel only ---
+  inbox: isChartWindow ? undefined : Object.freeze({
+    pick: () => ipcRenderer.invoke("carino:inbox-pick").then(clone),
+    start: (mode) => ipcRenderer.invoke("carino:inbox-start", mode === "new" ? "new" : "all").then(clone),
+    stop: () => ipcRenderer.invoke("carino:inbox-stop").then(clone),
+    status: () => ipcRenderer.invoke("carino:inbox-status").then(clone),
+    list: () => ipcRenderer.invoke("carino:inbox-list").then(clone),
+    rescan: () => ipcRenderer.invoke("carino:inbox-rescan").then(clone),
+    read: (id) => ipcRenderer.invoke("carino:inbox-read", String(id == null ? "" : id)).then(inboxBytes),
+    onFile: (cb) => { if (typeof cb === "function") inboxFileSubs.push(cb); },
+    onState: (cb) => { if (typeof cb === "function") inboxStateSubs.push(cb); },
+  }),
 }));

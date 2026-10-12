@@ -6,12 +6,19 @@
    lands where it was asked to, a zoom that cannot move, and camera
    permission that is granted rather than prompted for on every launch.
 
-   It does NOT load the page over file://. Retina makes zero network
-   calls, so file:// would in fact boot — but every piece of state this
-   app keeps lives in localStorage (carino_ophtha_v1 at index.html:967,
-   carino_retina_seen at 968, carino_retina_settings at 2030, carino_lang
-   from carino-lang.js:97), and localStorage on file:// has no stable
-   origin to hang off. The camera (getUserMedia, index.html:2619) and
+   The Inbox (inbox-watcher.js) reads ONE folder the user picks in a native
+   dialog here — read-only, no links followed, bytes handed over by id.
+
+   The one network path is the DICOMweb archive the user configures in
+   Settings, and it runs HERE, not in the page (archive.js explains why);
+   the page itself still makes no network call. It does NOT load the page
+   over file:// — that would in fact boot — but every piece of state this
+   app keeps lives in origin-scoped storage (visits, images and the clinic
+   logo in the IndexedDB database carino_retina, see retina-store.js;
+   settings in localStorage carino_retina_settings; carino_lang from
+   carino-lang.js), and file:// has no stable origin to hang it off. The
+   scheme, the host and the appId must never change: the database belongs
+   to app://carino, and a new origin would open an empty one. The camera (getUserMedia, index.html:2619) and
    getScreenDetails() (2081) both require a secure context with an
    attributable origin, and the chart window is an about:blank that
    INHERITS this origin. So the bundle is served over a custom app://
@@ -51,18 +58,17 @@
        pitch is inferred and the optotype size carries that error. The
        page's HUD says so rather than hiding it, and the metrics this
        file cross-checks are what let it know.
-     - window.prompt() is not implemented by Electron, so the arrow and
-       freehand-outline note fields (index.html:1326, 1329) silently take
-       no text here. That is a page defect this shell cannot reach; it is
-       tracked separately.
+     - window.prompt()/confirm() are not used by the page any more (it has
+       its own in-app dialog), so Electron's missing prompt no longer loses
+       the arrow and freehand-outline notes.
 
    Dev run:   cd desktop && npm install && npm start
    ============================================================ */
 "use strict";
 
 const {
-  app, BrowserWindow, Menu, dialog, ipcMain, protocol,
-  screen, session, shell, systemPreferences,
+  app, BrowserWindow, Menu, dialog, ipcMain, net, protocol,
+  safeStorage, screen, session, shell, systemPreferences,
 } = require("electron");
 const https = require("https");
 const path = require("path");
@@ -650,6 +656,99 @@ function fromApp(e) {
   try { u = wc.getURL() || ""; } catch (err) { return false; }
   return originHost(u) === SCHEME + "://" + HOST;
 }
+// The exam panel only — fromApp() minus the chart. The archive channels carry
+// patient data and an administrator credential's use, and the chart window (a
+// document.write()-filled about:blank) has no business with either.
+function fromPanel(e) {
+  return fromApp(e) && !isChartContents(e.sender);
+}
+
+// ---- Inbox folder ----------------------------------------------------------
+// One watched folder, remembered in userData/inbox.json ({v, root, ignore}) and
+// watched again at every launch. The format checks are the page's own
+// retina-inbox.js, required from the web payload (a real directory, never inside
+// app.asar — see WEB_ROOT), so the desktop and the website judge a file the same way.
+// Results reach the exam panel only (never the chart) as plain objects.
+function setupInbox() {
+  const file = path.join(app.getPath("userData"), "inbox.json");
+  let lib = null, libErr = null;
+  try { lib = require(path.join(WEB_ROOT, "retina-inbox.js")); } catch (e) { libErr = "module"; }
+  const { createWatcher, snapshot, overlaps, realpathNative } = require("./inbox-watcher");
+  let cfg = null, w = null, pending = null, lastErr = null;
+  try { const j = JSON.parse(fs.readFileSync(file, "utf8")); if (j && typeof j.root === "string" && j.root) cfg = { root: j.root, ignore: j.ignore && typeof j.ignore === "object" ? j.ignore : {} }; } catch (e) { /* none yet */ }
+  const toPanel = (ch, msg) => { try { if (win && !win.isDestroyed()) win.webContents.send(ch, msg); } catch (e) { /* closing */ } };
+  const persist = () => {
+    const tmp = file + ".tmp";
+    if (!cfg) { try { fs.unlinkSync(file); } catch (e) { } return; }
+    fs.writeFileSync(tmp, JSON.stringify({ v: 1, root: cfg.root, ignore: cfg.ignore || {} }), { mode: 0o600 });
+    fs.renameSync(tmp, file);
+  };
+  const status = () => {
+    if (libErr) return { configured: !!cfg, watching: false, error: libErr };
+    if (!cfg) return { configured: false, watching: false, error: null };
+    if (!w) return { configured: true, root: cfg.root, name: path.basename(cfg.root), watching: false, error: lastErr };
+    return Object.assign({ configured: true }, w.status());
+  };
+  function run() {
+    if (w) { w.stop(); w = null; }
+    if (!cfg || !lib) return;
+    try {
+      w = createWatcher({ root: cfg.root, lib, ignore: cfg.ignore,
+        onFile: (m) => toPanel("carino:inbox-file", m),
+        onStatus: () => toPanel("carino:inbox-state", status()) });
+      lastErr = null;
+      w.start();
+    } catch (e) { w = null; lastErr = e.code || "start"; }
+    toPanel("carino:inbox-state", status());
+  }
+  // A folder Retina saves into (Downloads, see will-download) or its own data must
+  // not be watched: every export would come straight back into the Inbox.
+  const refused = (root) => {
+    const bad = [app.getPath("downloads"), app.getPath("userData")];
+    try { bad.push(realpathNative(fs, app.getPath("downloads"))); } catch (e) { }
+    return bad.some((b) => overlaps(root, b));
+  };
+  run();
+  return {
+    async pick() {
+      if (libErr) return { error: libErr };
+      const r = await dialog.showOpenDialog(win, { properties: ["openDirectory"] });
+      if (r.canceled || !r.filePaths || !r.filePaths[0]) return { canceled: true };
+      let root;
+      try { root = realpathNative(fs, r.filePaths[0]); } catch (e) { return { error: "root-missing" }; }
+      if (refused(root)) return { error: "downloads", name: path.basename(root) };
+      // Counted asynchronously (snapshot walks up to maxFiles entries): on a slow share a
+      // synchronous walk here would freeze every window until it finished.
+      let count = 0;
+      try { count = Object.keys(await snapshot(root, lib)).length; } catch (e) { return { error: "unreadable", name: path.basename(root) }; }
+      pending = root;
+      return { root, name: path.basename(root), count };
+    },
+    // mode 'new': what is in the folder now is left alone; only later files come in.
+    async start(mode) {
+      if (!pending || !lib) return status();
+      const root = pending;
+      let ignore = {};
+      if (mode === "new") { try { ignore = await snapshot(root, lib); } catch (e) { } }
+      // A second pick (or a Stop) while the baseline was being taken wins: do not
+      // start watching a folder the user has since moved away from.
+      if (pending !== root) return status();
+      cfg = { root, ignore }; pending = null;
+      try { persist(); } catch (e) { lastErr = "save"; }
+      run();
+      return status();
+    },
+    stop() { if (w) { w.stop(); w = null; } cfg = null; pending = null; try { persist(); } catch (e) { } toPanel("carino:inbox-state", status()); return status(); },
+    status,
+    list() { return w ? w.list() : []; },
+    rescan() { if (w) w.scan(); return status(); },
+    async read(id) {
+      if (!w) return { error: "unknown" };
+      try { const b = await w.read(id); return new Uint8Array(b.buffer, b.byteOffset, b.length); }
+      catch (e) { return { error: e.code || "read" }; }
+    },
+  };
+}
 
 // ---- the chart window's bounds -----------------------------------------
 // index.html:2264/2265 builds:
@@ -1033,6 +1132,44 @@ if (!app.requestSingleInstanceLock()) {
       chartMetrics = { cssWidth: m.cssWidth, cssHeight: m.cssHeight, dpr: m.dpr };
       broadcastScreens();
     });
+
+    // ---- DICOMweb archive (see archive.js for why this lives in main) ----
+    // The page hands over Part-10 bytes and gets back status codes and the
+    // parsed STOW reply. It never supplies a URL and never reads the token.
+    const archive = require("./archive").createArchive({
+      file: path.join(app.getPath("userData"), "archive.json"),
+      fetch: (u, o) => net.fetch(u, o),
+      crypt: {
+        available: () => safeStorage.isEncryptionAvailable(),
+        // Linux without a secret service: available() is still true, but the key is
+        // hard-coded. archive.js then keeps the token in memory only (see weak()).
+        weak: () => process.platform === "linux" && typeof safeStorage.getSelectedStorageBackend === "function"
+          && safeStorage.getSelectedStorageBackend() === "basic_text",
+        encrypt: (s) => safeStorage.encryptString(s),
+        decrypt: (b) => safeStorage.decryptString(b),
+      },
+    });
+    ipcMain.handle("carino:archive-status", (e) => (fromPanel(e) ? archive.status() : null));
+    ipcMain.handle("carino:archive-configure", (e, base, token) => {
+      if (!fromPanel(e)) return null;
+      return archive.configure(typeof base === "string" ? base.slice(0, 2048) : "",
+        token == null ? null : String(token).slice(0, 4096));
+    });
+    ipcMain.handle("carino:archive-test", (e) => (fromPanel(e) ? archive.test() : null));
+    ipcMain.handle("carino:archive-send", (e, parts, timeoutMs) => (fromPanel(e) ? archive.send(parts, timeoutMs) : null));
+
+    // ---- Inbox: a watched folder of device exports (see inbox-watcher.js) ----
+    // The folder is chosen HERE, in a native dialog: the page never names a path.
+    // Every channel is panel-only (fromPanel); the page gets metadata, and the bytes
+    // of one file only by the id main handed out.
+    const inbox = setupInbox();
+    ipcMain.handle("carino:inbox-pick", (e) => (fromPanel(e) ? inbox.pick() : null));
+    ipcMain.handle("carino:inbox-start", (e, mode) => (fromPanel(e) ? inbox.start(mode === "new" ? "new" : "all") : null));
+    ipcMain.handle("carino:inbox-stop", (e) => (fromPanel(e) ? inbox.stop() : null));
+    ipcMain.handle("carino:inbox-status", (e) => (fromPanel(e) ? inbox.status() : null));
+    ipcMain.handle("carino:inbox-list", (e) => (fromPanel(e) ? inbox.list() : null));
+    ipcMain.handle("carino:inbox-rescan", (e) => (fromPanel(e) ? inbox.rescan() : null));
+    ipcMain.handle("carino:inbox-read", (e, id) => (fromPanel(e) ? inbox.read(typeof id === "string" ? id.slice(0, 64) : "") : null));
 
     Menu.setApplicationMenu(buildAppMenu());
     createWindow();
