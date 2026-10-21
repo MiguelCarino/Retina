@@ -249,11 +249,13 @@
 
     /* ---------- Center viewport ---------- */
     .center{flex:1;position:relative;background:#000;overflow:hidden;min-width:0}
-    #viewport{position:absolute;inset:0;overflow:hidden;cursor:crosshair}
+    #viewport{position:absolute;inset:0;overflow:hidden;cursor:crosshair;touch-action:none}
     #viewport.pan{cursor:grab}
     #viewport.panning{cursor:grabbing}
     #stage{position:absolute;top:0;left:0;transform-origin:0 0;will-change:transform}
-    #fundus{display:block;user-select:none;-webkit-user-drag:none;pointer-events:none;background:#111}
+    /* Black, like the opaque fill the PNG/DICOM exports composite onto: a picture with a
+       transparent surround then looks the same on screen, in the PDF and in the archive. */
+    #fundus{display:block;user-select:none;-webkit-user-drag:none;pointer-events:none;background:#000}
     #overlay{position:absolute;top:0;left:0;overflow:visible}
     #overlay text{font-family:var(--mono);paint-order:stroke;stroke:#000;stroke-width:3px;stroke-linejoin:round}
 
@@ -296,6 +298,8 @@
     .metric{background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-md);padding:10px}
     .metric .k{font-family:var(--mono);font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted)}
     .metric .v{font-family:var(--mono);font-size:1.15rem;font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums}
+    /* A cup larger than, or outside, the disc: the number is shown but not trusted. */
+    .metric .v.warn{color:#f59e0b}
     .metric .u{font-size:.6rem;color:var(--text-muted);font-weight:400}
     .metric.wide{grid-column:1 / -1}
 
@@ -340,6 +344,9 @@
     /* hovering a numeric field arms it: the wheel edits it, no click needed */
     input.step:hover,input.seq:hover{border-color:var(--accent)}
     input.step.bumped,input.seq.bumped,select.wsel.bumped{border-color:var(--accent);background-color:var(--accent-faint)}
+    /* A typed measurement outside the field's usual range is kept as typed and flagged,
+       never rewritten: keratoconus corneas, oedematous corneas and children's frames exist. */
+    input.step.out-of-range{border-color:#f59e0b;color:#f59e0b}
     select.wsel:hover{border-color:var(--accent)}
     input.seq{cursor:ns-resize}
     input[type=range]:hover{accent-color:var(--accent)}
@@ -626,7 +633,10 @@
     .seg button{flex:1 1 6rem;min-width:0;background:transparent;border:none;color:var(--text-muted);font-family:var(--mono);font-size:.68rem;font-weight:700;padding:8px 6px;border-radius:var(--r-sm);cursor:pointer;transition:.15s}
     .seg button.active{background:var(--accent);color:#050505}
     .seg button:not(.active):hover{color:var(--text)}
-    .cal-card{height:54mm;max-height:120px;width:85.6mm;max-width:100%;border:2px dashed var(--accent);border-radius:10px;background:linear-gradient(135deg,rgba(234,179,8,.12),transparent);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.62rem;color:var(--text-dim);margin:8px 0}
+    /* The card must be allowed to be wider than the modal: capped at 100% it stopped
+       growing at ~143 ppi while the slider and the label kept going. The wrapper scrolls. */
+    .cal-wrap{overflow-x:auto;max-width:100%}
+    .cal-card{height:54mm;max-height:120px;width:85.6mm;flex:none;border:2px dashed var(--accent);border-radius:10px;background:linear-gradient(135deg,rgba(234,179,8,.12),transparent);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.62rem;color:var(--text-dim);margin:8px 0}
     .screens-list{display:flex;flex-direction:column;gap:6px;margin-top:8px}
     .screen-item{font-family:var(--mono);font-size:.68rem;color:var(--text-dim);background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-sm);padding:7px 9px;display:flex;justify-content:space-between}
     .screen-item .pri{color:var(--accent)}
@@ -1092,12 +1102,12 @@
             <div class="duo" style="--cols:3">
               <div class="h"></div><div class="h">K1</div><div class="h">K2</div><div class="h" data-i18n>Axis</div>
               <div class="rl">OD</div>
-                <input class="cl" data-eye="OD" data-f="k1" data-step="0.25" data-fmt="k" data-min="30" data-max="60" placeholder="43.25">
-                <input class="cl" data-eye="OD" data-f="k2" data-step="0.25" data-fmt="k" data-min="30" data-max="60" placeholder="44.00">
+                <input class="cl" data-eye="OD" data-f="k1" data-step="0.25" data-fmt="k" data-min="30" data-max="75" placeholder="43.25">
+                <input class="cl" data-eye="OD" data-f="k2" data-step="0.25" data-fmt="k" data-min="30" data-max="75" placeholder="44.00">
                 <input class="cl" data-eye="OD" data-f="kAxis" data-step="1" data-fmt="axis" data-min="1" data-max="180" data-wrap placeholder="180">
               <div class="rl">OS</div>
-                <input class="cl" data-eye="OS" data-f="k1" data-step="0.25" data-fmt="k" data-min="30" data-max="60" placeholder="43.25">
-                <input class="cl" data-eye="OS" data-f="k2" data-step="0.25" data-fmt="k" data-min="30" data-max="60" placeholder="44.00">
+                <input class="cl" data-eye="OS" data-f="k1" data-step="0.25" data-fmt="k" data-min="30" data-max="75" placeholder="43.25">
+                <input class="cl" data-eye="OS" data-f="k2" data-step="0.25" data-fmt="k" data-min="30" data-max="75" placeholder="44.00">
                 <input class="cl" data-eye="OS" data-f="kAxis" data-step="1" data-fmt="axis" data-min="1" data-max="180" data-wrap placeholder="180">
             </div>
           </div>
@@ -1108,11 +1118,11 @@
               <div class="h"></div><div class="h" data-i18n>IOP</div><div class="h" data-i18n>Pachy</div><div class="h" data-i18n>Lens status</div>
               <div class="rl">OD</div>
                 <input class="cl" data-eye="OD" data-f="iop" data-step="1" data-fmt="num" data-min="0" data-max="80" inputmode="numeric" placeholder="16">
-                <input class="cl" data-eye="OD" data-f="pachy" data-step="5" data-fmt="num" data-min="300" data-max="800" inputmode="numeric" placeholder="545">
+                <input class="cl" data-eye="OD" data-f="pachy" data-step="1" data-fmt="num" data-min="200" data-max="1100" inputmode="numeric" placeholder="545">
                 <select class="cl i18n-opts" data-eye="OD" data-f="lens"><option value="">—</option><option value="Phakic">Phakic</option><option value="Pseudophakic">Pseudophakic</option><option value="Aphakic">Aphakic</option></select>
               <div class="rl">OS</div>
                 <input class="cl" data-eye="OS" data-f="iop" data-step="1" data-fmt="num" data-min="0" data-max="80" inputmode="numeric" placeholder="16">
-                <input class="cl" data-eye="OS" data-f="pachy" data-step="5" data-fmt="num" data-min="300" data-max="800" inputmode="numeric" placeholder="545">
+                <input class="cl" data-eye="OS" data-f="pachy" data-step="1" data-fmt="num" data-min="200" data-max="1100" inputmode="numeric" placeholder="545">
                 <select class="cl i18n-opts" data-eye="OS" data-f="lens"><option value="">—</option><option value="Phakic">Phakic</option><option value="Pseudophakic">Pseudophakic</option><option value="Aphakic">Aphakic</option></select>
             </div>
           </div>
@@ -1135,8 +1145,8 @@
             <div class="note-box" data-i18n-html="dispNote1">Runs entirely from the <b>final Rx</b> — no photo required. Load a face photo only if you want to estimate PD from it.</div>
             <div class="subhead">Interpupillary distance <span class="hint" data-i18n>binocular, mm</span></div>
             <div class="row2">
-              <div class="field"><label>PD distance</label><input class="gd" data-f="pdDist" data-step="0.5" data-fmt="num" data-min="40" data-max="80" inputmode="decimal" placeholder="63"></div>
-              <div class="field"><label>PD near</label><input class="gd" data-f="pdNear" data-step="0.5" data-fmt="num" data-min="40" data-max="80" inputmode="decimal" placeholder="60"></div>
+              <div class="field"><label>PD distance</label><input class="gd" data-f="pdDist" data-step="0.5" data-fmt="num" data-min="35" data-max="80" inputmode="decimal" placeholder="63"></div>
+              <div class="field"><label>PD near</label><input class="gd" data-f="pdNear" data-step="0.5" data-fmt="num" data-min="35" data-max="80" inputmode="decimal" placeholder="60"></div>
             </div>
             <div class="subhead">Monocular PD <span class="hint">mm</span></div>
             <div class="duo" style="--cols:2">
@@ -1152,7 +1162,7 @@
 
           <div class="subsec">
             <div class="subhead">PD from photo <span class="hint" data-i18n>optional · estimate only</span></div>
-            <div class="note-box" data-i18n-html="dispNote2">Load a face photo with a <b>card</b> (ID-1, 85.6 mm) held to the brow. Draw a <b>ruler</b> across the card's long edge, then across pupil-to-pupil.</div>
+            <div class="note-box" data-i18n-html="dispNote2">Load a face photo with a <b>card</b> (ID-1, 85.6 mm) held to the brow, in the plane of the pupils. The subject fixates a <b>distant</b> target (not the camera) and the camera is at least <b>1.5 m</b> away, zoomed in: a near fixation or a close camera reads the PD a few mm short. Draw a <b>ruler</b> across the card's long edge, then across pupil-to-pupil.</div>
             <div class="field"><label>Reference width (mm)</label><input id="pdRefMm" type="number" step="0.1" value="85.6" data-step="0.1" data-fmt="num" data-min="1" data-max="500"></div>
             <button class="mini-btn" id="pdSetScale" style="margin-bottom:6px"><span class="n">1</span>Selected ruler = reference width</button>
             <button class="mini-btn" id="pdSetPd"><span class="n">2</span>Selected ruler → PD distance</button>
@@ -1189,7 +1199,7 @@
           <div class="subsec">
             <div class="subhead">Frame <span class="hint" data-i18n>boxing system, mm</span></div>
             <div class="row4">
-              <div class="field"><label>A (eye)</label><input class="gd" data-f="frameA" data-step="0.5" data-fmt="num" data-min="40" data-max="70" inputmode="decimal" placeholder="52"></div>
+              <div class="field"><label>A (eye)</label><input class="gd" data-f="frameA" data-step="0.5" data-fmt="num" data-min="30" data-max="70" inputmode="decimal" placeholder="52"></div>
               <div class="field"><label>B (vert)</label><input class="gd" data-f="frameB" data-step="0.5" data-fmt="num" data-min="20" data-max="60" inputmode="decimal" placeholder="34"></div>
               <div class="field"><label>DBL</label><input class="gd" data-f="frameDBL" data-step="0.5" data-fmt="num" data-min="10" data-max="30" inputmode="decimal" placeholder="18"></div>
               <div class="field"><label>ED</label><input class="gd" data-f="frameED" data-step="0.5" data-fmt="num" data-min="30" data-max="80" inputmode="decimal" placeholder="55"></div>
@@ -1217,7 +1227,7 @@
           <div class="subsec" data-span>
             <div class="subhead">Lens layout / centration <span class="hint" data-i18n>from PD, frame &amp; heights</span></div>
             <div class="lens-layout" id="lensLayout"></div>
-            <div class="lens-note" data-i18n-html="lensNote">Gold cross = optical center / fitting cross per lens; dashed line = frame midline &amp; datum. "dec" is horizontal decentration from the box center, "h" the fitting height.</div>
+            <div class="lens-note" data-i18n-html="lensNote">Gold cross = optical center / fitting cross per lens; dashed line = frame midline &amp; datum. "dec" is horizontal decentration from the box center, "h" the fitting height (OC height; the segment height, when entered, is the short grey line marked "seg"). A "?" marks a value outside the frame.</div>
           </div>
 
           <div class="subsec">
@@ -1226,13 +1236,13 @@
               <div class="h"></div><div class="h" data-i18n>Brand</div><div class="h">BC</div><div class="h">DIA</div><div class="h" data-i18n>Power</div>
               <div class="rl">OD</div>
                 <input class="dp" data-eye="OD" data-f="clBrand" style="text-align:left" placeholder="Oasys">
-                <input class="dp" data-eye="OD" data-f="clBC" data-step="0.1" data-fmt="num" data-min="8" data-max="10" inputmode="decimal" placeholder="8.4">
-                <input class="dp" data-eye="OD" data-f="clDia" data-step="0.1" data-fmt="num" data-min="13" data-max="15" inputmode="decimal" placeholder="14.0">
+                <input class="dp" data-eye="OD" data-f="clBC" data-step="0.05" data-fmt="num" data-min="5.5" data-max="11" inputmode="decimal" placeholder="8.4">
+                <input class="dp" data-eye="OD" data-f="clDia" data-step="0.1" data-fmt="num" data-min="7" data-max="25" inputmode="decimal" placeholder="14.0">
                 <input class="dp" data-eye="OD" data-f="clPower" data-step="0.25" data-fmt="dpt" placeholder="−1.25">
               <div class="rl">OS</div>
                 <input class="dp" data-eye="OS" data-f="clBrand" style="text-align:left" placeholder="Oasys">
-                <input class="dp" data-eye="OS" data-f="clBC" data-step="0.1" data-fmt="num" data-min="8" data-max="10" inputmode="decimal" placeholder="8.4">
-                <input class="dp" data-eye="OS" data-f="clDia" data-step="0.1" data-fmt="num" data-min="13" data-max="15" inputmode="decimal" placeholder="14.0">
+                <input class="dp" data-eye="OS" data-f="clBC" data-step="0.05" data-fmt="num" data-min="5.5" data-max="11" inputmode="decimal" placeholder="8.4">
+                <input class="dp" data-eye="OS" data-f="clDia" data-step="0.1" data-fmt="num" data-min="7" data-max="25" inputmode="decimal" placeholder="14.0">
                 <input class="dp" data-eye="OS" data-f="clPower" data-step="0.25" data-fmt="dpt" placeholder="−1.25">
             </div>
           </div>
@@ -1298,13 +1308,15 @@
             </div>
           </div>
           <div class="hint-line i18n">Hold a standard card (credit / ID, 85.6 mm wide) against the box and drag the slider until it matches the card's width.</div>
-          <div class="cal-card" id="calCard"><span class="i18n">85.6 mm card</span></div>
-          <input id="calSlider" type="range" min="2.0" max="6.5" step="0.01" value="3.7795" style="width:100%">
+          <div class="cal-wrap"><div class="cal-card" id="calCard"><span class="i18n">85.6 mm card</span></div></div>
+          <input id="calSlider" type="range" min="1.2" max="6.5" step="0.01" value="3.7795" style="width:100%">
           <!-- Desktop only: draws the card on the chart display, so the value can
                be measured where it is used. Hidden in a browser, which has no way
                to know what display the chart is on. -->
           <button id="calOnChartBtn" class="btn hidden" type="button"><span class="i18n">Calibrate on chart screen</span></button>
           <div class="hint-line"><span class="i18n">Display density</span>: <span id="calPpi">—</span></div>
+          <!-- Desktop only: what was measured on which display. Rendered by renderCalList(): no .i18n. -->
+          <div class="screens" id="calList"></div>
         </div>
 
         <div class="set-group">
@@ -1451,6 +1463,8 @@
           <div class="field"><label class="i18n">The pictures may show printed text (names, dates)</label>
             <div class="seg" id="archBurned"><button data-v="yes" class="i18n">Yes</button><button data-v="no" class="i18n">No</button></div>
           </div>
+          <div class="field"><label class="i18n">Fundus camera pixel spacing (mm per pixel at the retina)</label><input id="archPixelMm" type="text" inputmode="decimal" spellcheck="false" autocomplete="off" placeholder="0.0110"></div>
+          <div class="hint-line i18n">The camera's nominal retinal scale (manufacturer figure, or field of view in degrees × 0.29 mm/° ÷ image width in pixels). Written as DICOM Pixel Spacing on fundus images; it is required for a fundus camera, so without it those objects are not conformant. The disc-based mm/px is an assumption and is never written.</div>
           <div class="pl-top" style="margin:10px 0 0">
             <button class="mini-btn" id="archSave" type="button"><span class="i18n">Save and test</span></button>
             <button class="mini-btn" id="archForget" type="button"><span class="i18n">Forget token</span></button>
@@ -1673,6 +1687,7 @@
 
 <!-- Not deferred: the app below needs it while it runs. -->
 <script src="retina-store.js"></script>
+<script src="retina-clinical.js"></script>
 <script src="retina-dicom.js"></script>
 <script src="retina-inbox.js"></script>
 <script src="retina-aviso.js"></script>
@@ -1688,7 +1703,10 @@
   // img is runtime only (a data URL for <img>); what is stored is imgRef → the files store.
   function emptyEye(){return {img:null,imgRef:null,imgPending:false,w:0,h:0,discDiaMm:1.5,marks:[],clinical:{},disp:{},gallery:[]};}
   const study={meta:{patientId:'',name:'',date:'',dob:'',provider:'',complaint:''},dispense:{},eyes:{OD:emptyEye(),OS:emptyEye()}};
+  // pdPhotoScale carries its provenance ({eye, img, mmPerPx}): a scale measured on one
+  // picture is never applied to another patient's, another eye's or a replaced picture.
   let eye='OD', tool='select', lesionType='Microaneurysm', panelMod='imaging', pdPhotoScale=null;
+  const RC=window.RetinaClinical;
   let zoom=1,panX=0,panY=0, selectedId=null, uid=1;
   // True once the clinician has zoomed or panned this image: a window resize then
   // re-centers without changing their zoom instead of re-fitting and losing it.
@@ -1926,13 +1944,13 @@
   // on a sample picture are not a measurement of this patient, so they stay empty.
   function summaryOf(r){const s={date:r.meta.date||'',eyes:{}};
     ['OD','OS'].forEach(k=>{const c=r.eyes[k].clinical,o={};SUMMARY_KEYS.forEach(f=>{o[f]=c[f]||'';});
-      const m=(r.eyes[k].imgSample||r.eyes[k].possibleSample)?null:metricsFor(k);
-      o.vcdr=m?m.verticalCDR:null;o.hcdr=m?m.horizontalCDR:null;s.eyes[k]=o;});
+      const m=RC.metricsOfEye(r.eyes[k]);   // null on a sample picture
+      o.vcdr=m.verticalCDR;o.hcdr=m.horizontalCDR;s.eyes[k]=o;});
     return s;}
   function recomputeUid(){let mx=0;['OD','OS'].forEach(k=>study.eyes[k].marks.forEach(m=>{const n=parseInt(String(m.id).replace(/\D/g,''))||0;if(n>mx)mx=n;}));uid=mx+1;}
   // `study` is captured by every closure in this file, so it is refilled, not replaced.
   function applyRecord(rec){
-    encRec=rec;baseRev=rec.rev;lastJson=recJson(rec);conflict=false;dirty=false;selectedId=null;
+    encRec=rec;baseRev=rec.rev;lastJson=recJson(rec);conflict=false;dirty=false;selectedId=null;pdPhotoScale=null;syncPdPhotoState();
     Object.keys(study.meta).forEach(k=>delete study.meta[k]);Object.assign(study.meta,rec.meta);
     Object.keys(study.dispense).forEach(k=>delete study.dispense[k]);Object.assign(study.dispense,rec.dispense);
     ['OD','OS'].forEach(k=>{study.eyes[k]=Object.assign(emptyEye(),rec.eyes[k],{img:null});});
@@ -1951,10 +1969,13 @@
   // marks would then sit on a different picture. Show a labelled blank of the same size.
   function missingImage(e){
     if(!e.w||!e.h){e.w=1000;e.h=1000;}
-    const cv=document.createElement('canvas');cv.width=e.w;cv.height=e.h;const x=cv.getContext('2d');
-    x.fillStyle='#1a1a1a';x.fillRect(0,0,e.w,e.h);x.fillStyle='#a3a3a3';x.textAlign='center';x.textBaseline='middle';
-    x.font='600 '+Math.max(14,Math.round(Math.min(e.w,e.h)/22))+'px sans-serif';
-    x.fillText(t('Image missing — re-attach'),e.w/2,e.h/2);
+    // A recorded size beyond what a canvas can hold (the store allows 100000 px) draws
+    // as a bounded placeholder: e.w/e.h keep the mark scale, the <img> is scaled to them.
+    const big=e.w*e.h>50e6||e.w>16384||e.h>16384,k=big?1000/Math.max(e.w,e.h):1,W=Math.max(1,Math.round(e.w*k)),H=Math.max(1,Math.round(e.h*k));
+    const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');
+    x.fillStyle='#1a1a1a';x.fillRect(0,0,W,H);x.fillStyle='#a3a3a3';x.textAlign='center';x.textBaseline='middle';
+    x.font='600 '+Math.max(14,Math.round(Math.min(W,H)/22))+'px sans-serif';
+    x.fillText(t('Image missing — re-attach'),W/2,H/2);
     return cv.toDataURL('image/png');
   }
   async function loadEyeImages(){
@@ -2267,9 +2288,14 @@
   function summaryFor(r){
     if(r.summary&&r.summary.eyes&&r.summary.eyes.OD)return r.summary;
     const s={date:r.meta.date||'',eyes:{}};
-    ['OD','OS'].forEach(k=>{const c=(r.eyes[k]&&r.eyes[k].clinical)||{},o={};SUMMARY_KEYS.forEach(f=>{o[f]=c[f]||'';});o.vcdr=o.hcdr=null;s.eyes[k]=o;});
+    // The ratios are computed from the record's own marks (same sample guard as
+    // summaryOf), so a pre-summary visit shows what its marks determine.
+    ['OD','OS'].forEach(k=>{const e=r.eyes[k]||{},c=e.clinical||{},o={};SUMMARY_KEYS.forEach(f=>{o[f]=c[f]||'';});
+      const m=RC.metricsOfEye(e);o.vcdr=m.verticalCDR;o.hcdr=m.horizontalCDR;s.eyes[k]=o;});
     return s;
   }
+  // One formatter for every surface that prints a stored ratio (2 dp, like the panel).
+  const fmtCdr=x=>(x==null||x===''||isNaN(+x))?'—':(+x).toFixed(2);
   // Previous visit: values exactly as recorded, read-only. Nothing is compared with the
   // current exam — no differences, arrows or colours (Retina documents, it does not judge).
   function renderPrevVisit(){
@@ -2277,17 +2303,17 @@
     const r=patientCtx.prev;
     if(!r){el.classList.add('hidden');el.innerHTML='';ln.classList.add('hidden');ln.textContent='';return;}
     const s=summaryFor(r),v=x=>(x==null||String(x).trim()==='')?'—':String(x);
-    const rx=o=>[o.sph,o.cyl,o.axis,o.add].some(x=>x&&String(x).trim())?v(o.sph)+' / '+v(o.cyl)+' × '+v(o.axis)+(o.add?'   '+t('Add')+' '+o.add:''):'—';
+    const rx=o=>RC.rxLine(o,t('Add'))||'—';
     const row=(k,val,tx)=>'<dt>'+escHtml(k)+'</dt><dd'+(tx?' class="tx"':'')+'>'+escHtml(val)+'</dd>';
     const eyeHtml=k=>{const o=s.eyes[k]||{};
       return '<div class="pv-eye"><div class="pv-eh">'+k+'</div><dl>'+
         row(t('Dist UC'),v(o.vaUC))+row(t('Dist CC'),v(o.vaCC))+row(t('Near'),v(o.vaNear))+
         row(t('Final Rx'),rx(o))+row(t('IOP'),v(o.iop))+row(t('Pachy'),v(o.pachy))+
-        row(t('Vertical CDR'),v(o.vcdr))+row(t('Horizontal CDR'),v(o.hcdr))+row(t('Observations'),v(o.dx),true)+'</dl></div>';};
+        row(t('Vertical CDR'),fmtCdr(o.vcdr))+row(t('Horizontal CDR'),fmtCdr(o.hcdr))+row(t('Observations'),v(o.dx),true)+'</dl></div>';};
     el.innerHTML='<summary>'+escHtml(tf('Previous visit — {date}',{date:r.meta.date||s.date||'—'}))+'</summary><div class="pv-body">'+eyeHtml('OD')+eyeHtml('OS')+'</div>';
     el.classList.remove('hidden');
     const o=s.eyes[eye]||{};
-    if(o.vcdr!=null||o.hcdr!=null){ln.textContent=tf('Previous visit: VCDR {v} · HCDR {h}',{v:v(o.vcdr),h:v(o.hcdr)});ln.classList.remove('hidden');}
+    if(o.vcdr!=null||o.hcdr!=null){ln.textContent=tf('Previous visit: VCDR {v} · HCDR {h}',{v:fmtCdr(o.vcdr),h:fmtCdr(o.hcdr)});ln.classList.remove('hidden');}
     else{ln.classList.add('hidden');ln.textContent='';}
   }
 
@@ -2455,7 +2481,7 @@
       const moved=study.eyes[k].img!==snap.eyes[k].img;   // a picture loaded after the focus belongs to the new visit
       if(moved&&!ce.imgSample){Object.assign(be,{imgRef:ce.imgRef,imgPending:ce.imgPending,possibleSample:ce.possibleSample,w:ce.w,h:ce.h,discDiaMm:ce.discDiaMm});bPix[k]=study.eyes[k].img;}
       else be.imgSample=!be.marks.length;   // new marks on the old picture: shown on a placeholder, never on someone else's image
-      if(!moved&&be.marks.length){be.w=ce.w;be.h=ce.h;}
+      if(!moved&&be.marks.length){be.w=ce.w;be.h=ce.h;be.discDiaMm=ce.discDiaMm;}   // the calibration travels with the marks
     });
     b.patientRef=null;
     try{await RS.putNew(db,b);}catch(e){writeFailed(e);return;}
@@ -2834,6 +2860,7 @@
       if(!sample&&!opts.replace&&storeMode==='idb'&&e.imgRef&&!e.imgPending&&!e.imgSample&&!e.imgMissing){addGalleryImage(k,dataUrl,im.naturalWidth,im.naturalHeight,opts);return;}
       const prev={img:e.img,w:e.w,h:e.h,imgSample:e.imgSample,imgRef:e.imgRef,imgPending:e.imgPending,possibleSample:e.possibleSample,imgMissing:e.imgMissing};
       e.img=dataUrl;e.w=im.naturalWidth;e.h=im.naturalHeight;e.imgSample=sample;e.possibleSample=false;e.imgMissing=false;
+      if(pdPhotoScale&&pdPhotoScale.eye===k){pdPhotoScale=null;syncPdPhotoState();}   // the picture the scale was measured on is gone
       // The old reference is dropped at once: until the new Blob is stored this eye
       // has no stored picture, and nothing may pair the new marks with the old file.
       e.imgRef=null;e.imgPending=!sample;
@@ -2988,30 +3015,31 @@
   }
   function handle(x,y,c,role,id){const h=svgEl('rect',{x:x-4*k(),y:y-4*k(),width:8*k(),height:8*k(),fill:'#050505',stroke:c,'stroke-width':1.5*k(),'data-handle':role,'data-id':id,style:'cursor:nwse-resize'});return h;}
 
-  // ---------- Calibration & metrics ----------
-  function mmPerPx(){const d=singleton('disc');if(!d||!d.ry)return null;return E().discDiaMm/(2*d.ry);}
-  function fmtLen(px){const s=mmPerPx();if(s)return (px*s).toFixed(2)+' mm';return Math.round(px)+' px';}
+  // ---------- Calibration & metrics (formulas in retina-clinical.js) ----------
+  function mmPerPx(){return RC.scaleOf(singleton('disc'),E().discDiaMm);}
+  // A photo scale measured on THIS picture (PD from photo) is the better calibration
+  // for its rulers; a disc-derived one belongs to a fundus and is used otherwise.
+  function photoScaleHere(){const p=pdPhotoScale;return (p&&p.eye===eye&&p.img===E().img)?p.mmPerPx:null;}
+  function fmtLen(px){return RC.fmtLen(px,photoScaleHere()||mmPerPx());}
 
   function computeMetrics(){
     const disc=singleton('disc'),cup=singleton('cup'),dc=singleton('disc-center'),fov=singleton('fovea-center');
-    const vcdr=(disc&&cup&&disc.ry)?(cup.ry/disc.ry):null;
-    const hcdr=(disc&&cup&&disc.rx)?(cup.rx/disc.rx):null;
-    const s=mmPerPx();
+    const r=RC.cdr(disc,cup),s=mmPerPx(),warn=r.flag?'warn':'';
     const set=(id,val,cls)=>{const el=$(id);el.className='v'+(cls?' '+cls:'');el.innerHTML=val;};
-    set('mVCDR',vcdr==null?'—':vcdr.toFixed(2),'');
-    set('mHCDR',hcdr==null?'—':hcdr.toFixed(2),'');
-    // disc diameter (vertical) in mm — by definition discDiaMm if calibrated by disc; else px
-    if(disc){
-      const vdmm=s?(2*disc.ry*s):null, hdmm=s?(2*disc.rx*s):null;
-      set('mDiscD', vdmm?vdmm.toFixed(2)+'<span class="u"> '+escHtml(t('mm V'))+'</span>':Math.round(2*disc.ry)+'<span class="u"> px</span>','');
-      const areaPx=Math.PI*disc.rx*disc.ry; const areaMm=s?areaPx*s*s:null;
-      set('mDiscA', areaMm?areaMm.toFixed(2)+'<span class="u"> mm²</span>':Math.round(areaPx)+'<span class="u"> px²</span>','');
+    // A ratio above 1 or a cup outside the disc is shown, in amber, and never exported.
+    set('mVCDR',r.v==null?'—':r.v.toFixed(2),warn);
+    set('mHCDR',r.h==null?'—':r.h.toFixed(2),warn);
+    // Vertical diameter equals the chip by construction; the horizontal one is measured.
+    const d=RC.discSize(disc,s);
+    if(d){
+      set('mDiscD', d.vMm!=null?d.vMm.toFixed(2)+' × '+d.hMm.toFixed(2)+'<span class="u"> '+escHtml(t('mm V × H'))+'</span>':Math.round(d.vPx)+' × '+Math.round(d.hPx)+'<span class="u"> px</span>','');
+      set('mDiscA', d.areaMm2!=null?d.areaMm2.toFixed(2)+'<span class="u"> mm²</span>':Math.round(d.areaPx)+'<span class="u"> px²</span>','');
     }else{set('mDiscD','—<span class="u"> mm</span>','');set('mDiscA','—<span class="u"> mm²</span>','');}
-    if(dc&&fov){
-      const dx=fov.x-dc.x,dy=fov.y-dc.y,dist=Math.hypot(dx,dy);
-      const ang=Math.atan2(dy,dx)*180/Math.PI;
-      set('mDF', fmtLen(dist)+' <span class="u">@ '+ang.toFixed(0)+'°</span>','');
-    }else{set('mDF','—','');}
+    const df=RC.discFovea(dc,fov,s);
+    // Angle: tilt of the disc–fovea line from the horizontal, the same for OD and OS;
+    // positive = fovea below the disc centre.
+    if(df)set('mDF', fmtLen(df.px)+' <span class="u">@ '+RC.fmtAngle(df.angle)+'</span>','');
+    else set('mDF','—','');
   }
 
   // ---------- Findings list ----------
@@ -3032,7 +3060,7 @@
       let title,sub;
       if(m.kind==='lesion'){title=t(m.ltype||'Lesion');sub=m.note?m.note:t('lesion pin');}
       else if(m.kind==='ruler'){title=t('Measurement');sub=fmtLen(Math.hypot(m.x2-m.x1,m.y2-m.y1));}
-      else if(m.kind==='arrow'){title=t('Annotation');sub=m.note||fmtLen(Math.hypot(m.x2-m.x1,m.y2-m.y1));}
+      else if(m.kind==='arrow'){title=t('Annotation');sub=m.note||t('no note');}   // a pointer's length is not a measurement
       else if(m.kind==='text'){title=t('Text label');sub=m.text||'';}
       else if(m.kind==='free'){title=t('Outline');sub=m.note||tf('{n} pts',{n:m.pts.length});}
       else{title=t(NAMES[m.kind]);sub=(m.kind==='disc'||m.kind==='cup')?('Ø '+fmtLen(2*m.rx)+' × '+fmtLen(2*m.ry)):t('point');}
@@ -3167,15 +3195,20 @@
       renderMarks();computeMetrics();
     }else if(drag.mode==='resize'){
       const m=getMark(drag.id);if(!m)return;
-      if(drag.role==='rx')m.rx=Math.max(2,Math.abs(p.x-m.cx));
-      if(drag.role==='ry')m.ry=Math.max(2,Math.abs(p.y-m.cy));
+      // One zoom-aware floor for resizing and creation: 3 screen px.
+      const mr=RC.minRadius(zoom);
+      if(drag.role==='rx')m.rx=Math.max(mr,Math.abs(p.x-m.cx));
+      if(drag.role==='ry')m.ry=Math.max(mr,Math.abs(p.y-m.cy));
       renderMarks();computeMetrics();
     }
   });
+  // A touch drag the browser takes over (scroll, pinch) ends in pointercancel, not
+  // pointerup. Left in place, the half-drawn ellipse was committed on the next tap.
+  window.addEventListener('pointercancel',()=>{if(!drag)return;drag=null;viewport.classList.remove('panning');renderMarks();});
 
   window.addEventListener('pointerup',e=>{
     if(!drag){return;}
-    if(drag.mode==='ellipse'&&drag.result&&drag.result.rx>3&&drag.result.ry>3){
+    if(drag.mode==='ellipse'&&drag.result&&drag.result.rx>RC.minRadius(zoom)&&drag.result.ry>RC.minRadius(zoom)){
       const m=setSingleton(drag.kind,drag.result);selectedId=m.id;
     }
     if((drag.mode==='ruler'||drag.mode==='arrow')&&drag.result){
@@ -3214,7 +3247,7 @@
 
   function updateHud(e){
     if(!E().img){$('hud').textContent='—';return;}
-    const p=toImg(e);const s=mmPerPx();
+    const p=toImg(e);const s=photoScaleHere()||mmPerPx();   // the scale the rulers use
     let out=Math.round(p.x)+', '+Math.round(p.y)+' px';
     if(s)out+='  ·  '+s.toFixed(4)+' mm/px';
     out+='  ·  '+t(TOOL_NAMES[tool]||tool);
@@ -3261,6 +3294,7 @@
     document.querySelectorAll('#eyeSwitch button').forEach(b=>b.classList.toggle('active',b.dataset.eye===v));
     $('eyeBadge').textContent=v;$('discBadge').textContent=v;
     $('discDia').value=E().discDiaMm;
+    syncPdPhotoState();   // the photo scale, if any, belongs to one eye's picture
     applyEyeImage();writeForm();
     if(viewBoth)updateTwo();else fitToView();
     if(panelMod==='exam')renderLensLayout();
@@ -3278,15 +3312,23 @@
     if(c.contains('cl'))return study.eyes[eyeOf(el)].clinical;
     if(c.contains('dp'))return study.eyes[eyeOf(el)].disp;
     return null;}
+  // A stepper field is stored in its canonical form at every keystroke (signed power,
+  // wrapped axis): a journal or a sync taken before the field blurs then carries
+  // '+1.25' and '180', not '1.25' and '0'. What does not parse is stored as typed.
+  function stepSpec(el){return {fmt:el.dataset.fmt||'num',step:el.dataset.step,min:el.dataset.min,max:el.dataset.max,wrap:el.hasAttribute('data-wrap')};}
+  function storedValue(el){if(el.dataset.step===undefined)return el.value;const n=RC.normaliseInput(el.value,stepSpec(el));return n.value==null?el.value:n.value;}
   document.querySelectorAll('.mt,.gd,.cl,.dp').forEach(el=>el.addEventListener('input',()=>{
-    const st=storeFor(el);if(st)st[el.dataset.f]=el.value;save();if(panelMod==='exam')renderLensLayout();}));
+    const st=storeFor(el);if(st)st[el.dataset.f]=storedValue(el);save();if(panelMod==='exam')renderLensLayout();}));
   // Notes are shared across both eyes (entered once)
   const _notes=$('examNotes');if(_notes)_notes.addEventListener('input',()=>{
     study.eyes.OD.clinical.notes=study.eyes.OS.clinical.notes=_notes.value;save();});
   function writeForm(){document.querySelectorAll('.mt,.gd,.cl,.dp').forEach(el=>{const st=storeFor(el);el.value=st?(st[el.dataset.f]||''):'';});
     const en=$('examNotes');if(en)en.value=study.eyes.OD.clinical.notes||'';}
   const writeClinical=writeForm; // per-eye fields refresh on eye switch
-  $('discDia').addEventListener('input',()=>{E().discDiaMm=parseFloat($('discDia').value)||1.5;computeMetrics();renderFindings();save();});
+  // Typed values go through the same 0.5–4 mm clamp as the wheel and the store; an
+  // empty or unparseable field keeps the previous value instead of silently using 1.5.
+  $('discDia').addEventListener('input',()=>{E().discDiaMm=RC.discDiaInput($('discDia').value,E().discDiaMm);computeMetrics();renderFindings();save();});
+  $('discDia').addEventListener('change',()=>{$('discDia').value=E().discDiaMm;});
   $('lesionType').addEventListener('change',()=>{lesionType=$('lesionType').value;});
 
   // ---------- Numeric steppers (hover-scroll / drag / arrow keys) ----------
@@ -3311,34 +3353,20 @@
     el._bumpT=setTimeout(()=>el.classList.remove('bumped'),240);
   }
 
-  function fmtStep(v,fmt){
-    if(v==null||isNaN(v))return '';
-    if(Math.abs(v)<1e-9)v=0;
-    if(fmt==='axis')return String(Math.round(v));
-    if(fmt==='k')return v.toFixed(2);
-    if(fmt==='dpt')return (v>0?'+':'')+v.toFixed(2);          // signed dioptres; 0 -> "0.00"
-    return Number.isInteger(v)?String(v):(+v.toFixed(2)).toString();
-  }
-  function parseStep(str,fmt){
-    if(str==null)return null;const m=String(str).replace(',','.').match(/-?\d*\.?\d+/);
-    if(!m)return null;let v=parseFloat(m[0]);if(isNaN(v))return null;if(fmt==='axis')v=Math.round(v);return v;
-  }
-  function clampStep(v,el){
-    const has=k=>el.dataset[k]!==undefined&&el.dataset[k]!=='';
-    const mn=has('min')?parseFloat(el.dataset.min):null, mx=has('max')?parseFloat(el.dataset.max):null;
-    const wrap=el.hasAttribute('data-wrap');
-    if(wrap&&mn!=null&&mx!=null){const range=mx-mn+1;while(v>mx)v-=range;while(v<mn)v+=range;return v;}
-    if(mn!=null&&v<mn)v=mn;if(mx!=null&&v>mx)v=mx;return v;
-  }
+  // The grammar (signs, decimal comma, full-width digits, axis wrap, snapping) lives in
+  // retina-clinical.js; these wrappers read the field's data-* spec.
+  const fmtStep=RC.fmtStep, parseStep=RC.parseStep;
+  function clampStep(v,el){return RC.clampValue(v,stepSpec(el));}
   function bumpStep(el,dir,coarse){
-    const fmt=el.dataset.fmt||'num',step=parseFloat(el.dataset.step||'1');
-    let v=parseStep(el.value,fmt);if(v==null)v=0;
-    v=v+dir*step*(coarse?4:1);
-    v=Math.round(v/step)*step;               // snap to the step grid
-    v=clampStep(v,el);
-    el.value=fmtStep(v,fmt);
+    el.value=RC.bumpValue(el.value,dir,coarse,stepSpec(el));
+    flagRange(el);
     el.dispatchEvent(new Event('input',{bubbles:true}));
   }
+  // Out of the field's usual range: shown, titled, never rewritten.
+  function flagRange(el){const v=parseStep(el.value,el.dataset.fmt||'num'),spec=stepSpec(el),out=v!=null&&!RC.inRange(v,spec);
+    el.classList.toggle('out-of-range',out);
+    if(out){el.title=tf('Outside the usual range ({min}–{max}) — kept as typed',{min:spec.min==null?'':spec.min,max:spec.max==null?'':spec.max});}
+    else if(el.classList.contains('step')){el.title=t('Hover and scroll, drag, or ↑/↓ to adjust (Shift = ×4)');}}
   function initSteppers(){
     document.querySelectorAll('input[data-step]').forEach(el=>{
       const fmt=el.dataset.fmt||'num',step=parseFloat(el.dataset.step||'1');
@@ -3365,28 +3393,22 @@
       });
       const end=e=>{if(sc){if(sc.moved){el.classList.remove('scrubbing');try{el.releasePointerCapture(sc.pid);}catch(_){}}sc=null;}};
       el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end);
-      el.addEventListener('blur',()=>{const v=parseStep(el.value,fmt);
-        if(v!=null){el.value=fmtStep(clampStep(Math.round(v/step)*step,el),fmt);el.dispatchEvent(new Event('input',{bubbles:true}));}});
+      // Blur normalises the FORMAT only (sign, decimals, axis wrap). A measurement is
+      // never snapped to the wheel grid or clamped: 547 µm stays 547, 62.50 D stays 62.50.
+      el.addEventListener('blur',()=>{const n=RC.normaliseInput(el.value,stepSpec(el));
+        if(n.value!=null){el.value=n.value;flagRange(el);el.dispatchEvent(new Event('input',{bubbles:true}));}});
     });
   }
 
   // ---------- Acuity ladders (visual acuity is a sequence, not an arithmetic step) ----------
-  const SEQ={
-    va20:['20/10','20/15','20/20','20/25','20/30','20/40','20/50','20/60','20/70','20/80','20/100','20/125','20/160','20/200','20/400','CF','HM','LP','NLP'],
-    va6:['6/3','6/4.5','6/6','6/7.5','6/9','6/12','6/15','6/18','6/21','6/24','6/30','6/60','CF','HM','LP','NLP'],
-    near:['J1+','J1','J2','J3','J4','J5','J6','J7','J8','J10','J12','J14','J16']
-  };
-  // metric charts are written 6/6 — step the ladder the value is already using
-  function seqList(el){const k=el.dataset.seq;
-    if(k==='va')return /^\s*6\s*\//.test(el.value||'')?SEQ.va6:SEQ.va20;
-    return SEQ[k]||[];}
+  // The ladders and the stepping rule live in retina-clinical.js. The notation last
+  // used on a field (20/x or 6/x) is remembered on it, so CF/HM/LP step back onto the
+  // ladder they came from; a recorded value on no ladder is left alone.
   function bumpSeq(el,dir){
-    const list=seqList(el);if(!list.length)return;
-    const cur=String(el.value||'').trim().toUpperCase();
-    let i=list.findIndex(v=>v.toUpperCase()===cur);
-    if(i<0){i=list.indexOf(el.placeholder);if(i<0)i=0;}          // unrecognised or empty: seed at the placeholder
-    else i=Math.min(list.length-1,Math.max(0,i-dir));            // scroll up = better acuity = earlier in the list
-    el.value=list[i];
+    const r=RC.acuityStep(el.value,dir,{kind:el.dataset.seq,placeholder:el.placeholder,scale:el.dataset.vaScale||null});
+    if(r.scale)el.dataset.vaScale=r.scale;
+    if(r.unchanged)return;
+    el.value=r.value;
     el.dispatchEvent(new Event('input',{bubbles:true}));
   }
   function initSeqFields(){
@@ -3467,17 +3489,24 @@
   // instead of being patched through i18nReg.
   function syncPdPhotoState(){
     const el=$('pdPhotoState');if(!el)return;
-    el.textContent=pdPhotoScale?tf('Scale: {v} mm/px',{v:pdPhotoScale.toFixed(4)}):t('No photo scale set');
+    const s=photoScaleHere();
+    el.textContent=s?tf('Scale: {v} mm/px',{v:s.toFixed(4)}):(pdPhotoScale?tf('Photo scale set on the {eye} picture — select it to use it',{eye:pdPhotoScale.eye}):t('No photo scale set'));
   }
   $('pdSetScale').addEventListener('click',()=>{
     const len=selectedRulerLen();if(!len){toast(t('Select a ruler across the card first'));return;}
-    const ref=parseFloat($('pdRefMm').value)||85.6;pdPhotoScale=ref/len;
-    syncPdPhotoState();toast(t('Photo scale set'));});
+    const s=RC.photoScale(parseFloat($('pdRefMm').value)||RC.ID1_LONG_MM,len);if(!s)return;
+    pdPhotoScale={eye,img:E().img,mmPerPx:s};
+    syncPdPhotoState();computeMetrics();renderFindings();renderMarks();toast(t('Photo scale set'));});
   $('pdSetPd').addEventListener('click',()=>{
-    if(!pdPhotoScale){toast(t('Set the reference scale first (step 1)'));return;}
+    const s=photoScaleHere();
+    if(!s){toast(pdPhotoScale?t('The photo scale was measured on another picture — redo step 1 on this one'):t('Set the reference scale first (step 1)'));return;}
     const len=selectedRulerLen();if(!len){toast(t('Select a pupil-to-pupil ruler'));return;}
-    const pd=(len*pdPhotoScale).toFixed(1);study.dispense.pdDist=pd;
-    document.querySelector('.gd[data-f="pdDist"]').value=pd;save();toast(tf('PD ≈ {n} mm (verify manually)',{n:pd}));});
+    const pd=RC.photoPd(len,s),fld=document.querySelector('.gd[data-f="pdDist"]'),spec=stepSpec(fld);
+    // Outside the field's own range: the wrong ruler is selected or the short card edge
+    // was traced against the long-edge reference. Nothing is written.
+    if(pd==null||!RC.inRange(pd,spec)){toast(tf('PD ≈ {n} mm is outside {min}–{max} — check which ruler is selected and which card edge was traced',{n:pd,min:spec.min,max:spec.max}));return;}
+    fld.value=String(pd);fld.dispatchEvent(new Event('input',{bubbles:true}));   // stores, saves and redraws the centration layout
+    toast(tf('PD ≈ {n} mm (verify manually)',{n:pd}));});
 
   // ---------- Load / sample ----------
   function pickFile(){$('fileInput').click();}
@@ -3578,15 +3607,18 @@
     download('retina_'+(study.meta.patientId||'study')+'.json',new Blob([JSON.stringify(out,null,2)],{type:'application/json'}));
     toast(tf('Exported: {doc}',{doc:t('Study JSON')}));
   });
-  function eyeExport(k){const e=study.eyes[k];return{discDiaMm:e.discDiaMm,imageSize:{w:e.w,h:e.h},clinical:e.clinical,disp:e.disp,
+  // The file says when the marks sit on a sample picture, and then carries no metrics
+  // (same policy as the visit summary and the referral letter).
+  function eyeExport(k){const e=study.eyes[k];return{discDiaMm:e.discDiaMm,imageSize:{w:e.w,h:e.h},imgSample:!!e.imgSample,possibleSample:!!e.possibleSample,clinical:e.clinical,disp:e.disp,
     metrics:metricsFor(k),marks:e.marks.map(m=>({...m}))};}
-  function metricsFor(k){const e=study.eyes[k];const disc=e.marks.find(m=>m.kind==='disc'),cup=e.marks.find(m=>m.kind==='cup');
-    const dc=e.marks.find(m=>m.kind==='disc-center'),fov=e.marks.find(m=>m.kind==='fovea-center');
-    const s=(disc&&disc.ry)?e.discDiaMm/(2*disc.ry):null;
-    return{verticalCDR:(disc&&cup&&disc.ry)?+(cup.ry/disc.ry).toFixed(3):null,
-      horizontalCDR:(disc&&cup&&disc.rx)?+(cup.rx/disc.rx).toFixed(3):null,
-      discFoveaDistMm:(dc&&fov&&s)?+(Math.hypot(fov.x-dc.x,fov.y-dc.y)*s).toFixed(3):null,
-      mmPerPx:s?+s.toFixed(5):null};}
+  // Rounded once, in retina-clinical.js, for every document: 2 dp ratios and mm.
+  function metricsFor(k){return RC.metricsOfEye(study.eyes[k]);}
+  // Imported clinical numbers take the inputs' grammar (signed powers, axis 1–180,
+  // measurements within the field's range); what does not parse stays text.
+  let fieldSpecs=null;
+  function importFields(o,cls){
+    if(!fieldSpecs){fieldSpecs={};document.querySelectorAll('input[data-step][data-f]').forEach(el=>{const c=[...el.classList].find(x=>/^(mt|gd|cl|dp)$/.test(x));if(c)fieldSpecs[c+':'+el.dataset.f]=stepSpec(el);});}
+    const out={};Object.keys(o).forEach(f=>{const sp=fieldSpecs[cls+':'+f];out[f]=sp?RC.importField(o[f],sp):o[f];});return out;}
 
   $('importJson').addEventListener('click',()=>$('jsonInput').click());
   $('jsonInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
@@ -3603,10 +3635,13 @@
     try{
       const eyes={};
       ['OD','OS'].forEach(k=>{const s=d.eyes[k]&&typeof d.eyes[k]==='object'?d.eyes[k]:{};
-        const marks=(Array.isArray(s.marks)?s.marks:[]).map(RS.cleanMark),sz=s.imageSize||{};
-        eyes[k]={w:marks.length?Math.max(0,Math.round(+sz.w||0)):0,h:marks.length?Math.max(0,Math.round(+sz.h||0)):0,
-          discDiaMm:Math.min(4,Math.max(0.5,+s.discDiaMm||1.5)),clinical:RS.cleanFields(s.clinical),disp:RS.cleanFields(s.disp),marks};});
-      rec=RS.newEncounter({meta:RS.cleanMeta(d.meta),dispense:RS.cleanFields(d.dispense),eyes});
+        // Same mark and size cleaners as a backup: unique ids, one disc/cup/centre per
+        // eye, positive radii, sizes clamped to the store's limit (never Infinity).
+        const marks=RS.cleanMarks(s.marks),sz=s.imageSize||{};
+        eyes[k]={w:marks.length?RS.cleanSize(sz.w):0,h:marks.length?RS.cleanSize(sz.h):0,
+          discDiaMm:RC.clampDiscDia(s.discDiaMm),clinical:importFields(RS.cleanFields(s.clinical),'cl'),disp:importFields(RS.cleanFields(s.disp),'dp'),marks,
+          possibleSample:!!(s.imgSample||s.possibleSample)};});
+      rec=RS.newEncounter({meta:RS.cleanMeta(d.meta),dispense:importFields(RS.cleanFields(d.dispense),'gd'),eyes});
     }catch(e){toast(t('Invalid JSON file'));return;}
     if(!rec.meta.date)rec.meta.date=todayISO();
     if(!canPatients()){   // memory mode: shown, not stored (the orphan copy still keeps the text)
@@ -3623,12 +3658,15 @@
     const e=E();if(!e.img){toast(t('No image to export'));return;}
     const cv=document.createElement('canvas');cv.width=e.w;cv.height=e.h;const x=cv.getContext('2d');
     const im=new Image();im.onload=()=>{
+      x.fillStyle='#000';x.fillRect(0,0,e.w,e.h);   // opaque, like the screen and the DICOM pixels
       x.drawImage(im,0,0,e.w,e.h);
       // serialize current overlay marks at natural scale
       const clone=svg.cloneNode(true);clone.setAttribute('width',e.w);clone.setAttribute('height',e.h);
       // remove selection-only handles for a clean export by re-rendering fresh:
       const data='<svg xmlns="http://www.w3.org/2000/svg" width="'+e.w+'" height="'+e.h+'" viewBox="0 0 '+e.w+' '+e.h+'">'+staticMarksSVG(e)+'</svg>';
-      const svgImg=new Image();svgImg.onload=()=>{x.drawImage(svgImg,0,0);cv.toBlob(b=>{download('ophtha_'+eye+'_'+(study.meta.patientId||'annotated')+'.png',b);toast(tf('Exported: {doc}',{doc:t('Annotated PNG')}));},'image/png');};
+      // toBlob hands back null when the canvas cannot be encoded (over the platform's
+      // canvas limit, or a zero size): say so instead of downloading nothing.
+      const svgImg=new Image();svgImg.onload=()=>{x.drawImage(svgImg,0,0);cv.toBlob(b=>{if(!b){toast(t('The image could not be rendered — it may be too large for this browser'));return;}download('ophtha_'+eye+'_'+(study.meta.patientId||'annotated')+'.png',b);toast(tf('Exported: {doc}',{doc:t('Annotated PNG')}));},'image/png');};
       svgImg.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(data);
     };im.src=e.img;
   }
@@ -3639,24 +3677,27 @@
   // labels: {disc, cup, les?} — les(ltype) names a lesion pin in the caller's language.
   function staticMarksSVG(e,labels){
     const L=labels||{disc:'Disc',cup:'Cup'},les=L.les||(v=>v);
-    let out='';const s=(disc)=> (disc&&disc.ry)?e.discDiaMm/(2*disc.ry):null;
-    const disc=e.marks.find(m=>m.kind==='disc');const mpp=s(disc);
-    const fmt=px=>mpp?(px*mpp).toFixed(2)+' mm':Math.round(px)+' px';
+    // Sized in image pixels, so scaled by the image: a 20 px label on a 4288 px camera
+    // frame was 1.8 pt in the PDF. `u` keeps the burned text ~5 pt whatever the source.
+    const u=Math.max(1,Math.min(e.w||0,e.h||0)/1000),fs=20*u,sw=3*u,swT=4*u;
+    let out='';
+    const disc=e.marks.find(m=>m.kind==='disc');const mpp=RC.scaleOf(disc,e.discDiaMm);
+    const fmt=px=>RC.fmtLen(px,mpp);
     e.marks.forEach(m=>{const c=COLORS[m.kind]||'#fff';
-      if(m.kind==='disc'||m.kind==='cup'){out+='<ellipse cx="'+m.cx+'" cy="'+m.cy+'" rx="'+m.rx+'" ry="'+m.ry+'" fill="none" stroke="'+c+'" stroke-width="3"/>';out+=txt(m.cx,m.cy-m.ry-8,m.kind==='disc'?L.disc:L.cup,c);}
+      if(m.kind==='disc'||m.kind==='cup'){out+='<ellipse cx="'+m.cx+'" cy="'+m.cy+'" rx="'+m.rx+'" ry="'+m.ry+'" fill="none" stroke="'+c+'" stroke-width="'+sw+'"/>';out+=txt(m.cx,m.cy-m.ry-8*u,m.kind==='disc'?L.disc:L.cup,c);}
       else if(m.kind==='disc-center'||m.kind==='fovea-center'){out+=cross(m.x,m.y,c);}
-      else if(m.kind==='lesion'){out+='<circle cx="'+m.x+'" cy="'+m.y+'" r="9" fill="'+c+'" fill-opacity="0.35" stroke="'+c+'" stroke-width="2.5"/>'+txt(m.x+12,m.y-8,m.ltype?les(m.ltype):'',c);}
-      else if(m.kind==='ruler'){out+='<line x1="'+m.x1+'" y1="'+m.y1+'" x2="'+m.x2+'" y2="'+m.y2+'" stroke="'+c+'" stroke-width="3" stroke-dasharray="8 5"/>'+txt((m.x1+m.x2)/2,(m.y1+m.y2)/2-8,fmt(Math.hypot(m.x2-m.x1,m.y2-m.y1)),c);}
-      else if(m.kind==='arrow'){const a=Math.atan2(m.y2-m.y1,m.x2-m.x1),ah=16;
-        out+='<line x1="'+m.x1+'" y1="'+m.y1+'" x2="'+m.x2+'" y2="'+m.y2+'" stroke="'+c+'" stroke-width="3"/>';
-        out+='<polyline points="'+(m.x2-ah*Math.cos(a-0.4))+','+(m.y2-ah*Math.sin(a-0.4))+' '+m.x2+','+m.y2+' '+(m.x2-ah*Math.cos(a+0.4))+','+(m.y2-ah*Math.sin(a+0.4))+'" fill="none" stroke="'+c+'" stroke-width="3"/>';
-        if(m.note)out+=txt(m.x1,m.y1-10,m.note,c);}
-      else if(m.kind==='text'){out+='<circle cx="'+m.x+'" cy="'+m.y+'" r="5" fill="'+c+'"/>'+'<text x="'+(m.x+12)+'" y="'+(m.y+7)+'" fill="'+c+'" font-family="monospace" font-size="20" text-anchor="start" paint-order="stroke" stroke="#000" stroke-width="4">'+esc(m.text||'')+'</text>';}
-      else if(m.kind==='free'){out+='<polygon points="'+m.pts.map(q=>q.join(',')).join(' ')+'" fill="'+c+'" fill-opacity="0.12" stroke="'+c+'" stroke-width="3"/>';if(m.note)out+=txt(m.pts[0][0],m.pts[0][1]-8,m.note,c);}
+      else if(m.kind==='lesion'){out+='<circle cx="'+m.x+'" cy="'+m.y+'" r="'+(9*u)+'" fill="'+c+'" fill-opacity="0.35" stroke="'+c+'" stroke-width="'+(2.5*u)+'"/>'+txt(m.x+12*u,m.y-8*u,m.ltype?les(m.ltype):'',c);}
+      else if(m.kind==='ruler'){out+='<line x1="'+m.x1+'" y1="'+m.y1+'" x2="'+m.x2+'" y2="'+m.y2+'" stroke="'+c+'" stroke-width="'+sw+'" stroke-dasharray="'+(8*u)+' '+(5*u)+'"/>'+txt((m.x1+m.x2)/2,(m.y1+m.y2)/2-8*u,fmt(Math.hypot(m.x2-m.x1,m.y2-m.y1)),c);}
+      else if(m.kind==='arrow'){const a=Math.atan2(m.y2-m.y1,m.x2-m.x1),ah=16*u;
+        out+='<line x1="'+m.x1+'" y1="'+m.y1+'" x2="'+m.x2+'" y2="'+m.y2+'" stroke="'+c+'" stroke-width="'+sw+'"/>';
+        out+='<polyline points="'+(m.x2-ah*Math.cos(a-0.4))+','+(m.y2-ah*Math.sin(a-0.4))+' '+m.x2+','+m.y2+' '+(m.x2-ah*Math.cos(a+0.4))+','+(m.y2-ah*Math.sin(a+0.4))+'" fill="none" stroke="'+c+'" stroke-width="'+sw+'"/>';
+        if(m.note)out+=txt(m.x1,m.y1-10*u,m.note,c);}
+      else if(m.kind==='text'){out+='<circle cx="'+m.x+'" cy="'+m.y+'" r="'+(5*u)+'" fill="'+c+'"/>'+'<text x="'+(m.x+12*u)+'" y="'+(m.y+7*u)+'" fill="'+c+'" font-family="monospace" font-size="'+fs+'" text-anchor="start" paint-order="stroke" stroke="#000" stroke-width="'+swT+'">'+esc(m.text||'')+'</text>';}
+      else if(m.kind==='free'){out+='<polygon points="'+m.pts.map(q=>q.join(',')).join(' ')+'" fill="'+c+'" fill-opacity="0.12" stroke="'+c+'" stroke-width="'+sw+'"/>';if(m.note)out+=txt(m.pts[0][0],m.pts[0][1]-8*u,m.note,c);}
     });
     return out;
-    function cross(X,Y,c){const r=13;return '<g stroke="'+c+'" stroke-width="3"><line x1="'+(X-r)+'" y1="'+Y+'" x2="'+(X+r)+'" y2="'+Y+'"/><line x1="'+X+'" y1="'+(Y-r)+'" x2="'+X+'" y2="'+(Y+r)+'"/><circle cx="'+X+'" cy="'+Y+'" r="'+r+'" fill="none"/></g>';}
-    function txt(X,Y,s,c){return '<text x="'+X+'" y="'+Y+'" fill="'+c+'" font-family="monospace" font-size="20" text-anchor="middle" paint-order="stroke" stroke="#000" stroke-width="4">'+esc(s)+'</text>';}
+    function cross(X,Y,c){const r=13*u;return '<g stroke="'+c+'" stroke-width="'+sw+'"><line x1="'+(X-r)+'" y1="'+Y+'" x2="'+(X+r)+'" y2="'+Y+'"/><line x1="'+X+'" y1="'+(Y-r)+'" x2="'+X+'" y2="'+(Y+r)+'"/><circle cx="'+X+'" cy="'+Y+'" r="'+r+'" fill="none"/></g>';}
+    function txt(X,Y,s,c){return '<text x="'+X+'" y="'+Y+'" fill="'+c+'" font-family="monospace" font-size="'+fs+'" text-anchor="middle" paint-order="stroke" stroke="#000" stroke-width="'+swT+'">'+esc(s)+'</text>';}
     function esc(s){return String(s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'})[c]);}
   }
 
@@ -3666,13 +3707,17 @@
   function renderEyePngBytes(key,labels){
     return new Promise(resolve=>{
       const e=study.eyes[key];
-      if(!e.img){resolve(null);return;}
+      if(!e.img||!(e.w>0&&e.h>0)){resolve(null);return;}
       const cv=document.createElement('canvas');cv.width=e.w;cv.height=e.h;const x=cv.getContext('2d');
+      if(!x){resolve(null);return;}
       const im=new Image();
       im.onload=()=>{
+        x.fillStyle='#000';x.fillRect(0,0,e.w,e.h);   // opaque: transparent pixels are black here, on screen and in DICOM
         x.drawImage(im,0,0,e.w,e.h);
         const data='<svg xmlns="http://www.w3.org/2000/svg" width="'+e.w+'" height="'+e.h+'" viewBox="0 0 '+e.w+' '+e.h+'">'+staticMarksSVG(e,labels)+'</svg>';
-        const done=()=>cv.toBlob(b=>b.arrayBuffer().then(ab=>resolve({bytes:new Uint8Array(ab),w:e.w,h:e.h})),'image/png');
+        // A canvas that cannot be encoded gives toBlob null; the PDF then goes on
+        // without the picture instead of waiting forever.
+        const done=()=>cv.toBlob(b=>{if(!b){resolve(null);return;}b.arrayBuffer().then(ab=>resolve({bytes:new Uint8Array(ab),w:e.w,h:e.h}),()=>resolve(null));},'image/png');
         const svgImg=new Image();svgImg.onload=()=>{x.drawImage(svgImg,0,0);done();};svgImg.onerror=done;
         svgImg.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(data);
       };
@@ -4177,7 +4222,9 @@
     cols.forEach((h,i)=>pg.drawText(P.up(h),{x:P.M+i*cw+4,y:top-13,size:7,font:P.fontB,color:P.C.grey}));
     P.y-=rowH;
     ['OD','OS'].forEach(k=>{const c=study.eyes[k].clinical||{},dp=study.eyes[k].disp||{};
-      const vals=[k,c.sph,c.cyl,c.axis,c.add,dp.prism,optT(P,dp.base)],yy=P.y;
+      // A blank sphere beside a cylinder or an add is plano, not "no lens".
+      const sph=c.sph||((c.cyl||c.add)?'Pl':'');
+      const vals=[k,sph,c.cyl,c.axis,c.add,dp.prism,optT(P,dp.base)],yy=P.y;
       vals.forEach((v,i)=>pg.drawText(P.clean(v==null||v===''?'—':String(v)),{x:P.M+i*cw+4,y:yy-13,size:9,font:i===0?P.fontB:P.font,color:P.C.dark}));
       P.y-=rowH;});
     [top,top-rowH,P.y].forEach(yy=>pg.drawLine({start:{x:P.M,y:yy},end:{x:P.M+P.CW,y:yy},thickness:0.5,color:P.C.line}));
@@ -4207,17 +4254,30 @@
         // A practice picture with marks on it is exportable, but it is not this patient.
         if(e.imgSample||e.possibleSample)P.line(T('Sample image — not a photograph of this patient'),{size:7.5,color:P.C.grey,gap:12});}}
       P.sub(T('Refraction & acuity'));
-      P.kvRow([[T('VA distance UC'),c.vaUC],[T('VA distance CC'),c.vaCC],[T('VA near'),c.vaNear],[T('Autorefraction'),[c.arSph,c.arCyl,c.arAxis].filter(Boolean).join('  ')]]);
-      P.kvRow([[T('Final Rx'),[c.sph,c.cyl,c.axis].filter(Boolean).join('  ')],[T('Add'),c.add],[T('Keratometry'),[c.k1,c.k2].filter(Boolean).join(' / ')+(c.kAxis?' @'+c.kAxis:'')],[T('Lens status'),optT(P,c.lens)]]);
-      if(mt.verticalCDR!=null||mt.mmPerPx!=null){
+      // Positional slots everywhere: a blank value prints '—' so what remains cannot be
+      // read under the wrong name (sph/cyl/axis via the shared formatter).
+      P.kvRow([[T('VA distance UC'),c.vaUC],[T('VA distance CC'),c.vaCC],[T('VA near'),c.vaNear],[T('Autorefraction'),RC.rxLine({sph:c.arSph,cyl:c.arCyl,axis:c.arAxis})]]);
+      P.kvRow([[T('Final Rx'),RC.rxLine({sph:c.sph,cyl:c.cyl,axis:c.axis})],[T('Add'),c.add],[T('Keratometry'),RC.slots([c.k1,c.k2])+(c.kAxis?' @'+c.kAxis:'')],[T('Lens status'),optT(P,c.lens)]]);
+      if(mt.verticalCDR!=null||mt.mmPerPx!=null||mt.cdrFlag){
         P.sub(T('Optic disc'));
-        P.kvRow([[T('Vertical CDR'),mt.verticalCDR],[T('Horizontal CDR'),mt.horizontalCDR],[T('Disc-fovea (mm)'),mt.discFoveaDistMm],[T('Calibration (mm/px)'),mt.mmPerPx]]);
+        P.kvRow([[T('Vertical CDR'),mt.verticalCDR],[T('Horizontal CDR'),mt.horizontalCDR],[T('Disc-fovea (mm)'),mt.discFoveaDistMm],[T('Disc-fovea angle (deg)'),mt.discFoveaAngleDeg]]);
+        // The millimetres rest on the chip's assumed disc diameter, and the report says so.
+        P.kvRow([[T('Disc Ø assumed (mm)'),mt.discDiaAssumedMm],[T('Disc Ø V × H (mm)'),mt.discDiamVMm!=null?mt.discDiamVMm+' × '+mt.discDiamHMm:''],[T('Disc area (mm²)'),mt.discAreaMm2],[T('Calibration (mm/px)'),mt.mmPerPx]]);
+        if(mt.cdrFlag)P.line(T('Cup-to-disc ratio withheld: the cup mark is larger than, or outside, the disc mark.'),{size:7.5,color:P.C.grey,gap:12});
+        else if(mt.mmPerPx!=null)P.line(T('Millimetre values assume the vertical disc diameter above; the angle is the tilt of the disc–fovea line from the horizontal, positive with the fovea below the disc centre.'),{size:7.5,color:P.C.grey,gap:12});
       }
+      // Rulers and the disc/cup outlines as text, so a measurement survives even when the
+      // picture is printed small.
+      const sc=RC.scaleOf(e.marks.find(x=>x.kind==='disc'),e.discDiaMm),meas=[];
+      if(!(e.imgSample||e.possibleSample)){
+        e.marks.forEach((x,i)=>{if(x.kind==='ruler')meas.push(T('Measurement')+' '+(i+1)+' — '+RC.fmtLen(Math.hypot(x.x2-x.x1,x.y2-x.y1),sc));
+          else if(x.kind==='disc'||x.kind==='cup')meas.push((x.kind==='disc'?T('Optic disc margin'):T('Optic cup margin'))+' — Ø '+RC.fmtLen(2*x.rx,sc)+' × '+RC.fmtLen(2*x.ry,sc));});}
+      if(meas.length){P.sub(T('Measurements'));meas.forEach(s=>P.line('- '+s,{size:9.5,x:P.M+8,gap:13}));}
       P.kvRow([[T('IOP (mmHg)'),c.iop],[T('Pachymetry (µm)'),c.pachy],[T('Observations'),c.dx],['','']]);
       if(Object.keys(dp).some(k=>dp[k])){
         P.sub(T('Dispensing (this eye)'));
-        P.kvRow([[T('Mono PD dist'),dp.pdMonoDist],[T('Mono PD near'),dp.pdMonoNear],[T('Prism'),[dp.prism,optT(P,dp.base)].filter(Boolean).join(' ')],[T('Seg / OC height'),[dp.segHt,dp.fitHt].filter(Boolean).join(' / ')]]);
-        if(dp.clBrand||dp.clBC||dp.clPower)P.kvRow([[T('CL brand'),dp.clBrand],[T('CL BC / DIA'),[dp.clBC,dp.clDia].filter(Boolean).join(' / ')],[T('CL power'),dp.clPower],['','']]);
+        P.kvRow([[T('Mono PD dist'),dp.pdMonoDist],[T('Mono PD near'),dp.pdMonoNear],[T('Prism'),RC.slots([dp.prism,optT(P,dp.base)],' ')],[T('Seg / OC height'),RC.slots([dp.segHt,dp.fitHt])]]);
+        if(dp.clBrand||dp.clBC||dp.clPower)P.kvRow([[T('CL brand'),dp.clBrand],[T('CL BC / DIA'),RC.slots([dp.clBC,dp.clDia])],[T('CL power'),dp.clPower],['','']]);
       }
       const les=e.marks.filter(x=>x.kind==='lesion');
       if(les.length){P.sub(T('Findings'));les.forEach(l=>P.line('- '+(l.ltype?T(l.ltype):T('Lesion'))+(l.note?'  — '+l.note:''),{size:9.5,x:P.M+8,gap:13}));}
@@ -4227,7 +4287,7 @@
     if(Object.keys(g).some(k=>g[k])){
       P.ensure(30);P.hr();P.line(T('Dispensing summary (binocular)'),{size:14,bold:true,gap:20});
       P.kvRow([[T('PD distance'),g.pdDist],[T('PD near'),g.pdNear],[T('Lens type'),optT(P,g.lensType)],[T('Material'),optT(P,g.material)]]);
-      P.kvRow([[T('Coatings'),g.coatings],[T('Tint'),g.tint],[T('Frame A / B'),[g.frameA,g.frameB].filter(Boolean).join(' / ')],[T('DBL / ED'),[g.frameDBL,g.frameED].filter(Boolean).join(' / ')]]);
+      P.kvRow([[T('Coatings'),g.coatings],[T('Tint'),g.tint],[T('Frame A / B'),RC.slots([g.frameA,g.frameB])],[T('DBL / ED'),RC.slots([g.frameDBL,g.frameED])]]);
       P.kvRow([[T('Panto (deg)'),g.panto],[T('Vertex (mm)'),g.vertex],[T('Wrap (deg)'),g.wrap],['','']]);
     }
     P.ensure(24);P.hr();P.line(T('Documentation / annotation aid — not a diagnostic device. Generated by Carino Retina.'),{size:7.5,color:P.C.grey,gap:10});
@@ -4276,9 +4336,10 @@
     P.sub(T('Lens'));
     P.kvRow([[T('Lens type'),optT(P,g.lensType)],[T('Material'),optT(P,g.material)],[T('Coatings'),g.coatings],[T('Tint'),g.tint]]);
     P.sub(T('Interpupillary distance'));
-    P.kvRow([[T('PD distance'),g.pdDist],[T('PD near'),g.pdNear],[T('Mono OD (d/n)'),[dOD.pdMonoDist,dOD.pdMonoNear].filter(Boolean).join(' / ')],[T('Mono OS (d/n)'),[dOS.pdMonoDist,dOS.pdMonoNear].filter(Boolean).join(' / ')]]);
+    // Slots stay positional: 'Panto/Vertex/Wrap: — / 12 / 5', never '12 / 5'.
+    P.kvRow([[T('PD distance'),g.pdDist],[T('PD near'),g.pdNear],[T('Mono OD (d/n)'),RC.slots([dOD.pdMonoDist,dOD.pdMonoNear])],[T('Mono OS (d/n)'),RC.slots([dOS.pdMonoDist,dOS.pdMonoNear])]]);
     P.sub(T('Frame (boxing) & fitting'));
-    P.kvRow([[T('A / B'),[g.frameA,g.frameB].filter(Boolean).join(' / ')],[T('DBL / ED'),[g.frameDBL,g.frameED].filter(Boolean).join(' / ')],[T('Panto/Vertex/Wrap'),[g.panto,g.vertex,g.wrap].filter(Boolean).join(' / ')],[T('Seg OD/OS'),[dOD.segHt,dOS.segHt].filter(Boolean).join(' / ')]]);
+    P.kvRow([[T('A / B'),RC.slots([g.frameA,g.frameB])],[T('DBL / ED'),RC.slots([g.frameDBL,g.frameED])],[T('Panto/Vertex/Wrap'),RC.slots([g.panto,g.vertex,g.wrap])],[T('Seg OD/OS'),RC.slots([dOD.segHt,dOS.segHt])]]);
     P.ensure(24);P.hr();P.line(T('Generated by Carino Retina — confirm all measurements before ordering.'),{size:7.5,color:P.C.grey,gap:10});
     return await P.finish();
   }
@@ -4329,7 +4390,7 @@
       if(!has)continue;anyEye=true;
       P.ensure(60);
       P.line((key==='OD'?T('Right eye'):T('Left eye'))+'  ('+key+')',{size:11.5,bold:true,gap:17});
-      P.kvRow([[T('VA distance UC'),c.vaUC],[T('VA distance CC'),c.vaCC],[T('VA near'),c.vaNear],[T('Final Rx'),[c.sph,c.cyl,c.axis].filter(Boolean).join('  ')+(c.add?'  '+T('Add')+' '+c.add:'')]]);
+      P.kvRow([[T('VA distance UC'),c.vaUC],[T('VA distance CC'),c.vaCC],[T('VA near'),c.vaNear],[T('Final Rx'),RC.rxLine(c,T('Add'))]]);
       P.kvRow([[T('IOP (mmHg)'),c.iop],[T('Pachymetry (µm)'),c.pachy],[T('Vertical CDR'),mt.verticalCDR],[T('Horizontal CDR'),mt.horizontalCDR]]);
       if(mt.verticalCDR!=null)P.line(T('Cup-to-disc ratios measured on the annotated image.'),{size:7.5,color:P.C.grey,gap:12});
       if(c.dx){P.line(P.up(T('Observations')),{size:6.5,bold:true,color:P.C.grey,gap:10});para(P,c.dx,{size:9.5,gap:13,after:4});}
@@ -4346,8 +4407,8 @@
       const ps=summaryFor(prev);
       P.ensure(80);P.sub(T('Previous visit — {date}',{date:P.D(prev.meta.date||ps.date)||'—'}));
       ['OD','OS'].forEach(k=>{const o=ps.eyes[k]||{};
-        P.kvRow([[k+' · '+T('VA distance UC'),o.vaUC],[k+' · '+T('VA distance CC'),o.vaCC],[k+' · '+T('Final Rx'),[o.sph,o.cyl,o.axis].filter(Boolean).join('  ')+(o.add?'  '+T('Add')+' '+o.add:'')],[k+' · '+T('IOP (mmHg)'),o.iop]]);
-        P.kvRow([[k+' · '+T('Pachymetry (µm)'),o.pachy],[k+' · '+T('Vertical CDR'),o.vcdr],[k+' · '+T('Horizontal CDR'),o.hcdr],['','']]);
+        P.kvRow([[k+' · '+T('VA distance UC'),o.vaUC],[k+' · '+T('VA distance CC'),o.vaCC],[k+' · '+T('Final Rx'),RC.rxLine(o,T('Add'))],[k+' · '+T('IOP (mmHg)'),o.iop]]);
+        P.kvRow([[k+' · '+T('Pachymetry (µm)'),o.pachy],[k+' · '+T('Vertical CDR'),o.vcdr==null?null:fmtCdr(o.vcdr)],[k+' · '+T('Horizontal CDR'),o.hcdr==null?null:fmtCdr(o.hcdr)],['','']]);
         if(o.dx){P.line(P.up(k+' · '+T('Observations')),{size:6.5,bold:true,color:P.C.grey,gap:10});para(P,o.dx,{size:9.5,gap:13,after:4});}});
     }
 
@@ -4458,8 +4519,11 @@
   // a download keeps the old ANON / ANONYMOUS placeholders.
   function dicomStudy(forSend,en0){
     const m=study.meta,b=brandSnapshot(),en=en0||encObj(),cr=encRec?encRec.created:Date.now(),d=new Date(cr);
+    // Study Time belongs with Study Date: a typed exam date on another day than the record's
+    // creation has no time of its own (Type 2: empty).
+    const sameDay=!m.date||m.date===dayOf(cr);
     return {patientName:m.name||(forSend?'':'ANONYMOUS'),patientId:m.patientId||(forSend?'':'ANON'),dob:m.dob||'',studyUID:en.studyUID,
-      studyDate:m.date||dayOf(cr),studyTime:p2(d.getHours())+p2(d.getMinutes())+p2(d.getSeconds()),
+      studyDate:m.date||dayOf(cr),studyTime:sameDay?p2(d.getHours())+p2(d.getMinutes())+p2(d.getSeconds()):'',
       studyId:encRec?encRec.id.slice(0,16):'RETINA',accession:m.accession||'',referring:m.referring||'',
       institution:b.enabled?(b.practiceName||''):'',
       institutionAddress:b.enabled?[String(b.address||'').replace(/\n/g,', '),b.phone].filter(Boolean).join(' · '):''};
@@ -4502,7 +4566,9 @@
     const bm=await createImageBitmap(blob,{imageOrientation:'from-image'});
     const w=bm.width,h=bm.height;
     const cv=typeof OffscreenCanvas!=='undefined'?new OffscreenCanvas(w,h):Object.assign(document.createElement('canvas'),{width:w,height:h});
-    const x=cv.getContext('2d');x.drawImage(bm,0,0);if(bm.close)bm.close();
+    // Composited onto opaque black: a transparent surround and a translucent pixel then
+    // leave as what the clinician saw on the (black) viewer, not as un-premultiplied colour.
+    const x=cv.getContext('2d');x.fillStyle='#000';x.fillRect(0,0,w,h);x.drawImage(bm,0,0);if(bm.close)bm.close();
     return {w,h,rgb:RD.rgbaToRgb(x.getImageData(0,0,w,h).data)};
   }
   // Runs inside the save chain: build() mints identity in memory and returns what goes out;
@@ -4575,8 +4641,10 @@
   }
   function opHeaderFor(it,sop,src,s,equip,en,now){
     const ex=src.exif&&/^\d{4}[:-]\d{2}[:-]\d{2}[ T]\d{2}:\d{2}:\d{2}/.test(src.exif)?src.exif.replace(/\D/g,'').slice(0,14):null;
+    // Pixel Spacing is the camera's nominal retinal scale from Settings ▸ Archive (Type 1C
+    // for a fundus camera); the disc-derived mm/px is an assumption and is never written.
     return RD.opHeader({study:s,equip,sopUID:sop,seriesUID:en.seriesUIDs[it.eye],syncUID:RD.mintUID(),
-      seriesNumber:it.eye==='OD'?2:3,instanceNumber:it.n,eye:it.eye,device:arch.device,burnedIn:arch.burnedIn!=='no',
+      seriesNumber:it.eye==='OD'?2:3,instanceNumber:it.n,eye:it.eye,device:arch.device,burnedIn:arch.burnedIn!=='no',pixelMm:arch.pixelMm||null,
       sourceMime:src.mime,sourceBytes:src.size,w:it.w,h:it.h,contentAt:src.added,acquiredAt:ex,now});
   }
   function dicomErrText(e){
@@ -4597,6 +4665,7 @@
   function loadArch(){let c={};try{c=JSON.parse(localStorage.getItem(ARCH_KEY)||'{}')||{};}catch(e){}
     return {base:DESK_ARCH?'':RD.normBase(c.base),remember:!!c.remember,hadToken:!!c.hadToken,
       device:Object.prototype.hasOwnProperty.call(RD.DEVICES,c.device)?c.device:'fundus',burnedIn:c.burnedIn==='no'?'no':'yes',
+      pixelMm:RD.pixelMmOf(c.pixelMm),
       token:(!DESK_ARCH&&c.remember&&typeof c.token==='string')?c.token.slice(0,4096):''};}
   const arch=loadArch();
   let archToken=arch.token;delete arch.token;
@@ -4606,7 +4675,7 @@
   try{const h=sessionStorage.getItem(ARCH_TOKEN_HANDOFF);if(h!=null){sessionStorage.removeItem(ARCH_TOKEN_HANDOFF);if(!archToken)archToken=h;}}catch(e){}
   let deskArch={base:'',hasToken:false,persistent:true}, archResult=null, needToken=false;
   function saveArch(){
-    const o={v:1,remember:arch.remember,hadToken:arch.hadToken,device:arch.device,burnedIn:arch.burnedIn};
+    const o={v:1,remember:arch.remember,hadToken:arch.hadToken,device:arch.device,burnedIn:arch.burnedIn,pixelMm:arch.pixelMm||null};
     if(!DESK_ARCH){o.base=arch.base;if(arch.remember&&archToken)o.token=archToken;}
     const raw=JSON.stringify(o);
     try{localStorage.setItem(ARCH_KEY,raw);archRaw=raw;return true;}catch(e){logStoreErr(e);return false;}
@@ -4621,7 +4690,7 @@
     let raw=null;try{raw=localStorage.getItem(ARCH_KEY);}catch(e){return false;}
     if(raw===archRaw)return false;
     archRaw=raw;const n=loadArch(),oldBase=arch.base;
-    arch.remember=n.remember;arch.hadToken=n.hadToken;arch.device=n.device;arch.burnedIn=n.burnedIn;
+    arch.remember=n.remember;arch.hadToken=n.hadToken;arch.device=n.device;arch.burnedIn=n.burnedIn;arch.pixelMm=n.pixelMm;
     if(!DESK_ARCH){
       arch.base=n.base;
       // A token removed there is removed here; one from another archive is never kept.
@@ -4773,6 +4842,7 @@
     $('archRemember').checked=arch.remember;
     document.querySelectorAll('#archDevice button').forEach(b=>b.classList.toggle('active',b.dataset.v===arch.device));
     document.querySelectorAll('#archBurned button').forEach(b=>b.classList.toggle('active',b.dataset.v===arch.burnedIn));
+    const pm=$('archPixelMm');if(pm&&document.activeElement!==pm)pm.value=arch.pixelMm?String(arch.pixelMm):'';
     renderArchiveInfo();
   }
   // State text under the archive fields. Rendered with t(), redrawn by applyLang.
@@ -4783,6 +4853,7 @@
     lines.push(b?tf('Sends to {base}',{base:b}):t('No archive is set up.'));
     if(b)lines.push(archHasToken()?(DESK_ARCH?(deskArch.persistent===false?t('A token is set for this session only: this computer offers no encrypted storage.'):t('A token is saved, encrypted by the operating system.')):(arch.remember?t('A token is saved in this browser.'):t('A token is set until this page is reloaded.'))):t('No token: the archive must accept requests without one.'));
     if(!DESK_ARCH)lines.push(tf('On the archive, add {origin} to dicomweb.cors_origins.',{origin:location.origin}));
+    if(arch.device==='fundus'&&!arch.pixelMm)lines.push(t('No pixel spacing is set: fundus images are sent without it and are not conformant for a fundus camera.'));
     if(mixedContentBlocked(b))lines.push(mixedText());
     if(archBlockedHere())lines.push(blockedText());
     i.innerHTML=lines.map(s=>'<div>'+escHtml(s)+'</div>').join('');
@@ -4792,6 +4863,7 @@
   $('archRemember').addEventListener('change',()=>{syncArch();arch.remember=$('archRemember').checked;arch.hadToken=!!archToken;saveArch();renderArchiveInfo();});
   [['archDevice','device'],['archBurned','burnedIn']].forEach(([id,key])=>$(id).addEventListener('click',e=>{
     const b=e.target.closest('button[data-v]');if(!b)return;syncArch();arch[key]=b.dataset.v;saveArch();syncArchiveUI();}));
+  $('archPixelMm').addEventListener('change',()=>{syncArch();arch.pixelMm=RD.pixelMmOf(parseStep($('archPixelMm').value,'num'));saveArch();syncArchiveUI();});
 
   // ---------- Download DICOM ----------
   async function downloadDicom(){
@@ -4863,6 +4935,10 @@
     const items=[{key:'report',kind:'report',on:true,replace:ob.filter(o=>o.kind==='report'&&o.state==='pending').map(o=>o.id),size:0}];
     for(let i=0;i<imgs.length;i++){const it=imgs[i],src=srcs[i];
       const row={key:'img'+i,kind:'op',it,src,size:it.w*it.h*3+4096,on:!it.possibleSample,replace:[]};
+      // The same picture already went to the archive filed under the OTHER eye (re-filed
+      // after a wrong-eye send): say so, so the copy there can be removed.
+      const sentAs=src&&src.sha&&sentId&&sentId.byHash&&sentId.byHash[src.sha];
+      if(sentAs&&sentAs.eye&&sentAs.eye!==it.eye)row.otherEye=sentAs.eye;
       if(!src){row.on=false;row.off='missing';}
       else if(sameStudy){
         const ck=await contentKey(src.sha,it.eye,s);
@@ -4906,7 +4982,8 @@
         else if(r.off==='waiting')sub=t('Already waiting in the outbox.');
         else if(r.failed)sub=t('Sending it failed before — tick to try again. The failed attempt is removed from the outbox.');
         else if(r.sentAt)sub=tf('Already sent on {date} — tick to send it again.',{date:docDateTime(r.sentAt)});
-        else if(r.kind==='op'&&r.it.possibleSample)sub=t('This may be the practice sample picture rather than a photograph of the patient. Tick it only if it is a real photograph.');}
+        else if(r.kind==='op'&&r.it.possibleSample)sub=t('This may be the practice sample picture rather than a photograph of the patient. Tick it only if it is a real photograph.');
+        if(r.otherEye)sub=(sub?sub+' ':'')+tf('Previously sent as {eye} — remove that copy in the archive.',{eye:r.otherEye});}
       const dis=r.off?' disabled':'';
       return '<label class="snd-row'+(r.off?' off':'')+'"><input type="checkbox" data-i="'+i+'"'+(r.on?' checked':'')+dis+'>'+
         '<span class="snd-main">'+escHtml(label)+(sub?'<div class="snd-sub">'+escHtml(sub)+'</div>':'')+'</span>'+
@@ -4957,7 +5034,7 @@
           if(!(it.ref.contentKey===ck&&RD.isUID(it.ref.sopUID))){it.ref.sopUID=RD.mintUID();it.ref.contentKey=ck;}
           del.push(...(r.replace||[]));
           const hd=opHeaderFor(it,it.ref.sopUID,r.src,s,equip,en,now);
-          put.push(Object.assign({},base,{id:'o_'+RS.uuid(),kind:'op',eye:it.eye,n:it.n,fileId:it.ref.fileId,sopClassUID:RD.SOP_OP8,sopInstanceUID:it.ref.sopUID,
+          put.push(Object.assign({},base,{id:'o_'+RS.uuid(),kind:'op',eye:it.eye,n:it.n,fileId:it.ref.fileId,srcSha:r.src.sha||null,sopClassUID:RD.SOP_OP8,sopInstanceUID:it.ref.sopUID,
             header:hd.toJSON(),size:r.size}));
         }else if(r.kind==='pdf'){
           // The document's bytes are immutable in the files store: only the attributes are
@@ -5082,9 +5159,10 @@
   // sent rows are cleared, so the send list can still say "already sent".
   async function recordSent(it,at){
     const k='sentId:'+it.encounterId,prev=await RS.kvGet(db,k);
-    const same=prev&&prev.studyUID===it.identity.studyUID,sops=Object.assign({},same&&prev.sops||{});
+    const same=prev&&prev.studyUID===it.identity.studyUID,sops=Object.assign({},same&&prev.sops||{}),byHash=Object.assign({},same&&prev.byHash||{});
     if(it.kind==='op'||it.kind==='pdf')sops[it.sopInstanceUID]=at;
-    await RS.kvPut(db,k,Object.assign({},it.identity,{at,sops}));
+    if(it.kind==='op'&&it.srcSha&&it.eye)byHash[it.srcSha]={eye:it.eye,sopUID:it.sopInstanceUID,at};   // which eye each picture went out as
+    await RS.kvPut(db,k,Object.assign({},it.identity,{at,sops,byHash}));
   }
   function outboxCounts(){
     const c={waiting:0,failed:0,sending:0,sent:0,held:0};
@@ -5798,6 +5876,7 @@
     if(!f||!f.blob){toast(t('The image file is no longer on this device.'));return;}
     const url=await RS.blobToDataUrl(f.blob);
     const j=e.gallery.indexOf(g);if(j<0)return;   // changed meanwhile
+    if(pdPhotoScale&&pdPhotoScale.eye===k){pdPhotoScale=null;syncPdPhotoState();}   // measured on the picture being swapped out
     const cur=e.imgRef&&!drop?{fileId:e.imgRef.fileId,sopUID:e.imgRef.sopUID||null,contentKey:e.imgRef.contentKey||null,w:e.w,h:e.h,discDiaMm:e.discDiaMm,marks:e.marks,possibleSample:!!e.possibleSample}:null;
     e.gallery.splice(j,1,...(cur?[cur]:[]));
     Object.assign(e,{img:url,imgRef:{fileId:g.fileId,sopUID:g.sopUID||null,contentKey:g.contentKey||null},w:g.w||f.w||e.w,h:g.h||f.h||e.h,discDiaMm:g.discDiaMm||1.5,
@@ -5956,12 +6035,16 @@
         +'<div class="pr-contact">'+[b.phone,b.email,b.website].filter(Boolean).map(esc).join('<br>')+'</div></div>';
     }
     h+='<h1>Eye examination report</h1><div class="muted">'+esc(b.enabled&&b.practiceName?b.practiceName:'Carino Retina')+' · '+new Date().toLocaleString()+'</div>';
-    h+='<table><tr><th>Patient ID</th><td>'+esc(m.patientId||'—')+'</td><th>Name</th><td>'+esc(m.name||'—')+'</td><th>Date</th><td>'+esc(m.date||'—')+'</td></tr></table>';
+    // Dates per language, select values translated like the PDFs do, units only beside
+    // a value, and nothing measured on a sample picture (metricsFor is null there).
+    const optTr=v=>{if(!optValues)optValues=new Set([...document.querySelectorAll('select.i18n-opts option')].map(o=>o.value).filter(Boolean));return (v&&optValues.has(v))?t(v):v;};
+    h+='<table><tr><th>Patient ID</th><td>'+esc(m.patientId||'—')+'</td><th>Name</th><td>'+esc(m.name||'—')+'</td><th>Date</th><td>'+esc(docDate(m.date,lang)||'—')+'</td></tr></table>';
     ['OD','OS'].forEach(k=>{const e=study.eyes[k];const mt=metricsFor(k);const c=e.clinical;
       h+='<h3>'+(k==='OD'?'Right eye (OD)':'Left eye (OS)')+'</h3>';
-      h+='<table><tr><th>VA (uc/cc)</th><td>'+esc((c.vaUC||'—')+' / '+(c.vaCC||'—'))+'</td><th>IOP</th><td>'+esc(c.iop||'—')+' mmHg</td><th>Pachymetry</th><td>'+esc(c.pachy||'—')+' µm</td></tr>'
-        +'<tr><th>Refraction</th><td>'+esc([c.sph,c.cyl,c.axis].filter(Boolean).join(' ')||'—')+(c.add?' add '+esc(c.add):'')+'</td><th>Lens</th><td>'+esc(c.lens||'—')+'</td><th>Observations</th><td>'+esc(c.dx||'—')+'</td></tr>'
-        +'<tr><th>Vertical CDR</th><td>'+(mt.verticalCDR??'—')+'</td><th>Horizontal CDR</th><td>'+(mt.horizontalCDR??'—')+'</td><th>Disc–fovea</th><td>'+(mt.discFoveaDistMm!=null?mt.discFoveaDistMm+' mm':'—')+'</td></tr></table>';
+      h+='<table><tr><th>VA (uc/cc)</th><td>'+esc((c.vaUC||'—')+' / '+(c.vaCC||'—'))+'</td><th>IOP</th><td>'+esc(c.iop?c.iop+' mmHg':'—')+'</td><th>Pachymetry</th><td>'+esc(c.pachy?c.pachy+' µm':'—')+'</td></tr>'
+        +'<tr><th>Refraction</th><td>'+esc(RC.rxLine(c,t('Add'))||'—')+'</td><th>Lens</th><td>'+esc(optTr(c.lens)||'—')+'</td><th>Observations</th><td>'+esc(c.dx||'—')+'</td></tr>'
+        +'<tr><th>Vertical CDR</th><td>'+(mt.verticalCDR??'—')+'</td><th>Horizontal CDR</th><td>'+(mt.horizontalCDR??'—')+'</td><th>Disc–fovea</th><td>'+(mt.discFoveaDistMm!=null?mt.discFoveaDistMm+' mm (disc Ø '+mt.discDiaAssumedMm+' mm assumed) @ '+RC.fmtAngle(mt.discFoveaAngleDeg):'—')+'</td></tr></table>';
+      if(mt.sample&&e.marks.length)h+='<p class="muted">'+esc(t('Sample image — not a photograph of this patient'))+'</p>';
       const les=e.marks.filter(x=>x.kind==='lesion');
       if(les.length){h+='<table><tr><th>Finding</th><th>Note</th></tr>'+les.map(l=>'<tr><td>'+esc(l.ltype)+'</td><td>'+esc(l.note||'')+'</td></tr>').join('')+'</table>';}
       if(c.notes)h+='<p><b>Notes:</b> '+esc(c.notes)+'</p>';
@@ -5977,11 +6060,21 @@
     // Desktop only. pxPerMmAnchorKey records WHICH display pxPerMm was measured
     // on, so a carry-across to another display has a real anchor instead of an
     // assumed one; pxPerMmByKey holds values measured on a specific display.
-    pxPerMmAnchorKey:null,pxPerMmByKey:{}};
-  function loadSettings(){try{const s=JSON.parse(localStorage.getItem(SETTINGS_KEY));if(s)Object.assign(settings,s);}catch(e){}}
+    pxPerMmAnchorKey:null,pxPerMmByKey:{},
+    // The canonical distance. `distance` is the figure shown in the chosen unit; the unit
+    // toggle re-derives it from here, so m ↔ ft round-trips exactly.
+    distanceMm:null};
+  // Stored values are validated on the way in: a stale or hand-edited entry (a string,
+  // 0, a negative distance) would otherwise reach heightPx() and draw a default-size chart.
+  function loadSettings(){try{const s=JSON.parse(localStorage.getItem(SETTINGS_KEY));if(s)Object.assign(settings,s);}catch(e){}
+    settings.unit=settings.unit==='ft'?'ft':'m';
+    settings.pxPerMm=RC.sanePxPerMm(settings.pxPerMm,3.7795);
+    settings.distance=RC.saneDistance(settings.distance,settings.unit,6);
+    const mm=+settings.distanceMm;settings.distanceMm=(isFinite(mm)&&mm>0&&Math.abs(RC.distanceIn(mm,settings.unit)-settings.distance)<0.011)?mm:RC.distanceMm(settings.distance,settings.unit);
+    if(!settings.pxPerMmByKey||typeof settings.pxPerMmByKey!=='object')settings.pxPerMmByKey={};}
   function saveSettings(){try{localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));}
     catch(e){if(e&&e.name==='QuotaExceededError')toast(t('Not enough browser storage — the last change was not saved'));}}
-  function distanceMm(){return settings.unit==='ft'?settings.distance*304.8:settings.distance*1000;}
+  function distanceMm(){return settings.distanceMm>0?settings.distanceMm:RC.distanceMm(settings.distance,settings.unit);}
 
   // ---- Desktop shell (Electron). Undefined in every browser. -------------
   // The shell knows each display's scale factor, which the web platform does not
@@ -6010,16 +6103,21 @@
   // another display can only ever have its SCALE half corrected. The remaining
   // pitch error is why the chart says so.
   function chartCal(){
-    const base=settings.pxPerMm;
-    if(!DESK)return{px:base,estimated:false};
+    if(!DESK)return{px:settings.pxPerMm,estimated:false};
     const ck=chartKey();
     const map=settings.pxPerMmByKey||{};
     if(ck&&map[ck]!=null)return{px:map[ck],estimated:false};
-    const anchor=displayByKey(settings.pxPerMmAnchorKey);
+    // The anchor's own stored value is the base (settings.pxPerMm may hold a chart
+    // display's value after "calibrate on chart screen").
+    const ak=settings.pxPerMmAnchorKey,base=(ak&&map[ak]!=null)?map[ak]:settings.pxPerMm;
+    const anchor=displayByKey(ak);
     const target=displayByKey(ck);
+    // px/mm = 1/(scale × pitch): a value carried across scales by anchor/target.
     if(anchor&&target&&anchor.scaleFactor&&target.scaleFactor&&anchor.key!==target.key)
-      return{px:base*(target.scaleFactor/anchor.scaleFactor),estimated:true};
-    return{px:base,estimated:(!ck||!map[ck])&&!!(anchor&&target&&anchor.key!==target.key)};}
+      return{px:RC.carryPxPerMm(base,anchor.scaleFactor,target.scaleFactor)||base,estimated:true};
+    // An anchor that no longer resolves (the display's OS scale changed, so its key did)
+    // leaves a value of unknown provenance: say it is estimated.
+    return{px:base,estimated:(!ck||map[ck]==null)&&(!!(anchor&&target&&anchor.key!==target.key)||(!!ak&&!anchor))};}
 
   let screenDetails=null;
   async function detectScreens(){
@@ -6084,14 +6182,40 @@
   function openSettings(){syncSettingsUI();$('settingsModal').classList.remove('hidden');}
   function closeSettings(){$('settingsModal').classList.add('hidden');}
   function setSegActive(id,v){document.querySelectorAll('#'+id+' button').forEach(b=>b.classList.toggle('active',b.dataset.v===v));}
-  function updateCal(){const px=settings.pxPerMm;$('calCard').style.width=(85.6*px)+'px';$('calPpi').textContent=Math.round(px*25.4)+' ppi (~'+px.toFixed(2)+' px/mm)';
+  // The slider's value: this panel's own stored reading when it has one (the chart
+  // display's value lives in the map, not here).
+  function panelPxPerMm(){if(DESK){const s=deskScreens(),map=settings.pxPerMmByKey||{};if(s&&s.panelKey&&map[s.panelKey]!=null)return map[s.panelKey];}return settings.pxPerMm;}
+  function updateCal(){const px=calOnChart?chartCal().px:panelPxPerMm();$('calCard').style.width=(85.6*px)+'px';$('calPpi').textContent=Math.round(px*25.4)+' ppi (~'+px.toFixed(2)+' px/mm)';
     // Say which display the number belongs to while the card is on the chart, so
     // the reading is not mistaken for this screen's density.
-    if(calOnChart)$('calPpi').textContent+=' · '+t('chart screen');}
+    if(calOnChart)$('calPpi').textContent+=' · '+t('chart screen');
+    // The box must really be 85.6·px wide: when the modal clips it, the slider value is
+    // not what the card was matched against.
+    const r=$('calCard').getBoundingClientRect();
+    if(!calOnChart&&r.width>0&&r.width<85.6*px-1)$('calPpi').textContent+=' · ⚠ '+t('box clipped — widen the window, the value is not calibrated');
+    renderCalList();}
+  // Desktop: what was measured on which display, with a way to clear it. Two identical
+  // panels with swapped cables inherit each other's value; this is where that is undone.
+  function renderCalList(){
+    const box=$('calList');if(!box)return;box.innerHTML='';
+    if(!DESK)return;
+    const map=settings.pxPerMmByKey||{},keys=Object.keys(map).filter(k=>map[k]!=null);
+    if(!keys.length)return;
+    const s=deskScreens()||{};
+    keys.forEach(k=>{const d=document.createElement('div');d.className='screen-item';
+      const tags=[];if(k===settings.pxPerMmAnchorKey)tags.push(t('anchor'));if(k===s.panelKey)tags.push(t('this screen'));if(k===s.chartKey)tags.push(t('chart screen'));
+      d.innerHTML='<span>'+escHtml(k.replace(/^[lg]:/,''))+' · '+Math.round(map[k]*25.4)+' ppi (~'+(+map[k]).toFixed(2)+' px/mm)'+(tags.length?' · '+escHtml(tags.join(', ')):'')+'</span><span class="use"></span>';
+      const b=d.querySelector('.use');b.textContent=t('Clear');b.style.cursor='pointer';
+      b.addEventListener('click',()=>{delete settings.pxPerMmByKey[k];if(settings.pxPerMmAnchorKey===k)settings.pxPerMmAnchorKey=null;saveSettings();updateCal();syncPresent();});
+      box.appendChild(d);});
+    const r=document.createElement('div');r.className='screen-item';r.innerHTML='<span></span><span class="use"></span>';
+    const rb=r.querySelector('.use');rb.textContent=t('Reset calibration to 96 dpi');rb.style.cursor='pointer';
+    rb.addEventListener('click',()=>{settings.pxPerMmByKey={};settings.pxPerMmAnchorKey=null;settings.pxPerMm=3.7795;$('calSlider').value=settings.pxPerMm;saveSettings();updateCal();syncPresent();});
+    box.appendChild(r);}
   function syncSettingsUI(){
     renderStorageInfo();
     setSegActive('setDisplay',settings.display);setSegActive('setUnit',settings.unit);setSegActive('setMirror',settings.mirror?'on':'off');setSegActive('setOrder',settings.optotypeOrder);
-    $('setDistance').value=settings.distance;$('calSlider').value=settings.pxPerMm;updateCal();renderScreens();
+    $('setDistance').value=settings.distance;$('calSlider').value=calOnChart?chartCal().px:panelPxPerMm();updateCal();renderScreens();
     syncBrandUI();syncArchiveUI();
   }
 
@@ -6211,28 +6335,34 @@
   function syncPresent(){if(presentActive()&&presentWin.CARINO&&presentWin.CARINO.setCfg){
     const cal=chartCal();
     presentWin.CARINO.setCfg({
-      distanceMm:distanceMm(),pxPerMm:cal.px,calEstimated:cal.estimated,
+      distanceMm:distanceMm(),pxPerMm:cal.px,calEstimated:cal.estimated,unit:settings.unit,
       distanceLabel:(settings.unit==='ft'?settings.distance+' ft':settings.distance+' m'),
       mirror:settings.mirror,order:settings.optotypeOrder});
     lastPushed={distanceMm:distanceMm(),pxPerMm:cal.px};}}
   wireSeg('setDisplay','display');wireSeg('setMirror','mirror',v=>v==='on');wireSeg('setOrder','optotypeOrder');
-  // Unit toggle converts the stored distance so the physical distance stays the same.
+  // Unit toggle: the physical distance is canonical (distanceMm); the shown figure is
+  // re-derived from it, so 4 m → 13.12 ft → 4 m, not 3.99 m.
   document.querySelectorAll('#setUnit button').forEach(b=>b.addEventListener('click',()=>{
     const nu=b.dataset.v;if(nu!==settings.unit){
-      if(nu==='ft'&&settings.unit==='m')settings.distance=Math.round(settings.distance*3.28084*10)/10;
-      else if(nu==='m'&&settings.unit==='ft')settings.distance=Math.round(settings.distance/3.28084*100)/100;
-      settings.unit=nu;$('setDistance').value=settings.distance;}
+      settings.unit=nu;settings.distance=RC.distanceIn(distanceMm(),nu);$('setDistance').value=settings.distance;}
     setSegActive('setUnit',nu);saveSettings();syncPresent();}));
   document.querySelectorAll('#setMirror button,#setOrder button').forEach(b=>b.addEventListener('click',syncPresent));
-  $('setDistance').addEventListener('input',()=>{settings.distance=parseFloat($('setDistance').value)||6;saveSettings();syncPresent();});
-  $('calSlider').addEventListener('input',()=>{settings.pxPerMm=parseFloat($('calSlider').value)||3.7795;
+  // A typed distance is clamped to the field's range (0.3–99): a negative or zero value
+  // would reach the chart as a negative letter size.
+  $('setDistance').addEventListener('input',()=>{const el=$('setDistance'),v=parseStep(el.value,'num');if(v==null)return;
+    settings.distance=clampStep(v,el);settings.distanceMm=RC.distanceMm(settings.distance,settings.unit);saveSettings();syncPresent();});
+  $('setDistance').addEventListener('change',()=>{$('setDistance').value=settings.distance;});
+  $('calSlider').addEventListener('input',()=>{const v=parseFloat($('calSlider').value)||3.7795;
     // Record which display this card was measured on. Without it, every
     // carry-across to another display is computed against an assumed anchor.
+    // On the chart display only the map entry is written: settings.pxPerMm stays the
+    // panel's value, so the two never get mixed up.
     if(DESK){const s=deskScreens();
-      if(calOnChart&&s&&s.chartKey){settings.pxPerMmByKey[s.chartKey]=settings.pxPerMm;}
-      else if(s&&s.panelKey){settings.pxPerMmAnchorKey=s.panelKey;settings.pxPerMmByKey[s.panelKey]=settings.pxPerMm;}}
+      if(calOnChart&&s&&s.chartKey){settings.pxPerMmByKey[s.chartKey]=v;}
+      else{settings.pxPerMm=v;if(s&&s.panelKey){settings.pxPerMmAnchorKey=s.panelKey;settings.pxPerMmByKey[s.panelKey]=v;}}}
+    else settings.pxPerMm=v;
     updateCal();saveSettings();
-    if(calOnChart&&presentActive()){try{presentWin.CARINO.setCal(settings.pxPerMm);}catch(e){}}
+    if(calOnChart&&presentActive()){try{presentWin.CARINO.setCal(chartCal().px);}catch(e){}}
     syncPresent();});
   // Desktop only: put the card on the chart display, so the value is measured
   // where it is used instead of carried across from this one.
@@ -6257,6 +6387,7 @@
       calOnChart=!calOnChart;
       syncCalOnChartBtn();
       try{presentWin.CARINO.setCal(calOnChart?(chartCal().px):null);}catch(e){}
+      $('calSlider').value=calOnChart?chartCal().px:panelPxPerMm();
       updateCal();
       if(!calOnChart)syncPresent();});})();
   $('detectScreens').addEventListener('click',()=>detectScreens());
@@ -6338,7 +6469,7 @@
     // and no window.I18N. Everything it will ever say in prose is translated here
     // and shipped with the config; the key LETTERS stay Latin because the popup
     // binds them literally and the patient's keyboard has no translated key.
-    const cfg={test:id,pxPerMm:cal.px,calEstimated:cal.estimated,distanceMm:distanceMm(),mirror:settings.mirror,order:settings.optotypeOrder,
+    const cfg={test:id,pxPerMm:cal.px,calEstimated:cal.estimated,distanceMm:distanceMm(),unit:settings.unit,mirror:settings.mirror,order:settings.optotypeOrder,
       distanceLabel:(settings.unit==='ft'?settings.distance+' ft':settings.distance+' m'),
       lang:lang,
       names:Object.fromEntries(Object.entries(TEST_NAMES).map(([k,v])=>[k,t(v)])),
@@ -6350,7 +6481,10 @@
         pctContrast:t('{n}% contrast'),noShuffle:t('nothing to shuffle on this test'),
         chartFailed:t('The chart failed to start — reload and try again'),
         size:t('size'),test:t('test'),shuffle:t('shuffle'),order:t('order'),
-        rows:t('rows'),mirror:t('mirror'),full:t('full'),hide:t('hide')}};
+        rows:t('rows'),mirror:t('mirror'),full:t('full'),hide:t('hide'),
+        noSize:t('nothing to resize on this test'),contrastSize:t('letters 20/40 size (10′) · Weber % contrast'),
+        amslerHud:t('view at {n} cm · 1°/square'),amslerNote:t('One eye at a time, wearing the near correction, looking at the centre dot.'),
+        clockKey:t('darkest line: clock hour × 30 = axis')}};
     presentWin.document.open();presentWin.document.write(buildPresentHtml(cfg));presentWin.document.close();
     // The remote drives the chart entirely through window.CARINO, and every caller of it
     // swallows what it throws. If the engine never installed itself, say so here rather
@@ -6405,31 +6539,20 @@
   }
 
   function buildPresentHtml(cfg){
-    const style="html,body{height:100%;margin:0}body{display:flex;align-items:center;justify-content:center;background:#fff;overflow:hidden;font-family:Arial,'Liberation Sans',sans-serif;cursor:default}#stage{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%}.opt{font-family:Arial,'Liberation Sans',sans-serif;font-weight:700;color:#000;line-height:1}.single{display:flex;align-items:center;justify-content:center;flex-wrap:wrap}.chart{display:flex;flex-direction:column;gap:1.6vh;align-items:center}.row{display:flex;align-items:center;gap:26px}.lab{font-family:monospace;font-size:15px;color:#999;width:64px;text-align:right}.row .clab{width:132px;font-size:13px}.duo{position:fixed;inset:0;display:flex}.duo .half{flex:1;display:flex;align-items:center;justify-content:center}.cnote{position:fixed;bottom:12px;left:0;right:0;text-align:center;font-family:sans-serif;font-size:13px;color:#666}#hud{position:fixed;top:10px;left:12px;font-family:monospace;font-size:13px;color:#333;background:rgba(255,255,255,.82);padding:4px 9px;border:1px solid #ccc;border-radius:4px;max-width:96vw}#hud.hide{display:none}#hud b{color:#000}#hud .k{color:#999;margin-left:10px;font-size:11px}";
+    const style="html,body{height:100%;margin:0}body{display:flex;align-items:center;justify-content:center;background:#fff;overflow:hidden;font-family:Arial,'Liberation Sans',sans-serif;cursor:default}#stage{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%}.opt{font-family:Arial,'Liberation Sans',sans-serif;font-weight:700;color:#000;line-height:1}.single{display:flex;align-items:center;justify-content:center;flex-wrap:nowrap}.chart{display:flex;flex-direction:column;gap:1.6vh;align-items:center}.row{display:flex;align-items:center;gap:26px}.lab{font-family:monospace;font-size:15px;color:#999;width:64px;text-align:right}.row .clab{width:132px;font-size:13px}.duo{position:fixed;inset:0;display:flex}.duo .half{flex:1;display:flex;align-items:center;justify-content:center}.cnote{position:fixed;bottom:12px;left:0;right:0;text-align:center;font-family:sans-serif;font-size:13px;color:#666}#hud{position:fixed;top:10px;left:12px;font-family:monospace;font-size:13px;color:#333;background:rgba(255,255,255,.82);padding:4px 9px;border:1px solid #ccc;border-radius:4px;max-width:96vw}#hud.hide{display:none}#hud b{color:#000}#hud .k{color:#999;margin-left:10px;font-size:11px}";
     return '<!doctype html><html lang="'+escHtml(cfg.lang||'en')+'"><head><meta charset="utf-8"><title>Carino Retina — '+escHtml(cfg.names[cfg.test]||t('Test'))+'</title><style>'+style+'</style></head><body><div id="stage"></div><div id="hud"></div>'
-      +'<scr'+'ipt>('+presentEngine.toString()+')('+JSON.stringify(cfg)+');</scr'+'ipt></body></html>';
+      // The chart maths (sizing, tables, contrast, luminance, sampling) is injected from
+      // retina-clinical.js the same way the engine is: the popup has no script of its own.
+      +'<scr'+'ipt>var RetinaChart=('+RC.chartMath.toString()+')();('+presentEngine.toString()+')('+JSON.stringify(cfg)+');</scr'+'ipt></body></html>';
   }
 
   // Self-contained engine that runs INSIDE the popup (no closure over app state).
   function presentEngine(cfg){
-    // Classic Snellen chart — a fixed canonical sequence, one letter on top then
-    // increasing counts down the pyramid.
-    var CHART=[
-      {sn:'20/200',mar:10,  log:1.0, ch:'E'},
-      {sn:'20/100',mar:5,   log:0.7, ch:'FP'},
-      {sn:'20/70', mar:3.5, log:0.54,ch:'TOZ'},
-      {sn:'20/50', mar:2.5, log:0.4, ch:'LPED'},
-      {sn:'20/40', mar:2,   log:0.3, ch:'PECFD'},
-      {sn:'20/30', mar:1.5, log:0.18,ch:'EDFCZP'},
-      {sn:'20/25', mar:1.25,log:0.1, ch:'FELOPZD'},
-      {sn:'20/20', mar:1.0, log:0.0, ch:'DEFPOTEC'},
-      {sn:'20/15', mar:0.75,log:-0.12,ch:'FDPLTCEO'}
-    ];
-    var SLOAN='CDHKNORSVZ';
-    var SLOAN_LINES=['NCKHV','DSRKN','ZVCDH','ONHRC','KDNRO','CSRHN','ZKDVO','HNVCK','ROVKD'];
-    // Sloan, like every other optotype row here: the old set mixed in P, E, F and L, so
-    // switching between fixed and random changed the alphabet as well as the letters.
-    var CONTRAST_ROWS=['NCKHV','DSRKN','ZVCDH','ONHRC','KDNRO','CSRHZ'];
+    // The maths and the tables (Snellen rows with their metric labels, Sloan lines,
+    // Tumbling-E rows, sRGB transfer, 5-arcmin sizing, dot sampling, Amsler geometry)
+    // come from retina-clinical.js, injected as RetinaChart just before this engine.
+    var CM=RetinaChart;
+    var CHART=CM.CHART,SLOAN=CM.SLOAN,SLOAN_LINES=CM.SLOAN_LINES,CONTRAST_ROWS=CM.CONTRAST_ROWS;
     var ORDER=['snellen','sloan','tumblingE','landoltC','duochrome','astig','amsler','contrast','color','fixation','blankW','blankB'];
     // Pseudoisochromatic pairs, designed in the isoluminant plane of LINEAR sRGB rather
     // than along CIE xy confusion lines. A chromaticity line fixes cone RATIOS, not cone
@@ -6444,16 +6567,19 @@
     // out of one shared call sequence. Any residual luminance leak from panel
     // non-uniformity or an imperfect gamma then sits under noise larger than itself.
     //
-    // Measured (Machado 2009 severity 1.0, CIE dE*ab; a normal observer needs ~2-3 to see
-    // a difference at all). The pair that shipped before is included to say what was
-    // wrong with it: its figure ran 0.079 brighter in luminance than its ground, so the
-    // numeral could be read by brightness alone, and it sat so far off any confusion axis
-    // that a deuteranope read it about as easily as a trichromat.
+    // Measured with the Machado, Oliveira & Fernandes 2009 severity-1.0 protanopia /
+    // deuteranopia / tritanopia matrices in linear sRGB → XYZ (D65) → CIE L*a*b*, dE*ab
+    // averaged over same-level pairs (a normal observer needs ~2-3 to see a difference at
+    // all); the dichromat columns are about ±2 depending on the matrix re-derivation
+    // used. The pair that shipped before is included to say what was wrong with it: its
+    // figure ran 0.079 brighter in luminance than its ground, so the numeral could be
+    // read by brightness alone, and it sat so far off any confusion axis that a
+    // deuteranope read it about as easily as a trichromat.
     //
     //              max|dY|   normal   protan   deutan   tritan
-    //   rg          0.0019     62.5      7.9     12.5     72.7
-    //   tritan      0.0010     83.8     79.1     73.2     15.2
-    //   control     0.0027     81.9     69.9     82.9     82.6
+    //   rg          0.0019     62.5      9.2      8.9     74.2
+    //   tritan      0.0010     83.8     81.3     72.0     13.5
+    //   control     0.0027     81.9     70.2     79.1     79.8
     //   (retired)   0.0788     69.1     23.6     31.3     81.9
     var PLATE_COLORS={
       rg:      {fig:['#34b1a0','#4bb7a7','#5bbdae','#68c3b4'],
@@ -6467,6 +6593,9 @@
                 gnd:['#d49238','#d9994d','#dea15d','#e3a86a']}
     };
     var PLATE_AXES=['rg','rg','rg','tritan','control'];
+    // Fixed order walks these on each shuffle, so the control (display-sanity) plate and
+    // the tritan plate can be asked for deliberately instead of hoped for.
+    var FIXED_PLATES=[{axis:'rg',fig:'74'},{axis:'control',fig:'74'},{axis:'tritan',fig:'74'}];
     // Two-digit figures drop a guess from 1-in-8 to 1-in-18. Zero and one are excluded as
     // leading digits: a 0 reads as the disc outline, and a 1 carries almost no ink at any
     // dot size this mosaic can resolve.
@@ -6475,71 +6604,75 @@
     // cfg.seed is unset today; it is the hook a future "reproduce this chart" feature
     // needs, because for a randomised chart the seed IS the chart.
     var st={test:cfg.test,line:4,mirror:!!cfg.mirror,order:(cfg.order==='random'?'random':'fixed'),
-      seed:(cfg.seed!=null?cfg.seed|0:(Math.random()*0x100000000)|0),content:null,plate:null,rowMode:'full'};
+      seed:(cfg.seed!=null?cfg.seed|0:(Math.random()*0x100000000)|0),content:null,plate:null,rowMode:'full',fixedPlate:0};
     var stage=document.getElementById('stage'),hud=document.getElementById('hud');
-    // The previous line multiplied a 31-bit seed by 1103515245 inside a double. That
-    // product reaches 1.1e18, well past the 9.0e15 where doubles are still exact, so the
-    // low bits of every state were rounding residue rather than arithmetic — and every
-    // seed collapsed onto a single ring of 10466 states. A colour plate draws about 8400
-    // numbers, so one plate was very nearly one lap of the whole sequence, and a
-    // five-letter Sloan row could only ever be one of 10466 of the 100000 that exist.
-    // mulberry32 keeps every product inside Math.imul's exact 32-bit domain: a full 2^32
-    // period, no float in the state, and the same single integer seed the rest of this
-    // engine already passes around.
-    function rnd(){
-      st.seed=(st.seed+0x6D2B79F5)|0;
-      var z=st.seed;
-      z=Math.imul(z^(z>>>15),z|1);
-      z^=z+Math.imul(z^(z>>>7),z|61);
-      return ((z^(z>>>14))>>>0)/4294967296;
-    }
+    // mulberry32 (CM.rngStep): a full 2^32 period with no float in the state. The old
+    // multiply-in-a-double generator collapsed every seed onto one ring of 10466 states.
+    function rnd(){var r=CM.rngStep(st.seed);st.seed=r[1];return r[0];}
     function seedFixed(){st.seed=987654321;}
     // Draw k of the n members of `arr` without replacement (partial Fisher-Yates on a copy).
     function pick(arr,k){var a=arr.slice();
       for(var i=0;i<k&&i<a.length;i++){var j=i+Math.floor(rnd()*(a.length-i)),tmp=a[i];a[i]=a[j];a[j]=tmp;}
       return a.slice(0,k);}
-    function heightPx(mar){return cfg.distanceMm*0.0014544*mar*cfg.pxPerMm;}
-    function fsz(mar){return heightPx(mar)/0.72;}
+    // Refuses to draw a chart of the wrong size: a non-positive distance or density is an
+    // error on the glass (boot() prints it), never a default-sized letter.
+    function heightPx(mar){var h=CM.heightPx(cfg.distanceMm,mar,cfg.pxPerMm);if(!(h>0))throw new Error('calibration: distance '+cfg.distanceMm+' mm, '+cfg.pxPerMm+' px/mm');return h;}
+    // The font's cap height is MEASURED, not assumed: Arial Bold is 0.716 em, the
+    // Liberation Sans that stands in for it on Linux/ChromeOS 0.688 em, and the 0.72 that
+    // was hard-coded here drew every optotype 4 % small on those machines. An 'E' is drawn
+    // on an offscreen canvas in the same font stack and its ink height read back.
+    var capRatio=0.72,bearingsEm=0.106;
+    function measureFont(){
+      try{
+        var N=200,c=document.createElement('canvas');c.width=N*2;c.height=N*2;var x=c.getContext('2d');
+        x.fillStyle='#000';x.font='700 '+N+'px Arial, "Liberation Sans", sans-serif';x.textBaseline='alphabetic';x.textAlign='left';
+        x.fillText('E',N/2,N*1.5);
+        var d=x.getImageData(0,0,N*2,N*2).data,top=-1,bot=-1,left=-1,right=-1;
+        for(var y=0;y<N*2;y++){var ink=false;for(var i=0;i<N*2;i++){if(d[(y*N*2+i)*4+3]>64){ink=true;if(left<0||i<left)left=i;if(i>right)right=i;}}if(ink){if(top<0)top=y;bot=y;}}
+        var h=(bot-top+1)/N,w=(right-left+1)/N,adv=x.measureText('E').width/N;
+        if(h>0.55&&h<0.9){capRatio=h;if(adv>w)bearingsEm=adv-w;}
+      }catch(e){}
+    }
+    function fsz(mar){return heightPx(mar)/capRatio;}
+    // ETDRS spacing: one letter width of ink gap between letters.
+    function spacing(f){return CM.letterSpacing(f,capRatio,bearingsEm);}
     // Every row is five DIFFERENT Sloan letters. ETDRS never repeats a letter within a
     // line: a duplicate can be inferred from its twin instead of resolved, so one
     // misreading costs two letters. Sampling with replacement — which is what this did —
     // put a repeat in about 70% of rows, while the fixed table it stands in for has none.
     function randLetters(n){return pick(SLOAN.split(''),Math.min(n,SLOAN.length)).join('');}
     function polar(cx,cy,r,deg){var a=(deg-90)*Math.PI/180;return[cx+r*Math.cos(a),cy+r*Math.sin(a)];}
-    function arc(cx,cy,r,a0,a1){var s=polar(cx,cy,r,a1),e=polar(cx,cy,r,a0),big=a1-a0<=180?'0':'1';return'M '+s[0]+' '+s[1]+' A '+r+' '+r+' 0 '+big+' 0 '+e[0]+' '+e[1];}
-    // Contrast is deliberately absent. The HUD prints CHART[st.line] for anything this
-    // returns true for, but the contrast branch draws one hard-coded size (CHART[4]),
-    // so the arrow keys walked a 20/20 readout over letters that never changed — an
-    // examiner could transcribe "20/20 at 3% contrast" off a 20/40 row.
-    // Weber contrast of an 8-bit grey against white, through the sRGB transfer function.
-    // The code values are not the contrasts: 0.5 of full code value is 78% contrast.
-    function eotf(v){v/=255;return v<=0.04045?v/12.92:Math.pow((v+0.055)/1.055,2.4);}
-    function weber(g){return (1-eotf(g))/1;}
+    // Weber contrast of an 8-bit grey against white, through the sRGB transfer function
+    // (CM.eotf / CM.weber). The code values are not the contrasts: 0.5 of full code value
+    // is 78% contrast, which is why the ladder is specified in luminance (CM.contrastLadder).
+    var eotf=CM.eotf,weber=CM.weber;
     function isAcuity(t){return t==='snellen'||t==='sloan'||t==='tumblingE'||t==='landoltC';}
+    // Tests whose optotype has a size the arrow keys can change.
+    function sizable(t){return isAcuity(t)||t==='duochrome';}
     // The opener translated everything this window says; S is that bundle, and sf
     // fills the one slot in it. The English fallbacks keep the chart readable if a
     // future caller forgets to pass strings.
     var S=cfg.s||{};
     function sf(str,n){return String(str).replace('{n}',n);}
-    function acuity(){if(st.test==='snellen'&&st.rowMode!=='single')return (S.fullChart||'full chart')+' · '+(st.order==='random'?(S.random||'random'):(S.fixed||'fixed'));var L=CHART[st.line];return L.sn+'  ·  '+(L.log>0?'+':'')+L.log.toFixed(2)+' logMAR';}
+    function acuity(){if(st.test==='snellen'&&st.rowMode!=='single')return (S.fullChart||'full chart')+' · '+(st.order==='random'?(S.random||'random'):(S.fixed||'fixed'));return CM.acuityLabel(st.line,cfg.unit);}
+    // What the examiner must know to interpret a contrast result: the letter size.
+    function contrastSize(){return S.contrastSize||'letters 20/40 size (10′) · Weber % contrast';}
 
     // Build the optotype content once per (test / line / order / shuffle);
     // re-layout (mirror, resize, fullscreen) reuses it so letters stay stable.
     function regen(){
       if(st.order==='fixed')seedFixed();
-      var t=st.test,R4=[0,90,180,270],R8=[0,45,90,135,180,225,270,315];
+      var t=st.test,R4=CM.R4,R8=CM.R8;
       if(t==='snellen'){st.content=CHART.map(function(L){return st.order==='fixed'?L.ch:randLetters(L.ch.length);});}
       else if(t==='sloan'){st.content=st.order==='fixed'?SLOAN_LINES[st.line]:randLetters(5);}
       // Orientations are drawn without replacement, not independently. Independent picks
       // put a run of three or more identical optotypes in one row of seven, and made one
       // row in two hundred all the same — and a visible run gives the answer away without
       // the patient resolving anything. Five of the C's eight orientations, and all four
-      // of the E's plus one repeat, is the closest this gets to a balanced row.
+      // of the E's plus one repeat, is the closest this gets to a balanced row. The fixed
+      // rows are tables (nine distinct E rows), not an expression.
       else if(t==='tumblingE'||t==='landoltC'){
-        if(st.order==='fixed'){var set=(t==='landoltC')?R8:R4,arr=[];
-          // Indexed by line as well as position: the old expression ignored st.line, so
-          // the fixed chart showed one identical pattern at every size.
-          for(var i=0;i<5;i++)arr.push(set[(i*3+1+st.line*2)%set.length]);st.content=arr;}
+        if(st.order==='fixed')st.content=CM.fixedOrientations(t,st.line);
         else st.content=(t==='landoltC')?pick(R8,5):pick(R4,4).concat(pick(R4,1));}
       // One triplet, shown on both halves. The patient is asked which SIDE is sharper, so
       // the two sides have to be equally legible; different letters make a legibility
@@ -6549,75 +6682,84 @@
       // A plate is a SAMPLE, not a drawing. Positions, radii and lightness levels are
       // fixed here in normalised coordinates and never touched again, because render()
       // runs on every resize event — a plate that re-rolled there would re-test the
-      // patient dozens of times during a window drag with nobody deciding to.
+      // patient dozens of times during a window drag with nobody deciding to. Only a
+      // test, order or shuffle change reaches here for the plate (size keys do not).
       else if(t==='color'){st.plate=samplePlate();}
       else st.content=null;
     }
     function samplePlate(){
-      if(st.order==='fixed')return {axis:'rg',fig:'74',dots:sampleDots('74')};
+      if(st.order==='fixed'){var fp=FIXED_PLATES[st.fixedPlate%FIXED_PLATES.length];return {axis:fp.axis,fig:fp.fig,dots:CM.sampleDots(fp.fig,rnd)};}
       // Excluding the previous figure is what makes a shuffle visibly do something. With
       // eighteen figures and no exclusion, one shuffle in eighteen changes nothing at all
       // and reads as a broken button.
       var prev=st.plate&&st.plate.fig,fig;
       do{fig=FIGURES[Math.floor(rnd()*FIGURES.length)];}while(fig===prev);
-      return {axis:PLATE_AXES[Math.floor(rnd()*PLATE_AXES.length)],fig:fig,dots:sampleDots(fig)};
+      return {axis:PLATE_AXES[Math.floor(rnd()*PLATE_AXES.length)],fig:fig,dots:CM.sampleDots(fig,rnd)};
     }
-    // Dot radius is derived from the numeral rather than hard-coded. A two-digit figure is
-    // set at 0.468 of the disc instead of 0.68, its thinnest bold stroke is about 0.11 of
-    // the font size, and a stroke needs roughly three dot diameters across it to read as a
-    // stroke instead of as noise. The retired code used a fixed 0.006-0.019 of the disc,
-    // which put about 1.3 dots across a two-digit stroke — the numeral would not have
-    // existed. Coordinates are normalised so the same sample rasterises at any size.
-    function sampleDots(fig){
-      var fsN=(fig.length>1?0.468:0.68),rMax=(0.11*fsN)/6,rMin=rMax*0.40;
-      var out=[],cell=rMax*2,grid={},N=fig.length>1?4600:2800,darts=N*8;
-      for(var d=0;d<darts&&out.length<N;d++){
-        var cx=rnd(),cy=rnd(),ddx=cx-0.5,ddy=cy-0.5;
-        if(ddx*ddx+ddy*ddy>0.25)continue;
-        var r=rMin+rnd()*(rMax-rMin),gx=(cx/cell)|0,gy=(cy/cell)|0,hit=false;
-        for(var a=-1;a<=1&&!hit;a++)for(var b=-1;b<=1&&!hit;b++){
-          var bk=grid[(gx+a)+','+(gy+b)];
-          if(bk)for(var i=0;i<bk.length;i++){var o=bk[i],ex=cx-o.cx,ey=cy-o.cy;
-            if(ex*ex+ey*ey<(r+o.r)*(r+o.r))hit=true;}}
-        if(hit)continue;
-        // The lightness level comes from the same call sequence for figure and ground
-        // dots alike. That is what makes the two distributions one distribution rather
-        // than two similar ones, and it is the only reason the jitter is safe.
-        var dot={cx:cx,cy:cy,r:r,lvl:Math.floor(rnd()*4)};
-        out.push(dot);var k=gx+','+gy;(grid[k]||(grid[k]=[])).push(dot);
-      }
-      return out;
-    }
+    // Dot radius is derived from the numeral rather than hard-coded (CM.sampleDots): a
+    // two-digit figure is set at 0.468 of the disc, its thinnest bold stroke is about 0.11
+    // of the font size, and a stroke needs roughly three dot diameters across it to read
+    // as a stroke instead of as noise. Coordinates are normalised so the same sample
+    // rasterises at any size.
+
+    // Tumbling E as a 5×5 optotype (ISO 8596): three 5×1 limbs at rows 0, 2, 4 and a 1×5
+    // stem, limbs pointing right; the code rotates it clockwise. A text glyph is not an
+    // optotype — its gaps are 1.3 units and its width 4 — so it is drawn, not typed.
+    function tumblingE(d,a){var u=d/5;
+      return '<svg width="'+d+'" height="'+d+'" viewBox="0 0 '+d+' '+d+'" style="margin:0 '+(d/2)+'px"><g transform="rotate('+a+' '+(d/2)+' '+(d/2)+')" fill="#000">'
+        +'<rect x="0" y="0" width="'+u+'" height="'+d+'"/><rect x="0" y="0" width="'+d+'" height="'+u+'"/><rect x="0" y="'+(2*u)+'" width="'+d+'" height="'+u+'"/><rect x="0" y="'+(4*u)+'" width="'+d+'" height="'+u+'"/></g></svg>';}
+    // Landolt ring: a full ring with the gap cut out by a white slot one stroke wide with
+    // PARALLEL sides (an arc with butt caps left a wedge 0.75–1.25 strokes wide).
+    function landoltC(d,a){var g=CM.landolt(d);
+      return '<svg width="'+d+'" height="'+d+'" viewBox="0 0 '+d+' '+d+'" style="margin:0 '+(d/2)+'px"><circle cx="'+(d/2)+'" cy="'+(d/2)+'" r="'+g.r+'" fill="none" stroke="#000" stroke-width="'+g.sw+'"/>'
+        +'<rect x="'+(d/2-g.gap/2)+'" y="-1" width="'+g.gap+'" height="'+(d/2+1)+'" fill="#fff" transform="rotate('+a+' '+(d/2)+' '+(d/2)+')"/></svg>';}
 
     function render(){
       document.body.style.background='#fff';clearNote();
       var t=st.test;
       if(t==='snellen'){
         if(st.rowMode==='single'){var f=fsz(CHART[st.line].mar);
-          stage.innerHTML='<div class="single"><span class="lab" style="margin-right:28px">'+CHART[st.line].sn+'</span><span class="opt" style="font-size:'+f+'px;letter-spacing:'+(f*0.24)+'px">'+st.content[st.line]+'</span></div>';
+          stage.innerHTML='<div class="single"><span class="lab" style="margin-right:28px">'+CHART[st.line].sn+'</span><span class="opt" style="font-size:'+f+'px;letter-spacing:'+spacing(f)+'px">'+st.content[st.line]+'</span></div>';
         }else{var h='';for(var i=0;i<CHART.length;i++){var f2=fsz(CHART[i].mar);
-          h+='<div class="row"><span class="lab">'+CHART[i].sn+'</span><span class="opt" style="font-size:'+f2+'px;letter-spacing:'+(f2*0.24)+'px">'+st.content[i]+'</span></div>';}
-          stage.innerHTML='<div class="chart">'+h+'</div>';}
-      }else if(t==='sloan'){var f=fsz(CHART[st.line].mar);stage.innerHTML='<div class="single"><span class="opt" style="font-size:'+f+'px;letter-spacing:'+(f*0.32)+'px">'+st.content+'</span></div>';
-      }else if(t==='tumblingE'){var f=fsz(CHART[st.line].mar),s='';for(var i=0;i<5;i++)s+='<span class="opt" style="font-size:'+f+'px;display:inline-block;transform:rotate('+st.content[i]+'deg);margin:0 '+(f*0.28)+'px">E</span>';stage.innerHTML='<div class="single">'+s+'</div>';
-      }else if(t==='landoltC'){var d=heightPx(CHART[st.line].mar),s='';for(var i=0;i<5;i++){var sw=d/5,r=(d-sw)/2,g=(sw/r)*180/Math.PI,a=st.content[i];s+='<svg width="'+d+'" height="'+d+'" viewBox="0 0 '+d+' '+d+'" style="margin:0 '+(d*0.28)+'px"><path d="'+arc(d/2,d/2,r,a+g/2,a-g/2+360)+'" fill="none" stroke="#000" stroke-width="'+sw+'"/></svg>';}stage.innerHTML='<div class="single">'+s+'</div>';
+          // Row gap = the height of the row below (ETDRS), not a fixed share of the window.
+          var gap=i<CHART.length-1?heightPx(CHART[i+1].mar):0;
+          h+='<div class="row" style="margin-bottom:'+gap+'px"><span class="lab">'+CHART[i].sn+'</span><span class="opt" style="font-size:'+f2+'px;letter-spacing:'+spacing(f2)+'px">'+st.content[i]+'</span></div>';}
+          stage.innerHTML='<div class="chart" style="gap:0">'+h+'</div>';}
+      }else if(t==='sloan'){var f=fsz(CHART[st.line].mar);stage.innerHTML='<div class="single"><span class="opt" style="font-size:'+f+'px;letter-spacing:'+spacing(f)+'px">'+st.content+'</span></div>';
+      }else if(t==='tumblingE'){var d=heightPx(CHART[st.line].mar),s='';for(var i=0;i<5;i++)s+=tumblingE(d,st.content[i]);stage.innerHTML='<div class="single">'+s+'</div>';
+      }else if(t==='landoltC'){var d=heightPx(CHART[st.line].mar),s='';for(var i=0;i<5;i++)s+=landoltC(d,st.content[i]);stage.innerHTML='<div class="single">'+s+'</div>';
       // The green was #0a8a2a, whose luminance is 1.55x the red's — so the green half read
       // as the higher-contrast side and very nearly every patient called it clearer. The
-      // clinician corrects "green is clearer" by adding minus, so an unbalanced duochrome
-      // does not merely add noise, it biases the refraction one way. #0a702a lands at
-      // Y=0.1182 against the red's 0.1187, a 0.4% match. The line is clamped at both ends
-      // now: duochrome is read about a line above best acuity, and the top of the ladder
-      // put it at 20/15.
-      }else if(t==='duochrome'){var f=fsz(CHART[Math.min(6,Math.max(3,st.line))].mar);stage.innerHTML='<div class="duo"><div class="half" style="background:#c0161d"><span class="opt" style="font-size:'+f+'px;letter-spacing:'+(f*0.3)+'px">'+st.content[0]+'</span></div><div class="half" style="background:#0a702a"><span class="opt" style="font-size:'+f+'px;letter-spacing:'+(f*0.3)+'px">'+st.content[1]+'</span></div></div>';
-      }else if(t==='astig'){var R=Math.min(innerWidth,innerHeight)*0.42,sw=Math.max(2,R*0.015),L='';for(var d2=0;d2<180;d2+=30){var p1=[R+Math.cos(d2*Math.PI/180)*R,R+Math.sin(d2*Math.PI/180)*R],p2=[R-Math.cos(d2*Math.PI/180)*R,R-Math.sin(d2*Math.PI/180)*R];L+='<line x1="'+p1[0]+'" y1="'+p1[1]+'" x2="'+p2[0]+'" y2="'+p2[1]+'" stroke="#000" stroke-width="'+sw+'"/>';}stage.innerHTML='<svg width="'+(2*R)+'" height="'+(2*R)+'" viewBox="0 0 '+(2*R)+' '+(2*R)+'">'+L+'<circle cx="'+R+'" cy="'+R+'" r="'+(sw*1.4)+'" fill="#000"/></svg>';
-      }else if(t==='amsler'){document.body.style.background='#000';var side=Math.min(innerWidth,innerHeight)*0.82,n=20,step=side/n,L='';for(var i=0;i<=n;i++){var p=i*step;L+='<line x1="'+p+'" y1="0" x2="'+p+'" y2="'+side+'" stroke="#fff" stroke-width="1"/><line x1="0" y1="'+p+'" x2="'+side+'" y2="'+p+'" stroke="#fff" stroke-width="1"/>';}L+='<circle cx="'+(side/2)+'" cy="'+(side/2)+'" r="'+(step*0.32)+'" fill="#fff"/>';stage.innerHTML='<svg width="'+side+'" height="'+side+'" viewBox="0 0 '+side+' '+side+'">'+L+'</svg>';
-      // The ladder is written in gamma-encoded code values, so the numbers it was named
-      // for are not the contrasts it produces. Each row is now labelled with the Weber
-      // contrast actually on the glass, computed back through the sRGB transfer function
-      // from the code value being drawn — 100 / 78 / 48 / 26 / 13 / 7 %, not the nominal
-      // 100 / 50 / 25 / 12 / 6 / 3. Respecifying the ladder itself is a separate decision.
-      }else if(t==='contrast'){var C=[1,0.5,0.25,0.12,0.06,0.03],f=fsz(CHART[4].mar),s='';for(var i=0;i<C.length;i++){var g=Math.round(255*(1-C[i]));
-          s+='<div class="row"><span class="lab clab">'+sf(S.pctContrast||'{n}% contrast',Math.round(weber(g)*100))+'</span><span class="opt" style="font-size:'+f+'px">'+'<span style="color:rgb('+g+','+g+','+g+')">'+st.content[i]+'</span></span></div>';}stage.innerHTML='<div class="chart">'+s+'</div>';
+      // clinician corrects "green is clearer" by adding PLUS (RAM-GAP: red add minus,
+      // green add plus), so an unbalanced duochrome does not merely add noise, it biases
+      // the refraction toward over-plus. #0a702a lands at Y=0.1182 against the red's
+      // 0.1187, a 0.4% match. The line is clamped at both ends: duochrome is read about a
+      // line above best acuity, and the top of the ladder put it at 20/15.
+      }else if(t==='duochrome'){var f=fsz(CHART[CM.duochromeLine(st.line)].mar);stage.innerHTML='<div class="duo"><div class="half" style="background:#c0161d"><span class="opt" style="font-size:'+f+'px;letter-spacing:'+(f*0.3)+'px">'+st.content[0]+'</span></div><div class="half" style="background:#0a702a"><span class="opt" style="font-size:'+f+'px;letter-spacing:'+(f*0.3)+'px">'+st.content[1]+'</span></div></div>';
+      // Clock dial with its hour numerals: the read-back is "which hour is darkest", and
+      // hour × 30 is the axis. Numerals are un-mirrored in a mirrored room (lines are
+      // symmetric, digits are not).
+      }else if(t==='astig'){var R=Math.min(innerWidth,innerHeight)*0.40,sw=Math.max(2,R*0.015),L='',C=R*1.12,fsN=Math.max(12,R*0.09);
+        for(var d2=0;d2<180;d2+=30){var p1=[C+Math.cos(d2*Math.PI/180)*R,C+Math.sin(d2*Math.PI/180)*R],p2=[C-Math.cos(d2*Math.PI/180)*R,C-Math.sin(d2*Math.PI/180)*R];L+='<line x1="'+p1[0]+'" y1="'+p1[1]+'" x2="'+p2[0]+'" y2="'+p2[1]+'" stroke="#000" stroke-width="'+sw+'"/>';}
+        for(var hr=1;hr<=12;hr++){var ang=(hr*30-90)*Math.PI/180,nx=C+Math.cos(ang)*R*1.08,ny=C+Math.sin(ang)*R*1.08;
+          L+='<text x="'+nx+'" y="'+ny+'" font-family="Arial,sans-serif" font-size="'+fsN+'" fill="#000" text-anchor="middle" dominant-baseline="central"'+(st.mirror?' transform="scale(-1 1) translate('+(-2*nx)+' 0)"':'')+'>'+hr+'</text>';}
+        stage.innerHTML='<svg width="'+(2*C)+'" height="'+(2*C)+'" viewBox="0 0 '+(2*C)+' '+(2*C)+'">'+L+'<circle cx="'+C+'" cy="'+C+'" r="'+(sw*1.4)+'" fill="#000"/></svg>';
+      // Amsler: 20 squares of 5 mm (10 cm) viewed at 30 cm, 1° per square, ±10°. The
+      // viewing distance is its own (not the acuity distance) and is printed in the HUD;
+      // if the window cannot hold 10 cm the grid shrinks and the distance for 1°/square
+      // is printed instead. The fixation dot is ~1.2 mm, small enough not to hide a
+      // central scotoma.
+      }else if(t==='amsler'){document.body.style.background='#000';var am=CM.amsler(cfg.pxPerMm,Math.min(innerWidth,innerHeight)*0.95),side=am.sidePx,n=am.n,step=am.cellPx,L='';st.amsler=am;
+        for(var i=0;i<=n;i++){var p=i*step;L+='<line x1="'+p+'" y1="0" x2="'+p+'" y2="'+side+'" stroke="#fff" stroke-width="1"/><line x1="0" y1="'+p+'" x2="'+side+'" y2="'+p+'" stroke="#fff" stroke-width="1"/>';}
+        L+='<circle cx="'+(side/2)+'" cy="'+(side/2)+'" r="'+am.dotPx+'" fill="#fff"/>';stage.innerHTML='<svg width="'+side+'" height="'+side+'" viewBox="0 0 '+side+' '+side+'">'+L+'</svg>';
+        addNote(S.amslerNote||'One eye at a time, wearing the near correction, looking at the centre dot.');
+      // The ladder is specified in luminance (CM.contrastLadder): each code value is the
+      // sRGB encoding of 1 − C, so the rows are 100 / 50 / 25 / 12 / 6 / 3 % Weber. Each
+      // row is still labelled with the contrast computed back from the code value drawn.
+      // Letters are 20/40-sized (10′); the HUD says so, since a contrast result without
+      // its letter size is not comparable with anything.
+      }else if(t==='contrast'){var lad=CM.contrastLadder(),f=fsz(CHART[4].mar),s='';for(var i=0;i<lad.length;i++){var g=lad[i].g;
+          s+='<div class="row"><span class="lab clab">'+sf(S.pctContrast||'{n}% contrast',lad[i].pct)+'</span><span class="opt" style="font-size:'+f+'px">'+'<span style="color:rgb('+g+','+g+','+g+')">'+st.content[i]+'</span></span></div>';}stage.innerHTML='<div class="chart">'+s+'</div>';
       }else if(t==='color'){renderColor();
       }else if(t==='fixation'){stage.innerHTML='<svg width="220" height="220" viewBox="0 0 220 220"><line x1="110" y1="16" x2="110" y2="204" stroke="#000" stroke-width="6"/><line x1="16" y1="110" x2="204" y2="110" stroke="#000" stroke-width="6"/><circle cx="110" cy="110" r="11" fill="#e11d1d"/></svg>';
       }else if(t==='blankW'){stage.innerHTML='';
@@ -6633,11 +6775,22 @@
         +'display:flex;align-items:center;justify-content:center;font:14px sans-serif;color:#666">85.6 mm</div>';
       if(hud)hud.innerHTML='<b>'+(S.calibration||'Calibration')+'</b> · '+Math.round(px*25.4)+' ppi'
         +'<span class="k">'+(S.holdCard||'hold a card against the box and match its width')+'</span>';}
-    // Fit the tall Snellen pyramid to the viewport (scaled charts aren't distance-accurate).
+    // Fit whatever overflows the viewport — the tall Snellen pyramid, or a 20/200 single
+    // row wider than the screen — and say so: a scaled chart is not distance-accurate,
+    // but a clipped one silently scores the patient on three letters of five.
+    // The extent is the union of the drawn elements' boxes, measured with any earlier
+    // scale removed. Not the stage's scroll size: the stage is the whole window, so that
+    // was never under 98 % of it (every chart read "scaled 95 %"), and a centred overflow
+    // spills equally on both sides while scrollWidth/Height count only one of them.
+    function contentBox(){var els=stage.querySelectorAll('*'),l=Infinity,t=Infinity,r=-Infinity,b=-Infinity;
+      for(var i=0;i<els.length;i++){var q=els[i].getBoundingClientRect();if(!q.width&&!q.height)continue;if(q.left<l)l=q.left;if(q.top<t)t=q.top;if(q.right>r)r=q.right;if(q.bottom>b)b=q.bottom;}
+      return r>l?{w:r-l,h:b-t}:null;}
     function applyTransform(){
       stage.style.transformOrigin='center center';
       var tf=st.mirror?'scaleX(-1)':'';st.scaled=1;
-      if(st.test==='snellen'&&st.rowMode!=='single'){var sh=stage.scrollHeight,vh=window.innerHeight*0.95;if(sh>vh){st.scaled=vh/sh;tf+=' scale('+st.scaled.toFixed(4)+')';}}
+      stage.style.transform=tf;
+      var box=st.test==='color'?null:contentBox(),vw=window.innerWidth*0.98,vh=window.innerHeight*0.95;
+      if(box&&(box.w>vw||box.h>vh)){st.scaled=Math.min(vw/box.w,vh/box.h);tf+=' scale('+st.scaled.toFixed(4)+')';}
       stage.style.transform=tf;
     }
     // The fillText + getImageData readback is most of what a plate costs (about 12 ms of
@@ -6686,7 +6839,12 @@
       var nt=document.createElement('div');nt.id='cnote';nt.className='cnote';
       nt.textContent=txt;document.body.appendChild(nt);}
     function clearNote(){var o=document.getElementById('cnote');if(o)o.remove();}
-    function updateHud(){if(!hud)return;var parts=[cfg.names[st.test]||st.test];if(isAcuity(st.test))parts.push(acuity());parts.push(cfg.distanceLabel);
+    function updateHud(){if(!hud)return;var parts=[cfg.names[st.test]||st.test];if(isAcuity(st.test))parts.push(acuity());
+      if(st.test==='contrast')parts.push(contrastSize());
+      // The Amsler grid has its own viewing distance; the acuity distance would be wrong.
+      if(st.test==='amsler'&&st.amsler)parts.push(sf(S.amslerHud||'view at {n} cm · 1°/square',Math.round(st.amsler.viewMm/10)));
+      else parts.push(cfg.distanceLabel);
+      if(st.test==='astig')parts.push(S.clockKey||'darkest line: clock hour × 30 = axis');
       // The axis, never the figure: the patient can read this window too.
       if(st.test==='color'&&st.plate)parts.push(S['axis_'+st.plate.axis]||st.plate.axis);
       if(st.scaled&&st.scaled<0.999)parts.push(sf(S.scaled||'scaled {n}% (not distance-true)',Math.round(st.scaled*100)));
@@ -6695,7 +6853,7 @@
       // display and corrected for scale but not for physical pixel pitch.
       if(cfg.calEstimated)parts.push(S.estimated||'calibration estimated for this screen');
       hud.innerHTML='<b>'+parts[0]+'</b> · '+parts.slice(1).join(' · ')
-        +'<span class="k">↑↓ '+(S.size||'size')+' · ←→ '+(S.test||'test')+' · R '+(S.shuffle||'shuffle')
+        +'<span class="k">'+(sizable(st.test)?'↑↓ '+(S.size||'size')+' · ':'')+'←→ '+(S.test||'test')+' · R '+(S.shuffle||'shuffle')
         +' · O '+(S.order||'order')+' · C '+(S.rows||'rows')+' · M '+(S.mirror||'mirror')
         +' · F '+(S.full||'full')+' · H '+(S.hide||'hide')+'</span>';}
     function nav(d){var i=ORDER.indexOf(st.test);st.test=ORDER[(i+d+ORDER.length)%ORDER.length];regen();render();}
@@ -6710,21 +6868,41 @@
       if(t==='sloan')return c||'';
       if(t==='duochrome')return c?c[0]:'';
       if(t==='contrast')return c?c.join(' · '):'';
-      if(t==='tumblingE'||t==='landoltC')return c?c.map(function(a){
-        return {0:'↑',45:'↗',90:'→',135:'↘',180:'↓',225:'↙',270:'←',315:'↖'}[a]||a;}).join(' '):'';
+      // Each optotype's own key: the E's code is a clockwise turn of a limbs-right glyph,
+      // the C's is its gap's clock position (CM.orientationArrow).
+      if(t==='tumblingE'||t==='landoltC')return c?c.map(function(a){return CM.orientationArrow(t,a);}).join(' '):'';
+      if(t==='astig'){var k=[];for(var h=1;h<=6;h++)k.push(h+'→'+CM.clockAxis(h)+'°');return k.join(' ');}
       return '';}
     var flashT=null;
     function flashHud(msg){if(!hud)return;hud.classList.remove('hide');
       var k=hud.querySelector('.k');if(!k)return;var was=k.innerHTML;
       k.textContent=msg;clearTimeout(flashT);flashT=setTimeout(function(){k.innerHTML=was;},1600);}
+    // A size step: only on tests that have a size. The contrast rows, the plate and the
+    // Amsler grid used to be re-rolled by ↑/↓ with nothing visibly changing size. On the
+    // full random Snellen the letters are already there for every row, so the key only
+    // moves the answer-key row and must not regenerate the wall; duochrome is clamped to
+    // its 20/50–20/25 band and says so at the ends.
+    function step(dir){
+      if(!sizable(st.test)){flashHud(S.noSize||'nothing to resize on this test');return;}
+      var lo=0,hi=CHART.length-1;
+      if(st.test==='duochrome'){lo=3;hi=6;}
+      var n=Math.min(hi,Math.max(lo,st.line+dir));
+      if(n===st.line){flashHud(S.noSize||'nothing to resize on this test');return;}
+      st.line=n;
+      if(st.test==='snellen'&&st.rowMode!=='single'){render();return;}
+      regen();render();}
     window.CARINO={
-      bigger:function(){st.line=Math.max(0,st.line-1);regen();render();},
-      smaller:function(){st.line=Math.min(CHART.length-1,st.line+1);regen();render();},
+      bigger:function(){step(-1);},
+      smaller:function(){step(1);},
       shuffle:function(){
         if(!shufflable(st.test)){flashHud(S.noShuffle||'nothing to shuffle on this test');return;}
+        // In fixed order the plate steps through rg → control → tritan instead of leaving
+        // fixed order, so the control plate can be asked for.
+        if(st.test==='color'&&st.order==='fixed'){st.fixedPlate=(st.fixedPlate+1)%FIXED_PLATES.length;regen();render();return;}
         st.order='random';st.seed=(st.seed+((Math.random()*0x100000000)|0))|0;regen();render();},
       order:function(o){st.order=(o==='fixed'||o==='random')?o:(st.order==='fixed'?'random':'fixed');regen();render();},
-      mirror:function(){st.mirror=!st.mirror;applyTransform();updateHud();},
+      // The dial's numerals must be re-drawn un-mirrored; everything else only re-layouts.
+      mirror:function(){st.mirror=!st.mirror;if(st.test==='astig')render();else{applyTransform();updateHud();}},
       toggleRows:function(){if(st.test==='snellen'){st.rowMode=(st.rowMode==='single'?'full':'single');render();}},
       fs:function(){try{var p=document.documentElement.requestFullscreen();if(p&&p.catch)p.catch(function(){});}catch(e){}},
       setTest:function(id){st.test=id;regen();render();},
@@ -6734,6 +6912,7 @@
         if(o.distanceMm!=null)cfg.distanceMm=o.distanceMm;
         if(o.pxPerMm!=null)cfg.pxPerMm=o.pxPerMm;
         if(o.distanceLabel!=null)cfg.distanceLabel=o.distanceLabel;
+        if(o.unit!=null)cfg.unit=o.unit;
         if(o.calEstimated!=null)cfg.calEstimated=!!o.calEstimated;
         if(o.mirror!=null)st.mirror=!!o.mirror;
         // Only a change of ORDER is a change of content. Everything else this accepts is
@@ -6746,14 +6925,16 @@
         // overwritten by the value being pushed — the slider drives setCal, and a
         // render() here would wipe the card mid-measurement.
         if(st.cal!=null){renderCal();return;}
+        measureFont();   // fonts may have finished loading since boot
         if(reroll)regen();
         render();},
       // Draw the 85.6 mm card ON THIS display, so it can be measured where it is
-      // actually used. px==null leaves calibration mode and re-renders the test.
+      // actually used. px==null leaves calibration mode and re-renders the test — the
+      // plate it was showing included (leaving the card is not a reason to re-roll it).
       setCal:function(px){
-        if(px==null){st.cal=null;regen();render();return;}
+        if(px==null){st.cal=null;if(!(st.test==='color'&&st.plate))regen();render();return;}
         st.cal=px;cfg.pxPerMm=px;renderCal();},
-      state:function(){return{test:st.test,acuity:isAcuity(st.test)?acuity():'',order:st.order,rows:st.rowMode,snellen:st.test==='snellen',
+      state:function(){return{test:st.test,acuity:isAcuity(st.test)?acuity():(st.test==='contrast'?contrastSize():''),order:st.order,rows:st.rowMode,snellen:st.test==='snellen',
         // The chart is on the far wall and the panel is in the clinician's hand. Without
         // this there was no answer key for a randomised chart at all, and no way to know
         // which figure the colour plate was showing.
@@ -6802,7 +6983,7 @@
         hud.classList.remove('hide');
         hud.textContent=(S.chartFailed||'The chart failed to start — reload and try again')
           +' · '+(err&&err.message?err.message:err);}catch(e2){}}}
-    boot(function(){regen();render();});
+    boot(function(){measureFont();regen();render();});
   }
 
   // Tests modal: grid (pick a test) → remote (control the presenting chart)
@@ -6885,7 +7066,7 @@
     return new Promise(resolve=>{
       const e=study.eyes[key];if(!e.img){resolve(null);return;}
       const cv=document.createElement('canvas');cv.width=e.w;cv.height=e.h;const x=cv.getContext('2d');
-      const im=new Image();im.onload=()=>{x.drawImage(im,0,0,e.w,e.h);
+      const im=new Image();im.onload=()=>{x.fillStyle='#000';x.fillRect(0,0,e.w,e.h);x.drawImage(im,0,0,e.w,e.h);
         // On screen, not in a file: this one takes the app language.
         const data='<svg xmlns="http://www.w3.org/2000/svg" width="'+e.w+'" height="'+e.h+'" viewBox="0 0 '+e.w+' '+e.h+'">'+staticMarksSVG(e,{disc:t('Disc'),cup:t('Cup'),les:v=>t(v)})+'</svg>';
         const s2=new Image();s2.onload=()=>{x.drawImage(s2,0,0);resolve(cv.toDataURL('image/png'));};s2.onerror=()=>resolve(cv.toDataURL('image/png'));
@@ -6897,37 +7078,41 @@
   // ---------- Lens centration layout (dispensing) ----------
   function renderLensLayout(){
     const el=$('lensLayout');if(!el)return;
-    const g=study.dispense;
-    const A=parseFloat(g.frameA),B=parseFloat(g.frameB),DBL=parseFloat(g.frameDBL);
-    if(!(A>0&&B>0&&DBL>=0)){el.innerHTML='<div class="lens-note">'+t('Enter frame A, B and DBL to see the centration layout.')+'</div>';return;}
-    const pdBino=parseFloat(g.pdDist)||0,frameHalf=(A+DBL)/2;
+    const g=study.dispense,dOD=study.eyes.OD.disp||{},dOS=study.eyes.OS.disp||{};
+    // The arithmetic (comma-tolerant parsing, mono fallback, OC vs seg height, quarter-mm
+    // decentration) is RC.centration; this draws what it returns.
+    const geo=k=>RC.centration({A:g.frameA,B:g.frameB,DBL:g.frameDBL,pdDist:g.pdDist,monoOD:dOD.pdMonoDist,monoOS:dOS.pdMonoDist,eye:k,fitHt:(k==='OD'?dOD:dOS).fitHt,segHt:(k==='OD'?dOD:dOS).segHt});
+    const gOD=geo('OD'),gOS=geo('OS');
+    if(!gOD){el.innerHTML='<div class="lens-note">'+t('Enter frame A, B and DBL to see the centration layout.')+'</div>';return;}
+    const P=v=>{const n=parseStep(v,'num');return n==null?NaN:n;},A=P(g.frameA),B=P(g.frameB),DBL=P(g.frameDBL);
     // Called from setMod while the dispensing pane may still be hidden, where clientWidth
     // is 0: (0-16)/W is negative but truthy, so the old `||3` never fired and every
     // coordinate came out negative. Clamp on both sides instead.
     const cw=el.clientWidth||320;
     const W=2*A+DBL+20,H=B+42,sc=Math.max(0.5,Math.min(3.4,(cw-16)/W)),px=v=>+(v*sc).toFixed(1);
     const midX=10+A+DBL/2,topY=18;
-    function lens(kd,x0,d){
-      const cx=x0+A/2,mono=parseFloat(d.pdMonoDist)||(pdBino?pdBino/2:null);
-      const fh=parseFloat(d.segHt)||parseFloat(d.fitHt)||B/2;
+    function lens(kd,x0,c){
+      const cx=x0+A/2,mono=c.mono,fh=c.fh;
       const ocx=(mono!=null)?((kd==='OD')?midX-mono:midX+mono):cx, ocy=(topY+B)-fh;
       let o='<rect x="'+px(x0)+'" y="'+px(topY)+'" width="'+px(A)+'" height="'+px(B)+'" rx="'+px(3)+'" fill="none" stroke="#666" stroke-width="1"/>';
       o+='<line x1="'+px(x0)+'" y1="'+px(topY+B/2)+'" x2="'+px(x0+A)+'" y2="'+px(topY+B/2)+'" stroke="#3a3a3a" stroke-dasharray="3 3"/>';
+      // Segment top: a short grey line at its own height, separate from the OC cross.
+      if(c.seg!=null)o+='<line x1="'+px(cx-A/4)+'" y1="'+px(topY+B-c.seg)+'" x2="'+px(cx+A/4)+'" y2="'+px(topY+B-c.seg)+'" stroke="#8a8a8a" stroke-width="1"/><text x="'+px(cx+A/4+1)+'" y="'+px(topY+B-c.seg+2)+'" fill="#8a8a8a" font-size="6" text-anchor="start">'+escHtml(t('seg'))+'</text>';
       o+='<g stroke="#eab308" stroke-width="1.4"><line x1="'+px(ocx-4)+'" y1="'+px(ocy)+'" x2="'+px(ocx+4)+'" y2="'+px(ocy)+'"/><line x1="'+px(ocx)+'" y1="'+px(ocy-4)+'" x2="'+px(ocx)+'" y2="'+px(ocy+4)+'"/><circle cx="'+px(ocx)+'" cy="'+px(ocy)+'" r="'+px(2.4)+'" fill="none"/></g>';
       o+='<text x="'+px(cx)+'" y="'+px(topY-4)+'" fill="#8a8a8a" font-size="9" text-anchor="middle">'+kd+'</text>';
-      const dec=(mono!=null)?(frameHalf-mono):null;
       // in/out is nasal vs temporal decentration — the word an optician grinds by.
-      // 'dec' and 'h' stay short because lensNote quotes them by those names.
-      const decTxt=(dec!=null)?(t('dec')+' '+Math.abs(dec).toFixed(1)+' '+t(dec>=0?'in':'out')):t('PD?');
-      o+='<text x="'+px(cx)+'" y="'+px(topY+B+13)+'" fill="#b8b8b8" font-size="8" text-anchor="middle">'+escHtml(decTxt)+' · '+escHtml(t('h'))+' '+fh.toFixed(1)+'</text>';
+      // 'dec' and 'h' stay short because lensNote quotes them by those names. A value
+      // outside the eyeshape is marked '?' rather than drawn outside it silently.
+      const decTxt=(c.dec!=null)?(t('dec')+' '+c.decTxt+' '+t(c.dir==='out'?'out':'in')+(c.decOut?' ?':'')):t('PD?');
+      o+='<text x="'+px(cx)+'" y="'+px(topY+B+13)+'" fill="'+(c.decOut||c.fhOut?'#f59e0b':'#b8b8b8')+'" font-size="8" text-anchor="middle">'+escHtml(decTxt)+' · '+escHtml(t('h'))+' '+fh.toFixed(1)+(c.fhOut?' ?':'')+'</text>';
       return o;
     }
     // The card is now wider than the drawing, so state preserveAspectRatio: this is read
     // as a scaled lens layout and must letterbox, never stretch.
     let s='<svg viewBox="0 0 '+px(W)+' '+px(H)+'" style="max-height:clamp(140px,24vh,320px)" preserveAspectRatio="xMidYMid meet">';
     s+='<line x1="'+px(midX)+'" y1="'+px(6)+'" x2="'+px(midX)+'" y2="'+px(topY+B+4)+'" stroke="#eab308" stroke-dasharray="2 3" stroke-width="0.8" opacity="0.55"/>';
-    s+=lens('OD',10,study.eyes.OD.disp||{});
-    s+=lens('OS',10+A+DBL,study.eyes.OS.disp||{});
+    s+=lens('OD',10,gOD);
+    s+=lens('OS',10+A+DBL,gOS);
     s+='</svg>';
     el.innerHTML=s;
   }

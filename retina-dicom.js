@@ -301,8 +301,15 @@
       // Camera pictures can carry burned-in names or dates; YES unless the clinic said No.
       .put(0x00280301, 'CS', o.burnedIn === false ? 'NO' : 'YES')
       .seq(0x00400555, []);                                        // Acquisition Context, Type 2
-    // Only a real capture time (EXIF DateTimeOriginal); a file's mtime is not one.
-    if (o.acquiredAt && /^\d{14}$/.test(o.acquiredAt)) ds.put(0x0008002A, 'DT', o.acquiredAt);
+    // Pixel Spacing (0028,0030): the camera's nominal retinal scale, Type 1C — required
+    // when the device is a fundus camera. Row and column spacing are the same value.
+    // Retina's disc-derived mm/px is an assumption, not a calibration, and is never written.
+    const pm = pixelMmOf(o.pixelMm);
+    if (pm && dv === DEVICES.fundus) ds.put(0x00280030, 'DS', [pm, pm]);
+    // Only a real capture time (EXIF DateTimeOriginal); a file's mtime is not one. A
+    // camera with an unset clock writes '2016:00:00 00:00:00': a 14-digit string is not
+    // yet a date, so the fields are checked before it becomes a DT.
+    if (validDT(o.acquiredAt)) ds.put(0x0008002A, 'DT', o.acquiredAt);
     // "00" only for formats that cannot be lossy; anything else may have been (WebP,
     // AVIF, HEIC… are all admitted by the image picker), and claiming "never lossy" for
     // those would be false. Once "01" it may never be reset, so erring that way is safe.
@@ -310,6 +317,22 @@
     ds.put(0x00282110, 'CS', lossy ? '01' : '00');
     if (lossy) ds.put(0x00282112, 'DS', ratio(o.sourceBytes, o.w, o.h)).put(0x00282114, 'CS', lossy);
     return ds;
+  }
+  // YYYYMMDDHHMMSS with every field in range (PS3.5 §6.2 DT): month 1–12, day 1–31,
+  // hour 0–23, minute and second 0–59, and a date that exists.
+  function validDT(s) {
+    if (typeof s !== 'string' || !/^\d{14}$/.test(s)) return false;
+    const y = +s.slice(0, 4), mo = +s.slice(4, 6), d = +s.slice(6, 8), h = +s.slice(8, 10), mi = +s.slice(10, 12), se = +s.slice(12, 14);
+    if (y < 1 || mo < 1 || mo > 12 || d < 1 || d > 31 || h > 23 || mi > 59 || se > 59) return false;
+    const dt = new Date(Date.UTC(y, mo - 1, d));
+    return dt.getUTCFullYear() === y && dt.getUTCMonth() === mo - 1 && dt.getUTCDate() === d;
+  }
+  // A nominal pixel spacing in mm: a finite number in the range a fundus camera can have
+  // (0.0005–0.1 mm/px), as a DS string of at most 16 characters; null otherwise.
+  function pixelMmOf(v) {
+    const n = typeof v === 'string' ? parseFloat(v.replace(',', '.')) : +v;
+    if (!isFinite(n) || n < 0.0005 || n > 0.1) return null;
+    return String(+n.toPrecision(6));
   }
   // Lossy Image Compression Method (0028,2114), Type 1C when (0028,2110) is "01".
   // PS3.3 C.7.6.1.1.5.1 Defined Terms where one exists (JPEG = ISO_10918_1, HEVC/HEIF =
@@ -431,6 +454,6 @@
   return {
     UID_ROOT, TS_EXPLICIT_LE, SOP_PDF, SOP_OP8, UID_RE, DEVICES,
     DS, cap, pn, da, isUID, mintUID, part10, patientStudy, encapsulatedPdf, opHeader, opFinish, rgbaToRgb,
-    multipart, parseStow, stowOutcome, lossyMethod, backoff, normBase, isLoopbackHost
+    multipart, parseStow, stowOutcome, lossyMethod, validDT, pixelMmOf, backoff, normBase, isLoopbackHost
   };
 });

@@ -29,6 +29,7 @@
       { "from": "../carino-lang.js", "to": "web/carino-lang.js" },
       { "from": "../carino-clock.js", "to": "web/carino-clock.js" },
       { "from": "../retina-store.js", "to": "web/retina-store.js" },
+      { "from": "../retina-clinical.js", "to": "web/retina-clinical.js" },
       { "from": "../retina-dicom.js", "to": "web/retina-dicom.js" },
       { "from": "../retina-inbox.js", "to": "web/retina-inbox.js" },
       { "from": "../retina-aviso.js", "to": "web/retina-aviso.js" },

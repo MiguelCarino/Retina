@@ -31,3 +31,4 @@ Not listed and not code to study:
 
 | File | Status | By | Date | At commit | Notes |
 |---|---|---|---|---|---|
+| retina-clinical.js | ai | | | | Pure clinical maths moved out of index.html during the 2026-10 clinical audit; known-answer tests in tools/unit-tests.js. |

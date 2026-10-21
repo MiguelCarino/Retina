@@ -819,15 +819,19 @@ function screensPayload() {
   const chart = chartOpen ? displayFor(chartWin) : panel;
   const idx = (d) => all.findIndex((x) => x.id === d.id);
 
-  // The self-check no page can run for itself. cssWidth should equal the
-  // display's DIP workArea width at zoom 1; dpr should equal scaleFactor. A
-  // mismatch on the first means zoom is not 1 (the pin failed, or a platform
-  // reset it); on the second it means fractional scaling is in play, where
-  // Chromium's devicePixelRatio and the OS scale disagree — and the
+  // The self-check no page can run for itself. cssWidth should equal the chart
+  // window's own content width in DIP at zoom 1 (not the display's work area:
+  // fullscreen covers the dock, a windowed chart has frame borders, and a side
+  // dock made a correct chart read as "zoom is not 1.00"); dpr should equal
+  // scaleFactor. A mismatch on the first means zoom is not 1 (the pin failed, or
+  // a platform reset it); on the second it means fractional scaling is in play,
+  // where Chromium's devicePixelRatio and the OS scale disagree — and the
   // scale-ratio calibration transfer is then wrong by exactly that discrepancy.
   let zoomOk = null, dprOk = null;
   if (chartOpen && chartMetrics) {
-    zoomOk = Math.abs(chartMetrics.cssWidth - chart.workArea.width) <= 2;
+    let contentW = chart.workArea.width;
+    try { contentW = chartWin.getContentBounds().width; } catch (e) { }
+    zoomOk = Math.abs(chartMetrics.cssWidth - contentW) <= 2;
     dprOk = Math.abs(chartMetrics.dpr - chart.scaleFactor) < 0.01;
   }
 

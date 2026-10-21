@@ -31,10 +31,17 @@ and dispense without ever loading a photo.
   cup margin (draggable, resizable ellipses).
 - **Annotation tools** — arrow/pointer (with note), text label, and freehand outline for
   irregular lesions, alongside lesion pins and the ruler.
-- **Auto metrics** — vertical & horizontal cup-to-disc ratio, disc diameter/area,
-  disc–fovea distance and angle. Measurements only: no value is graded or flagged.
-- **Calibration** — set the assumed vertical disc diameter (default 1.5 mm); every
-  measurement is then reported in millimetres.
+- **Auto metrics** — vertical & horizontal cup-to-disc ratio, disc diameter (vertical ×
+  horizontal) and area, disc–fovea distance and angle. The angle is the tilt of the
+  disc–fovea line from the horizontal, the same for both eyes, positive when the fovea
+  lies below the disc centre (Jonas 2015 convention; normal mean about +8°). Ratios and
+  millimetres are rounded to two decimals everywhere (screen, JSON, PDFs). A cup drawn
+  larger than, or outside, the disc is shown in amber and withheld from every document.
+  Measurements only: no value is graded or flagged.
+- **Calibration** — set the assumed vertical disc diameter (default 1.5 mm; population
+  means are nearer 1.9 mm); every measurement is then reported in millimetres, and every
+  report states the assumed diameter the millimetres rest on. The formulas live in
+  `retina-clinical.js` and are covered by `tools/unit-tests.js`.
 - **Lesion pins** — microaneurysm, hemorrhage, exudate, cotton-wool spot, drusen,
   neovascularization, laser scar, etc., each with a free-text note.
 - **Measurement tool** — ruler in px or mm.
@@ -522,7 +529,9 @@ The desktop build knows each display's scale factor, so:
 
 A display is remembered by its name plus its resolution and scale. Two identical
 monitors are indistinguishable, so swapping their cables swaps their calibrations;
-the Settings list names what it stored and lets you clear it.
+the Settings list names what it stored (anchor, this screen, chart screen) and lets
+you clear each entry or reset everything to 96 dpi. A changed OS scale changes the
+key, so the chart then reports its calibration as estimated until it is measured again.
 
 ### Camera capture
 The camera modal works the same as in a browser. On macOS the packaged app asks for

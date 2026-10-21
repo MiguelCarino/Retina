@@ -89,17 +89,19 @@
   }
 
   // ---------- record shapes ----------
+  // The assumed vertical disc diameter: 0.5–4 mm, 1.5 by default, on every read.
+  const dia = v => Math.min(4, Math.max(0.5, +v || 1.5));
   function normRef(r) { return (r && r.fileId) ? { fileId: String(r.fileId), sopUID: r.sopUID || null, contentKey: r.contentKey || null } : null; }
   function normEye(x) {
     x = obj(x);
     const o = Object.assign({}, x, {
       imgRef: normRef(x.imgRef), imgPending: !!x.imgPending, imgSample: !!x.imgSample, sampleVer: x.imgSample ? (+x.sampleVer || 1) : 0,
-      possibleSample: !!x.possibleSample, w: +x.w || 0, h: +x.h || 0, discDiaMm: +x.discDiaMm || 1.5,
+      possibleSample: !!x.possibleSample, w: +x.w || 0, h: +x.h || 0, discDiaMm: dia(x.discDiaMm),
       marks: Array.isArray(x.marks) ? x.marks.filter(m => m && typeof m === 'object') : [],
       clinical: Object.assign({}, obj(x.clinical)), disp: Object.assign({}, obj(x.disp)),
       gallery: (Array.isArray(x.gallery) ? x.gallery : []).filter(g => g && g.fileId).map(g => ({
         fileId: String(g.fileId), sopUID: g.sopUID || null, contentKey: g.contentKey || null,
-        w: +g.w || 0, h: +g.h || 0, discDiaMm: +g.discDiaMm || 1.5, marks: Array.isArray(g.marks) ? g.marks : [],
+        w: +g.w || 0, h: +g.h || 0, discDiaMm: dia(g.discDiaMm), marks: Array.isArray(g.marks) ? g.marks : [],
         possibleSample: !!g.possibleSample }))
     });
     delete o.img;   // pixels never live in an encounter record
@@ -914,6 +916,9 @@
     const o = { id: m.id, kind: m.kind };
     const nums = shape === 'pt' ? ['x', 'y'] : shape === 'ell' ? ['cx', 'cy', 'rx', 'ry'] : shape === 'seg' ? ['x1', 'y1', 'x2', 'y2'] : [];
     nums.forEach(k => { if (!fin(m[k])) bad('mark-' + k); o[k] = m[k]; });
+    // A disc or cup with a zero or negative semi-axis cannot be drawn (SVG: an error) and
+    // would give a signed CDR and a negative mm/px; the app itself never makes one.
+    if (shape === 'ell') ['rx', 'ry'].forEach(k => { if (!(m[k] > 0)) bad('mark-' + k); });
     if (shape === 'poly') {
       if (!Array.isArray(m.pts) || m.pts.length > 200000) bad('mark-pts');
       o.pts = m.pts.map(p => { if (!Array.isArray(p) || !fin(p[0]) || !fin(p[1])) bad('mark-pt'); return [p[0], p[1]]; });
@@ -925,6 +930,21 @@
     if (m.note != null && (m.note !== '' || m.kind === 'lesion')) o.note = strB(m.note, TEXT_CAP, 'mark-note');
     return o;
   }
+  // An eye's marks together: every id once, and one disc / cup / disc-center /
+  // fovea-center at most, which is what the UI guarantees and every consumer assumes
+  // (removeMark filters by id; singleton() takes the first of a kind).
+  const SINGLETON = { disc: 1, cup: 1, 'disc-center': 1, 'fovea-center': 1 };
+  function cleanMarks(arr) {
+    if (arr == null) return [];
+    if (!Array.isArray(arr)) bad('marks');
+    const ids = new Set(), kinds = new Set();
+    return arr.map(m => {
+      const o = cleanMark(m);
+      if (ids.has(o.id)) bad('mark-id-dup'); ids.add(o.id);
+      if (SINGLETON[o.kind]) { if (kinds.has(o.kind)) bad('mark-singleton'); kinds.add(o.kind); }
+      return o;
+    });
+  }
   // Free-text field maps (clinical, disp, dispense): known-looking keys, string values.
   function cleanFields(x, cap) {
     const o = {};
@@ -932,7 +952,7 @@
       if (!/^[A-Za-z][A-Za-z0-9_]{0,31}$/.test(k)) bad('field-key');
       const v = x[k];
       if (v == null) return;
-      if (typeof v !== 'string' && typeof v !== 'number' && typeof v !== 'boolean') bad('field-value');
+      if (typeof v !== 'string' && typeof v !== 'number') bad('field-value');
       o[k] = strB(v, cap || TEXT_CAP, 'field-length');
     });
     return o;
@@ -951,6 +971,8 @@
     return { fileId: r.fileId, sopUID: uidOrNull(r.sopUID), contentKey: (typeof r.contentKey === 'string' && HEX64.test(r.contentKey)) ? r.contentKey : null };
   }
   const int = (v, lo, hi) => { v = Math.round(+v || 0); return Math.min(hi, Math.max(lo, v)); };
+  // An image dimension from a file: a whole number of px, 0–100000 (Infinity → 100000).
+  const cleanSize = v => int(v, 0, 100000);
   function cleanEye(e, fileIds) {
     e = obj(e);
     if (e.marks != null && !Array.isArray(e.marks)) bad('marks');
@@ -959,10 +981,10 @@
       imgRef: ref, imgPending: !ref && !!e.imgPending, imgSample: !ref && !!e.imgSample, sampleVer: (!ref && e.imgSample) ? 1 : 0,
       possibleSample: !!e.possibleSample, w: int(e.w, 0, 100000), h: int(e.h, 0, 100000),
       discDiaMm: Math.min(4, Math.max(0.5, +e.discDiaMm || 1.5)),
-      marks: (e.marks || []).map(cleanMark), clinical: cleanFields(e.clinical), disp: cleanFields(e.disp),
+      marks: cleanMarks(e.marks), clinical: cleanFields(e.clinical), disp: cleanFields(e.disp),
       gallery: (Array.isArray(e.gallery) ? e.gallery : []).map(g => { const r = cleanRef(g, fileIds); if (!r) return null;
         if (g.marks != null && !Array.isArray(g.marks)) bad('gallery-marks');
-        return Object.assign(r, { w: int(g.w, 0, 100000), h: int(g.h, 0, 100000), discDiaMm: Math.min(4, Math.max(0.5, +g.discDiaMm || 1.5)), marks: (g.marks || []).map(cleanMark), possibleSample: !!g.possibleSample }); }).filter(Boolean)
+        return Object.assign(r, { w: int(g.w, 0, 100000), h: int(g.h, 0, 100000), discDiaMm: Math.min(4, Math.max(0.5, +g.discDiaMm || 1.5)), marks: cleanMarks(g.marks), possibleSample: !!g.possibleSample }); }).filter(Boolean)
     };
   }
   function cleanSummary(s) {
@@ -1384,6 +1406,6 @@
     // inbox (item 6)
     fileBySrc, addInboxFile, listInbox, discardInbox, placeIntoEncounter, fileInto,
     // backup
-    packBackup, bakContainer, BAK_FORMAT, BAK_VERSION, encryptBackup, backupKind, readBackup, validateBackup, cleanMark, cleanMeta, cleanFields, contentCanon, planMerge, commitMerge
+    packBackup, bakContainer, BAK_FORMAT, BAK_VERSION, encryptBackup, backupKind, readBackup, validateBackup, cleanMark, cleanMarks, cleanSize, cleanMeta, cleanFields, contentCanon, planMerge, commitMerge
   };
 });

@@ -9,7 +9,10 @@
    and desktop/archive.js (token at rest, request shape) with a stubbed fetch;
    retina-inbox.js (file recognition, laterality tokens, EXIF date, the TIFF decoder
    against a libtiff-written LZW fixture) and desktop/inbox-watcher.js against a
-   temporary folder (stability, links, size, impostors, untouched sources).
+   temporary folder (stability, links, size, impostors, untouched sources); and
+   retina-clinical.js against the known answers of the 2026-10 clinical audit
+   (calibration, CDR, disc–fovea, field grammar, acuity ladders, PD from photo,
+   centration, screen calibration, the chart maths).
    The IndexedDB paths themselves (open, migration in the upgrade, CAS, journal
    replay) need a real browser and are exercised headlessly, not here. */
 'use strict';
@@ -513,6 +516,7 @@ const b64 = bytes => 'data:image/jpeg;base64,' + Buffer.from(bytes).toString('ba
     const add = (tag, type, vals) => ents.push({ tag, type, vals: [].concat(vals) });
     add(256, 4, o.w); add(257, 4, o.h); add(258, 3, Array(o.spp).fill(o.bps)); add(259, 3, o.comp || 1); add(262, 3, o.photo);
     add(273, 4, o.strips.map(() => 0)); add(277, 3, o.spp); add(278, 4, o.rps || o.h); add(279, 4, o.strips.map(s => s.length));
+    if (o.orient) add(274, 3, o.orient);
     if (o.pred) add(317, 3, o.pred);
     if (o.cmap) add(320, 3, o.cmap);
     ents.sort((a, b) => a.tag - b.tag);
@@ -801,6 +805,426 @@ const b64 = bytes => 'data:image/jpeg;base64,' + Buffer.from(bytes).toString('ba
       if (long) for (let o = L.off; o < L.off + L.len; o += 4) odd += b.readUInt32BE(o) & 1;
       assert.strictEqual(odd, 0, f + ': ' + odd + ' glyphs at odd offsets');
     }
+  });
+
+  // ============================================================
+  // retina-clinical.js — known answers from the 2026-10 clinical audit. Every value
+  // here is the CORRECTED one; where the audit found a defect the old output is named
+  // in a comment so nobody "fixes" the test back.
+  // ============================================================
+  const RC = require(path.resolve(__dirname, '..', 'retina-clinical.js'));
+  const near = (a, b, tol, msg) => assert.ok(Math.abs(a - b) <= (tol == null ? 1e-9 : tol), (msg || '') + ' expected ' + b + ' got ' + a);
+  const eyeOf = (marks, dia, extra) => Object.assign({ discDiaMm: dia == null ? 1.5 : dia, marks }, extra || {});
+  const DISC = (rx, ry, cx, cy) => ({ kind: 'disc', cx: cx == null ? 500 : cx, cy: cy == null ? 500 : cy, rx, ry });
+  const CUP = (rx, ry, cx, cy) => ({ kind: 'cup', cx: cx == null ? 500 : cx, cy: cy == null ? 500 : cy, rx, ry });
+  const DC = (x, y) => ({ kind: 'disc-center', x, y }), FOV = (x, y) => ({ kind: 'fovea-center', x, y });
+  // The app's own sample fundus (makeSampleFundus S=1000, R=492), OD and its OS mirror.
+  const SAMPLE_OD = [DISC(50.92, 56.58, 706.64, 485.24), CUP(20.91, 23.76, 706.64, 485.24), DC(706.64, 485.24), FOV(431.12, 509.84)];
+  const SAMPLE_OS = [DISC(50.92, 56.58, 293.36, 485.24), CUP(20.91, 23.76, 293.36, 485.24), DC(293.36, 485.24), FOV(568.88, 509.84)];
+
+  await test('clinical: disc-diameter calibration (mm/px), lengths and the chip clamp', () => {
+    assert.strictEqual(RC.scaleOf(DISC(50, 50), 1.5), 0.015);
+    assert.strictEqual(RC.fmtLen(200, 0.015), '3.00 mm');
+    assert.strictEqual(RC.fmtLen(4 * 50, RC.scaleOf(DISC(50, 50), 1.5)), '3.00 mm', '2 DD = 3.00 mm (ETDRS 1 DD = 1500 µm)');
+    assert.strictEqual(RC.fmtLen(2 * 50, RC.scaleOf(DISC(50, 50), 1.5)), '1.50 mm');
+    near(RC.scaleOf(DISC(50, 60), 1.8), 0.015);
+    assert.strictEqual(RC.scaleOf(DISC(40, 80), 1.6), 0.01, 'only ry calibrates');
+    // Uncalibrated: no disc, a zero or NEGATIVE semi-axis (was: a signed scale → '-0.30 mm')
+    assert.strictEqual(RC.scaleOf(null, 1.5), null);
+    assert.strictEqual(RC.scaleOf(DISC(40, 0), 1.5), null);
+    assert.strictEqual(RC.scaleOf(DISC(200, -250), 1.5), null);
+    assert.strictEqual(RC.scaleOf(DISC(50, 50), 0), null);
+    assert.strictEqual(RC.scaleOf(DISC(50, 50), NaN), null);
+    assert.strictEqual(RC.fmtLen(500, null), '500 px'); assert.strictEqual(RC.fmtLen(10.4, null), '10 px'); assert.strictEqual(RC.fmtLen(10.5, null), '11 px');
+    assert.strictEqual(RC.fmtLen(NaN, null), '');
+    // every mm figure scales linearly with the chip
+    near(RC.scaleOf(DISC(50, 50), 3.0), 2 * RC.scaleOf(DISC(50, 50), 1.5));
+    // store semantics: falsy → default, otherwise clamped 0.5–4
+    assert.deepStrictEqual([0, 0.2, 10, 'abc', -2, 0.96, 2.91, 1.92, null].map(RC.clampDiscDia), [1.5, 0.5, 4, 1.5, 0.5, 0.96, 2.91, 1.92, 1.5]);
+    // typed chip: a parseable value is clamped (was: '-2' → -0.0040 mm/px, '' → 1.5 silently)
+    assert.strictEqual(RC.discDiaInput('-2', 1.5), 0.5);
+    assert.strictEqual(RC.discDiaInput('0', 1.5), 0.5);
+    assert.strictEqual(RC.discDiaInput('25', 1.5), 4);
+    assert.strictEqual(RC.discDiaInput('1,8', 1.5), 1.8);
+    assert.strictEqual(RC.discDiaInput('', 1.7), 1.7, 'empty keeps the previous value');
+    assert.strictEqual(RC.discDiaInput('abc', 2), 2);
+    assert.strictEqual(RC.discDiaInput(undefined, undefined), 1.5);
+    assert.strictEqual(RC.minRadius(0.3), 10, '3 screen px at fit zoom');
+    assert.strictEqual(RC.minRadius(1), 3); assert.strictEqual(RC.minRadius(0), 3);
+  });
+
+  await test('clinical: cup-to-disc ratios, with the impossible ones flagged and withheld', () => {
+    let r = RC.cdr(DISC(100, 110), CUP(60, 33));
+    near(r.v, 0.3); near(r.h, 0.6); assert.strictEqual(r.flag, null);
+    assert.strictEqual(RC.metricsOfEye(eyeOf([DISC(300, 300), CUP(200, 200)])).verticalCDR, 0.67, '2 dp, not 0.667');
+    assert.strictEqual(RC.metricsOfEye(eyeOf([DISC(150, 150), CUP(50, 50)])).verticalCDR, 0.33, 'was 0.333 in documents');
+    assert.strictEqual(RC.metricsOfEye(eyeOf([DISC(100, 100), CUP(61.7, 61.7)])).verticalCDR, 0.62, 'one value for screen and documents (was 0.617)');
+    assert.strictEqual(RC.metricsOfEye(eyeOf([DISC(100, 100), CUP(100, 100)])).verticalCDR, 1, 'the upper bound of a valid CDR');
+    r = RC.cdr(DISC(100, 100), CUP(70, 70)); near(r.v, 0.7); assert.strictEqual(r.flag, null, 'no suspect threshold is applied');
+    // cup larger than the disc (was: '1.20' printed as a measurement)
+    r = RC.cdr(DISC(100, 100), CUP(100, 120)); near(r.v, 1.2); assert.strictEqual(r.flag, 'over');
+    let m = RC.metricsOfEye(eyeOf([DISC(100, 100), CUP(100, 120)]));
+    assert.strictEqual(m.verticalCDR, null); assert.strictEqual(m.horizontalCDR, null); assert.strictEqual(m.cdrFlag, 'over');
+    assert.strictEqual(RC.cdr(DISC(80, 80), CUP(80, 100)).flag, 'over', '100/80 is never printed as 1.25');
+    // cup centre outside the disc (was: centre-independent, 0.50 from non-overlapping ellipses)
+    r = RC.cdr(DISC(100, 100), CUP(50, 50, 1000, 500)); near(r.v, 0.5); assert.strictEqual(r.flag, 'outside');
+    assert.strictEqual(RC.metricsOfEye(eyeOf([DISC(100, 100), CUP(50, 50, 1000, 500)])).verticalCDR, null);
+    assert.strictEqual(RC.cdr(DISC(100, 100), CUP(50, 50, 560, 520)).flag, null, 'a decentred cup inside the disc is fine');
+    // per-axis, never swapped; calibration-independent
+    r = RC.cdr(DISC(100, 80), CUP(50, 20)); near(r.v, 0.25); near(r.h, 0.5);
+    const a = RC.metricsOfEye(eyeOf([DISC(80, 100), CUP(40, 60)], 1.5)), b = RC.metricsOfEye(eyeOf([DISC(80, 100), CUP(40, 60)], 1.92));
+    assert.strictEqual(a.verticalCDR, 0.6); assert.strictEqual(a.horizontalCDR, 0.5); assert.strictEqual(b.verticalCDR, 0.6); assert.strictEqual(b.horizontalCDR, 0.5);
+    // missing marks and degenerate radii
+    assert.deepStrictEqual(RC.cdr(DISC(100, 100), null), { v: null, h: null, flag: null });
+    assert.deepStrictEqual(RC.cdr(null, CUP(10, 10)), { v: null, h: null, flag: null });
+    r = RC.cdr(DISC(100, 0), CUP(60, 33)); assert.strictEqual(r.v, null); near(r.h, 0.6);
+    r = RC.cdr(DISC(100, 100), CUP(60, 0)); near(r.v, 0); assert.strictEqual(RC.metricsOfEye(eyeOf([DISC(100, 100), CUP(60, 0)])).verticalCDR, 0);
+    assert.strictEqual(RC.cdr(DISC(100, -100), CUP(40, 40)).v, null, 'a negative semi-axis gives no ratio (was -0.4)');
+    // identity: 2·cup.ry·mmPerPx == VCDR·discDiaMm
+    const s = RC.scaleOf(DISC(100, 100), 1.5); near(2 * 30 * s, RC.cdr(DISC(100, 100), CUP(30, 30)).v * 1.5);
+    // IEEE half cases are documented, not "fixed": toFixed on the double
+    assert.strictEqual((61.5 / 100).toFixed(2), '0.61'); assert.strictEqual((64.5 / 100).toFixed(2), '0.65');
+    // sample picture: nothing is a measurement of the patient
+    m = RC.metricsOfEye(eyeOf([DISC(120, 120), CUP(48, 48)], 1.5, { imgSample: true }));
+    assert.strictEqual(m.verticalCDR, null); assert.strictEqual(m.mmPerPx, null); assert.strictEqual(m.sample, true);
+    assert.strictEqual(RC.metricsOfEye(eyeOf([DISC(120, 120), CUP(48, 48)], 1.5, { possibleSample: true })).verticalCDR, null);
+    assert.strictEqual(RC.metricsOfEye(null).verticalCDR, null);
+  });
+
+  await test('clinical: disc size, disc–fovea distance and the laterality-free angle', () => {
+    let d = RC.discSize(DISC(100, 100), RC.scaleOf(DISC(100, 100), 1.5));
+    near(d.vMm, 1.5); near(d.areaMm2, 1.7671, 1e-4);
+    d = RC.discSize(DISC(60, 50), 0.015); near(d.vMm, 1.5); near(d.hMm, 1.8); near(d.areaMm2, 2.1206, 1e-4);
+    d = RC.discSize(DISC(88, 96), 0.01); near(d.hMm, 1.76); near(d.areaMm2, 2.654, 1e-3, 'Jonas mean disc, ellipse model');
+    d = RC.discSize(DISC(200, 250), 0.003); near(d.areaMm2, 1.4137, 1e-4);
+    assert.strictEqual(RC.discSize(DISC(40, 0), null).areaPx, 0);
+    assert.strictEqual(RC.discSize(null, 0.01), null);
+    assert.strictEqual((2 * 7 * (1.7 / 14)).toFixed(2), '1.70', 'rounding tautology: V diameter prints the chip value');
+    let m = RC.metricsOfEye(eyeOf([DISC(60, 50)], 1.5));
+    assert.strictEqual(m.discDiamVMm, 1.5); assert.strictEqual(m.discDiamHMm, 1.8, 'the horizontal diameter is exported (was computed and discarded)'); assert.strictEqual(m.discAreaMm2, 2.12); assert.strictEqual(m.discDiaAssumedMm, 1.5);
+    // distance
+    const df = RC.discFovea(DC(0, 0), FOV(600, 80), 0.0075); near(df.px, 605.31, 0.01); near(df.mm, 4.5398, 1e-3);
+    assert.strictEqual(RC.metricsOfEye(eyeOf([DISC(100, 100), DC(0, 0), FOV(600, 80)], 1.5)).discFoveaDistMm, 4.54);
+    assert.strictEqual(RC.metricsOfEye(eyeOf([DISC(64, 64), DC(0, 0), FOV(300, 40)], 1.92)).discFoveaDistMm, 4.54);
+    assert.strictEqual(RC.metricsOfEye(eyeOf([DISC(50, 50), DC(0, 0), FOV(300, 0)], 1.5)).discFoveaDistMm, 4.5);
+    assert.strictEqual(RC.metricsOfEye(eyeOf([DISC(50, 50), DC(0, 0), FOV(300, 0)], 1.8)).discFoveaDistMm, 5.4);
+    assert.strictEqual(RC.metricsOfEye(eyeOf([DISC(50, 50), DC(0, 0), FOV(320, 0)], 1.5)).discFoveaDistMm, 4.8, 'DM:DD 3.2 (ONH screen reference)');
+    near(RC.discFovea(DC(0, 0), FOV(-530, 0), RC.scaleOf(DISC(100, 100), 1.5)).mm, 3.975, 1e-9, '2.65 DD');
+    assert.strictEqual(RC.metricsOfEye(eyeOf([DISC(80, 90), DC(0, 0), FOV(540, 0)], 1.5)).discFoveaDistMm, 4.5);
+    assert.strictEqual(RC.discFovea(DC(0, 0), FOV(300, 0), null).mm, null, 'uncalibrated: px only');
+    assert.strictEqual(RC.discFovea(null, FOV(1, 1), 0.01), null);
+    assert.strictEqual(RC.metricsOfEye(eyeOf([DISC(100, 100), DC(0, 0)], 1.5)).discFoveaDistMm, null, 'no fovea');
+    // angle: tilt from the horizontal, fovea below = positive, same for OD and OS
+    // (was: raw atan2 → OD 175°, OS 5°, and '-0°' on a fovea fractionally above)
+    const od = RC.metricsOfEye(eyeOf(SAMPLE_OD, 1.5)), os = RC.metricsOfEye(eyeOf(SAMPLE_OS, 1.5));
+    assert.strictEqual(od.discFoveaAngleDeg, 5.1); assert.strictEqual(os.discFoveaAngleDeg, 5.1);
+    assert.strictEqual(RC.fmtAngle(RC.discFovea(DC(706.64, 485.24), FOV(431.12, 509.84), null).angle), '+5°');
+    assert.strictEqual(RC.fmtAngle(RC.discFovea(DC(293.36, 485.24), FOV(568.88, 509.84), null).angle), '+5°');
+    assert.strictEqual(RC.fmtAngle(RC.discFovea(DC(0, 0), FOV(100, 0), null).angle), '0°');
+    assert.strictEqual(RC.fmtAngle(RC.discFovea(DC(0, 0), FOV(-100, 0), null).angle), '0°', 'was 180°');
+    assert.strictEqual(RC.fmtAngle(RC.discFovea(DC(0, 0), FOV(-1000, 5.2), null).angle), '0°', 'was 180° (branch cut)');
+    assert.strictEqual(RC.fmtAngle(RC.discFovea(DC(0, 0), FOV(-1000, -5.2), null).angle), '0°', 'was -180°');
+    assert.strictEqual(RC.fmtAngle(RC.discFovea(DC(0, 0), FOV(100, -0.5), null).angle), '0°', 'never -0°');
+    assert.strictEqual(RC.fmtAngle(RC.discFovea(DC(0, 0), FOV(100, -20), null).angle), '-11°', 'fovea above: negative');
+    near(RC.discFovea(DC(0, 0), FOV(300, 40), null).angle, 7.59, 0.01);
+    assert.strictEqual(RC.fmtAngle(NaN), '0°');
+    const co = RC.discFovea(DC(10, 10), FOV(10, 10), 0.01); assert.strictEqual(co.px, 0); assert.strictEqual(co.mm, 0);
+    assert.strictEqual(RC.metricsOfEye(eyeOf([DISC(100, 100), DC(10, 10), FOV(10, 10)], 1.5)).discFoveaDistMm, 0, 'coincident marks: 0, not NaN');
+    assert.strictEqual(RC.metricsOfEye(eyeOf([DC(10, 10), FOV(10, 10)], 1.5)).discFoveaAngleDeg, 0, 'the angle needs no calibration');
+    // the sample fundus, end to end
+    assert.deepStrictEqual([od.verticalCDR, od.horizontalCDR, od.discFoveaDistMm, od.mmPerPx, od.discDiamHMm], [0.42, 0.41, 3.67, 0.01326, 1.35]);
+    assert.strictEqual(RC.metricsOfEye(eyeOf(SAMPLE_OD, 1.92)).discFoveaDistMm, 4.69, 'Jonas mean disc: within the Beijing range');
+    // mmPerPx: significant figures, not fixed decimals (was 0.00011 for a 7000 px disc, +2.7 %)
+    assert.strictEqual(RC.metricsOfEye(eyeOf([DISC(7000, 7000)], 1.5)).mmPerPx, 0.0001071);
+    assert.strictEqual(RC.metricsOfEye(eyeOf([DISC(100, 100)], 1.5)).mmPerPx, 0.0075);
+    assert.strictEqual(RC.metricsOfEye(eyeOf([DISC(120, 120)], 1.92)).mmPerPx, 0.008);
+    assert.strictEqual(RC.metricsOfEye(eyeOf([DISC(80, 90)], 1.5)).mmPerPx, 0.008333);
+    // the shape every document reads
+    m = RC.metricsOfEye(eyeOf([DISC(90, 100), CUP(36, 40)], 1.5));
+    assert.deepStrictEqual(m, { verticalCDR: 0.4, horizontalCDR: 0.4, cdrFlag: null, discFoveaDistMm: null, discFoveaAngleDeg: null, mmPerPx: 0.0075, discDiamVMm: 1.5, discDiamHMm: 1.35, discAreaMm2: 1.59, discDiaAssumedMm: 1.5, sample: false });
+    m = RC.metricsOfEye(eyeOf([DISC(90, 100)], 1.5)); assert.strictEqual(m.verticalCDR, null); assert.strictEqual(m.mmPerPx, 0.0075);
+    m = RC.metricsOfEye(eyeOf([], 1.5)); assert.strictEqual(m.mmPerPx, null); assert.strictEqual(m.discFoveaDistMm, null);
+  });
+
+  await test('clinical: field grammar — signs, decimals, axis wrap, no snapping of measurements', () => {
+    const P = RC.parseStep, F = RC.fmtStep;
+    assert.deepStrictEqual([1.25, -0.5, 0, -0, 1e-10, 2].map(v => F(v, 'dpt')), ['+1.25', '-0.50', '0.00', '0.00', '0.00', '+2.00']);
+    assert.strictEqual(F(43.25, 'k'), '43.25'); assert.strictEqual(F(89.6, 'axis'), '90'); assert.strictEqual(F(NaN, 'num'), ''); assert.strictEqual(F(null, 'dpt'), '');
+    assert.strictEqual(F(7.85, 'num'), '7.85'); assert.strictEqual(F(14, 'num'), '14');
+    assert.strictEqual(P('-1,25', 'dpt'), -1.25); assert.strictEqual(P('-.5', 'dpt'), -0.5); assert.strictEqual(P('pl', 'dpt'), null); assert.strictEqual(P('', 'dpt'), null); assert.strictEqual(P(null, 'dpt'), null);
+    assert.strictEqual(P('abc', 'num'), null); assert.strictEqual(P('20/40', 'num'), 20); assert.strictEqual(P('x90', 'axis'), 90);
+    // typed signs that are not ASCII (was: the sign was dropped, −1.25 became +1.25)
+    assert.strictEqual(P('−1.25', 'dpt'), -1.25, 'U+2212 minus');
+    assert.strictEqual(P('–1.25', 'dpt'), -1.25, 'en dash');
+    assert.strictEqual(P('—1.25', 'dpt'), -1.25, 'em dash');
+    assert.strictEqual(P('－1.25', 'dpt'), -1.25, 'full-width minus');
+    assert.strictEqual(P('- 1.25', 'dpt'), -1.25, 'spaced minus');
+    assert.strictEqual(P('−1,25', 'dpt'), -1.25);
+    assert.strictEqual(P('１.２５', 'dpt'), 1.25, 'full-width digits (Japanese IME)');
+    assert.strictEqual(P('＋２．００', 'dpt'), 2);
+    // axis wrap 1–180 (ISO 8429 TABO: 0 is written 180)
+    const AX = { fmt: 'axis', step: 1, min: 1, max: 180, wrap: true };
+    assert.deepStrictEqual([0, 181, 185, 360, -10, 180, 1, 270, 90].map(v => RC.clampValue(v, AX)), [180, 1, 5, 180, 170, 180, 1, 90, 90]);
+    assert.strictEqual(RC.bumpValue('180', 1, false, AX), '1'); assert.strictEqual(RC.bumpValue('1', -1, false, AX), '180'); assert.strictEqual(RC.bumpValue('178', 1, true, AX), '2');
+    assert.deepStrictEqual(['0', '181', '270', '360', '-10', '90.5', '180', 'x90'].map(v => RC.normaliseInput(v, AX).value), ['180', '1', '90', '180', '170', '91', '180', '90']);
+    // dioptres: signed two decimals on blur, plano unsigned, and NOT snapped to the 0.25
+    // wheel grid (was: '-0.12' → '0.00', '-1.12' → '-1.00'; 0.12 D steps are legitimate)
+    const DPT = { fmt: 'dpt', step: 0.25 }, ADD = { fmt: 'dpt', step: 0.25, min: 0 };
+    assert.deepStrictEqual(['-1.3', '0.5', '0', '-.5', '1,25', '+0.00', '−1.25', '–1.25', '- 1.25', '-0.12', '-1.12', '+0.37'].map(v => RC.normaliseInput(v, DPT).value), ['-1.30', '+0.50', '0.00', '-0.50', '+1.25', '0.00', '-1.25', '-1.25', '-1.25', '-0.12', '-1.12', '+0.37']);
+    assert.strictEqual(RC.bumpValue('', 1, false, DPT), '+0.25'); assert.strictEqual(RC.bumpValue('', -1, false, DPT), '-0.25');
+    assert.strictEqual(RC.bumpValue('-0.25', 1, false, DPT), '0.00'); assert.strictEqual(RC.bumpValue('-1.25', 1, true, DPT), '-0.25', '1.00 D coarse step');
+    assert.strictEqual(RC.bumpValue('', -1, false, ADD), '0.00', 'add: min 0 on the stepper');
+    assert.deepStrictEqual(RC.normaliseInput('-2.00', ADD), { value: '-2.00', out: true }, 'typed: kept, flagged (was rewritten to 0.00)');
+    // measurements: kept as the instrument read them, never snapped to the wheel grid or clamped
+    const K = { fmt: 'k', step: 0.25, min: 30, max: 75 };
+    assert.deepStrictEqual(['43.37', '62.50', '44.00', '43.12', '43.62'].map(v => RC.normaliseInput(v, K).value), ['43.37', '62.50', '44.00', '43.12', '43.62'], 'was 43.25 / 60.00 / … ');
+    assert.deepStrictEqual(RC.normaliseInput('29', K), { value: '29.00', out: true }); assert.strictEqual(RC.normaliseInput('62.00', K).out, false, 'keratoconus is inside the usual range now');
+    const PACHY = { fmt: 'num', step: 1, min: 200, max: 1100 };
+    assert.deepStrictEqual(['547', '553', '543', '542', '547.5', '850', '290'].map(v => RC.normaliseInput(v, PACHY).value), ['547', '553', '543', '542', '547.5', '850', '290'], 'was 545 / 555 / 545 / 540 / 550 / 800 / 300');
+    assert.strictEqual(RC.normaliseInput('850', PACHY).out, false); assert.strictEqual(RC.normaliseInput('150', PACHY).out, true);
+    const IOP = { fmt: 'num', step: 1, min: 0, max: 80 };
+    assert.deepStrictEqual(['16.3', '16.5', '17.5', '15.5'].map(v => RC.normaliseInput(v, IOP).value), ['16.3', '16.5', '17.5', '15.5'], 'tenths from a rebound tonometer survive');
+    assert.deepStrictEqual(RC.normaliseInput('85', IOP), { value: '85', out: true }); assert.deepStrictEqual(RC.normaliseInput('-3', IOP), { value: '-3', out: true });
+    assert.strictEqual(RC.bumpValue('80', 1, false, IOP), '80', 'the stepper still clamps'); assert.strictEqual(RC.bumpValue('0', -1, false, IOP), '0');
+    const PD = { fmt: 'num', step: 0.5, min: 35, max: 80 };
+    assert.deepStrictEqual(['63.25', '63.2', '63', '31.5', '38'].map(v => RC.normaliseInput(v, PD).value), ['63.25', '63.2', '63', '31.5', '38'], 'PD from photo writes 63.2; blur must keep it');
+    assert.strictEqual(RC.normaliseInput('31.5', PD).out, true); assert.strictEqual(RC.normaliseInput('38', PD).out, false, 'infant PD');
+    const A = { fmt: 'num', step: 0.5, min: 30, max: 70 }; assert.deepStrictEqual(RC.normaliseInput('38', A), { value: '38', out: false }, 'paediatric frame');
+    const BC = { fmt: 'num', step: 0.05, min: 5.5, max: 11 }, DIA = { fmt: 'num', step: 0.1, min: 7, max: 25 };
+    assert.deepStrictEqual(['7.80', '7.85', '8.65'].map(v => RC.normaliseInput(v, BC).value), ['7.8', '7.85', '8.65'], 'RGP base curves (was 8 / 8 / 8.7)');
+    assert.deepStrictEqual(['9.6', '16.5', '14.0'].map(v => RC.normaliseInput(v, DIA).value), ['9.6', '16.5', '14'], 'RGP and scleral diameters (was 13 / 15 / 14)');
+    assert.strictEqual(RC.normaliseInput('7.85', BC).out, false); assert.strictEqual(RC.normaliseInput('16.5', DIA).out, false);
+    assert.deepStrictEqual(RC.normaliseInput('pl', DPT), { value: null, out: false });
+    // the disc-Ø chip stepper
+    const CHIP = { fmt: 'num', step: 0.1, min: 0.5, max: 4 };
+    assert.strictEqual(RC.bumpValue('4.0', 1, false, CHIP), '4'); assert.strictEqual(RC.bumpValue('0.5', -1, false, CHIP), '0.5'); assert.strictEqual(RC.bumpValue('1.5', 1, true, CHIP), '1.9');
+    assert.strictEqual(RC.inRange(5, { wrap: true, min: 1, max: 180 }), true); assert.strictEqual(RC.inRange(5, {}), true); assert.strictEqual(RC.inRange(5, { min: '' , max: '' }), true);
+    // imported values take the inputs' grammar; powers are not snapped (0.12 D is legal)
+    assert.strictEqual(RC.importField('185', AX), '5'); assert.strictEqual(RC.importField('0', AX), '180');
+    assert.strictEqual(RC.importField('1.5', DPT), '+1.50'); assert.strictEqual(RC.importField('-1.12', DPT), '-1.12'); assert.strictEqual(RC.importField('+0.50', DPT), '+0.50');
+    assert.strictEqual(RC.importField('85', IOP), '80'); assert.strictEqual(RC.importField('NaN', PACHY), 'NaN', 'text stays text'); assert.strictEqual(RC.importField(null, IOP), null);
+    assert.strictEqual(RC.importField('62.5', K), '62.50'); assert.strictEqual(RC.importField(16, IOP), '16');
+  });
+
+  await test('clinical: one prescription line and positional slots for every document', () => {
+    assert.strictEqual(RC.rxLine({ sph: '', cyl: '-0.50', axis: '90' }), 'Pl  -0.50 × 90', "was '-0.50  90' (read as a -0.50 sphere)");
+    assert.strictEqual(RC.rxLine({ sph: '-1.25', cyl: '', axis: '90' }), '-1.25  — × 90', 'an axis with no cylinder is visible');
+    assert.strictEqual(RC.rxLine({ sph: '-1.25', cyl: '-0.50', axis: '' }), '-1.25  -0.50 × —', 'a cylinder with no axis is visible');
+    assert.strictEqual(RC.rxLine({ sph: '-1.25', cyl: '-0.50', axis: '90', add: '+2.00' }), '-1.25  -0.50 × 90   Add +2.00');
+    assert.strictEqual(RC.rxLine({ sph: '-1.25', cyl: '-0.50', axis: '90', add: '+2.00' }, 'Adición'), '-1.25  -0.50 × 90   Adición +2.00');
+    assert.strictEqual(RC.rxLine({ sph: '', cyl: '-0.75', axis: '90' }), 'Pl  -0.75 × 90');
+    assert.strictEqual(RC.rxLine({ sph: '-1.00', cyl: '', axis: '180' }), '-1.00  — × 180');
+    assert.strictEqual(RC.rxLine({ sph: '', cyl: '', axis: '', add: '' }), ''); assert.strictEqual(RC.rxLine({}), ''); assert.strictEqual(RC.rxLine(null), '');
+    assert.strictEqual(RC.rxLine({ sph: '-2.00' }), '-2.00'); assert.strictEqual(RC.rxLine({ add: '+1.50' }), 'Pl   Add +1.50');
+    assert.strictEqual(RC.rxLine({ sph: ' -1.25 ', cyl: ' ' }), '-1.25');
+    assert.strictEqual(RC.slots(['', '12', '5']), '— / 12 / 5', "was '12 / 5' (panto read as 12°)");
+    assert.strictEqual(RC.slots(['', '18']), '— / 18'); assert.strictEqual(RC.slots(['', '30']), '— / 30');
+    assert.strictEqual(RC.slots(['2.00', '']), '2.00 / —'); assert.strictEqual(RC.slots(['', 'Base up'], ' '), '— Base up');
+    assert.strictEqual(RC.slots(['', '']), ''); assert.strictEqual(RC.slots([]), ''); assert.strictEqual(RC.slots([null, undefined]), '');
+    assert.strictEqual(RC.slots(['44.00', '45.25']), '44.00 / 45.25'); assert.strictEqual(RC.slots([52, 34]), '52 / 34');
+  });
+
+  await test('clinical: acuity ladders step the chart the value is written in and never overwrite a record', () => {
+    const va = (v, dir, ph, scale) => RC.acuityStep(v, dir, { kind: 'va', placeholder: ph || '20/40', scale: scale || null });
+    const nr = (v, dir) => RC.acuityStep(v, dir, { kind: 'near', placeholder: 'J1' });
+    assert.strictEqual(va('', 1).value, '20/40', 'empty seeds at the placeholder'); assert.strictEqual(va('', -1, '20/20').value, '20/20');
+    assert.strictEqual(va('20/20', 1).value, '20/16', 'ETDRS rows are on the ladder now'); assert.strictEqual(va('20/20', -1).value, '20/25');
+    assert.strictEqual(va('20/15', 1).value, '20/12.5'); assert.strictEqual(va('20/10', 1).value, '20/10', 'clamped at best');
+    assert.strictEqual(va('20/400', -1).value, 'CF'); assert.strictEqual(va('CF', -1).value, 'HM'); assert.strictEqual(va('HM', -1).value, 'LP'); assert.strictEqual(va('LP', -1).value, 'NLP'); assert.strictEqual(va('NLP', -1).value, 'NLP');
+    assert.strictEqual(va('cf', -1).value, 'HM', 'case-insensitive');
+    assert.strictEqual(va('6/6', 1).value, '6/5', 'BS 4274-1 rows'); assert.strictEqual(va('6/6', -1).value, '6/7.5'); assert.strictEqual(va('6/6', 1).scale, '6');
+    assert.strictEqual(va('6/60', -1).value, 'CF'); assert.strictEqual(va('6/12', 1).value, '6/9');
+    assert.strictEqual(va('6/36', -1).value, '6/60', "was '6/3' (best possible acuity)"); assert.strictEqual(va('6/24', -1).value, '6/30'); assert.strictEqual(va('6/30', -1).value, '6/36');
+    assert.strictEqual(va('6/5', 1).value, '6/4.5', "was '6/3'"); assert.strictEqual(va('6/4.5', 1).value, '6/4'); assert.strictEqual(va('6/4', 1).value, '6/3'); assert.strictEqual(va('6/3', 1).value, '6/3');
+    assert.strictEqual(va('6 / 6', -1).value, '6/7.5', 'spaces are normalised');
+    assert.strictEqual(va('CF', 1, '20/40', '6').value, '6/60', "the metric user stays metric (was '20/400')"); assert.strictEqual(va('CF', 1).value, '20/400');
+    assert.strictEqual(va('', 1, '20/40', '6').value, '6/12', 'empty on a metric field seeds at the metric placeholder'); assert.strictEqual(va('', 1, '20/20', '6').value, '6/6');
+    assert.strictEqual(va('20/200-2', 1).value, '20/160', "a +/- suffix steps from its base row (was '20/40')"); assert.strictEqual(va('20/20+2', -1).value, '20/25');
+    assert.strictEqual(va('20/32', -1).value, '20/40'); assert.strictEqual(va('20/32', -1, '20/20').value, '20/40', 'not a placeholder coincidence');
+    assert.deepStrictEqual(va('20/22', 1), { value: '20/22', scale: '20', unchanged: true }, 'an unknown row is left alone');
+    assert.deepStrictEqual(va('N5', 1), { value: 'N5', scale: null, unchanged: true });
+    assert.strictEqual(nr('', 1).value, 'J1'); assert.strictEqual(nr('J1', 1).value, 'J1+'); assert.strictEqual(nr('J1+', 1).value, 'J1+');
+    assert.strictEqual(nr('J1', -1).value, 'J2'); assert.strictEqual(nr('J8', -1).value, 'J10'); assert.strictEqual(nr('J16', -1).value, 'J16'); assert.strictEqual(nr('j2', 1).value, 'J1');
+    assert.deepStrictEqual(nr('J9', 1), { value: 'J9', scale: null, unchanged: true }, "was 'J1'"); assert.strictEqual(nr('0.4M', 1).unchanged, true);
+    assert.deepStrictEqual(RC.SEQ.va6.slice(-5), ['6/60', 'CF', 'HM', 'LP', 'NLP'], 'the metric ladder ends in the shared tail');
+    for (const k of ['va20', 'va6']) { assert.ok(RC.SEQ[k].indexOf('CF') > 0 && RC.SEQ[k].slice(-1)[0] === 'NLP'); assert.strictEqual(new Set(RC.SEQ[k]).size, RC.SEQ[k].length); }
+    assert.ok(['6/36', '6/5', '6/4'].every(v => RC.SEQ.va6.includes(v)) && ['20/12.5', '20/16', '20/32', '20/63'].every(v => RC.SEQ.va20.includes(v)));
+  });
+
+  await test('clinical: PD from a photo (ID-1 card) and the lens centration layout', () => {
+    assert.strictEqual(RC.ID1_LONG_MM, 85.6); assert.strictEqual(RC.ID1_SHORT_MM, 53.98);
+    near(RC.photoScale(85.6, 800), 0.107); near(RC.photoScale(85.6, 856), 0.1);
+    assert.strictEqual(RC.photoPd(640, 0.1), 64); assert.strictEqual(RC.photoPd(588.8, 0.107), 63);
+    assert.strictEqual(RC.photoPd(735, RC.photoScale(85.6, 1000)), 62.9); assert.strictEqual(RC.photoPd(1470, RC.photoScale(85.6, 2000)), 62.9, 'resolution-independent');
+    assert.strictEqual(RC.photoPd(735, RC.photoScale(85.6, 1000) * 85.6 / 53.98), 99.8, 'short edge traced against the long reference: out of range, refused by the UI');
+    assert.strictEqual(RC.photoScale(85.6, 0), null); assert.strictEqual(RC.photoScale(0, 800), null); assert.strictEqual(RC.photoScale(-5, 800), null); assert.strictEqual(RC.photoPd(0, 0.1), null); assert.strictEqual(RC.photoPd(100, null), null);
+    const C = o => RC.centration(Object.assign({ A: 52, B: 34, DBL: 18 }, o));
+    let c = C({ pdDist: 63, eye: 'OD' });
+    assert.deepStrictEqual([c.frameHalf, c.mono, c.decTxt, c.dir, c.fh, c.seg, c.assumed], [35, 31.5, '3.5', 'in', 17, null, true]);
+    c = C({ A: 54, DBL: 16, monoOD: 33, monoOS: 30, eye: 'OD' }); assert.deepStrictEqual([c.decTxt, c.dir], ['2.0', 'in']);
+    c = C({ A: 54, DBL: 16, monoOD: 33, monoOS: 30, eye: 'OS' }); assert.deepStrictEqual([c.decTxt, c.dir], ['5.0', 'in']);
+    c = C({ A: 48, B: 30, pdDist: 70, eye: 'OS' }); assert.deepStrictEqual([c.decTxt, c.dir, c.fh], ['2.0', 'out', 15]);
+    c = C({ A: 50, B: 30, DBL: 20, pdDist: 70, eye: 'OD' }); assert.deepStrictEqual([c.decTxt, c.dir], ['0.0', 'in']);
+    c = C({ pdDist: 70.08, eye: 'OD' }); assert.deepStrictEqual([c.decTxt, c.dir], ['0.0', 'in'], "a value that prints 0.0 never says 'out'");
+    c = C({ A: 52.5, pdDist: 63, eye: 'OD' }); assert.strictEqual(c.decTxt, '3.75', 'quarter millimetres are shown, not rounded to 3.8');
+    c = C({ pdDist: 63, fitHt: 22, eye: 'OD' }); assert.strictEqual(c.fh, 22);
+    c = C({ pdDist: 63, segHt: 18, fitHt: 22, eye: 'OD' }); assert.deepStrictEqual([c.fh, c.seg], [22, 18], 'the cross is the OC height; the seg top is its own line (was 18)');
+    c = C({ pdDist: 63, segHt: 18, eye: 'OD' }); assert.deepStrictEqual([c.fh, c.seg], [18, 18], 'seg only: it is the fallback');
+    c = C({ pdDist: 63, monoOD: 34, eye: 'OS' }); assert.deepStrictEqual([c.mono, c.decTxt, c.dir, c.assumed], [29, '6.0', 'in', false], 'pdDist − the other mono (was 31.5, dec 3.5)');
+    c = C({ pdDist: 63, monoOD: 34, eye: 'OD' }); assert.deepStrictEqual([c.mono, c.decTxt], [34, '1.0']);
+    c = C({ monoOD: '31,5', pdDist: '63', eye: 'OD' }); assert.strictEqual(c.decTxt, '3.5', 'decimal comma while typing (was 4.0)');
+    assert.strictEqual(C({ A: '' }), null); assert.strictEqual(C({ A: '0' }), null); assert.strictEqual(C({ B: '-1' }), null); assert.strictEqual(C({ DBL: '-2' }), null);
+    c = C({ DBL: '0', eye: 'OD' }); assert.strictEqual(c.frameHalf, 26); assert.strictEqual(c.mono, null); assert.strictEqual(c.decTxt, null); assert.strictEqual(c.fh, 17);
+    c = C({ segHt: '-5', pdDist: 63, eye: 'OD' }); assert.strictEqual(c.fh, 17, 'a negative seg height is not a height');
+    c = C({ fitHt: '40', pdDist: 63, eye: 'OD' }); assert.strictEqual(c.fhOut, true, 'above the box: flagged');
+    c = C({ pdDist: 10, eye: 'OD' }); assert.strictEqual(c.decOut, true);
+  });
+
+  await test('clinical: screen calibration carry-over, distance units and sane stored settings', () => {
+    assert.strictEqual(RC.carryPxPerMm(4, 1, 2), 2, 'was 8 (ratio inverted)'); assert.strictEqual(RC.carryPxPerMm(3, 1.5, 1), 4.5); near(RC.carryPxPerMm(3.61, 1, 1.25), 2.888);
+    assert.strictEqual(RC.carryPxPerMm(4, 0, 2), null); assert.strictEqual(RC.carryPxPerMm(NaN, 1, 1), null);
+    assert.strictEqual(RC.distanceMm(6, 'm'), 6000); assert.strictEqual(RC.distanceMm(20, 'ft'), 6096); assert.strictEqual(RC.distanceMm(10, 'ft'), 3048); assert.strictEqual(RC.distanceMm(4, 'm'), 4000);
+    assert.ok(isNaN(RC.distanceMm(-6, 'm')) && isNaN(RC.distanceMm('x', 'm')));
+    // round trips are exact because the millimetres are canonical (was 4 m → 13.1 ft → 3.99 m)
+    assert.strictEqual(RC.distanceIn(6000, 'ft'), 19.69); assert.strictEqual(RC.distanceIn(RC.distanceMm(RC.distanceIn(6000, 'ft'), 'ft'), 'm'), 6.0);
+    assert.strictEqual(RC.distanceIn(6096, 'm'), 6.1); assert.strictEqual(RC.distanceIn(6096, 'ft'), 20);
+    assert.strictEqual(RC.distanceIn(4000, 'ft'), 13.12); assert.strictEqual(RC.distanceIn(3000, 'ft'), 9.84); assert.strictEqual(RC.distanceIn(2500, 'ft'), 8.2);
+    assert.strictEqual(RC.sanePxPerMm('x', 3.7795), 3.7795); assert.strictEqual(RC.sanePxPerMm(0, 3.7795), 3.7795); assert.strictEqual(RC.sanePxPerMm(1.577, 1), 1.577, '55" 1080p TV is representable'); assert.strictEqual(RC.sanePxPerMm(25, 1), 1);
+    assert.strictEqual(RC.saneDistance(-6, 'm', 6), 6, "'-6' never reaches the chart"); assert.strictEqual(RC.saneDistance(0, 'm', 6), 6); assert.strictEqual(RC.saneDistance('6', 'm', 1), 6); assert.strictEqual(RC.saneDistance(0.5, 'm', 6), 0.5); assert.strictEqual(RC.saneDistance(20, 'ft', 6), 20);
+    assert.strictEqual(RC.PX_PER_MM_MIN, 1.2);
+  });
+
+  await test('clinical: chart maths — sizing, tables, contrast ladder, luminance, orientations, plates, Amsler', () => {
+    const CM = RC.chart;
+    assert.strictEqual(typeof RC.chartMath, 'function'); assert.ok(!/\bRC\b|RetinaClinical|parseStep/.test(RC.chartMath.toString()), 'self-contained: it is injected by toString()');
+    near(CM.TAN5, Math.tan(5 / 60 * Math.PI / 180), 1e-7);
+    near(CM.heightPx(6000, 1, 3.7795), 32.98, 0.005); near(CM.heightPx(6000, 1, 3.7795) / 0.72, 45.81, 0.005);
+    near(CM.heightPx(6096, 10, 1), 88.66, 0.005, 'Wikimedia chart: top E 88.7 mm at 20 ft'); near(CM.heightPx(6000, 10, 1), 87.26, 0.01); near(CM.heightPx(6000, 1, 1), 8.726, 0.001);
+    near(CM.heightPx(3000, 2, 3.7795), 32.98, 0.005, 'contrast letters: 20/40 at 3 m'); near(CM.heightPx(4000, 1.25, 3.78), 27.49, 0.01);
+    assert.ok(isNaN(CM.heightPx(-6000, 1, 3.7795)) && isNaN(CM.heightPx(6000, 1, 0)) && isNaN(CM.heightPx(NaN, 1, 1)), 'a bad calibration is NaN, never a negative font size');
+    near(CM.logMAR(3.5), 0.5441, 1e-4); near(CM.logMAR(0.75), -0.1249, 1e-4); assert.strictEqual(CM.logMAR(10), 1); assert.strictEqual(CM.logMAR(1), 0);
+    assert.deepStrictEqual(CM.CHART.map(L => L.mar), [10, 5, 3.5, 2.5, 2, 1.5, 1.25, 1, 0.75]);
+    assert.deepStrictEqual(CM.CHART.map(L => L.sn), ['20/200', '20/100', '20/70', '20/50', '20/40', '20/30', '20/25', '20/20', '20/15']);
+    assert.deepStrictEqual(CM.CHART.map(L => L.m6), ['6/60', '6/30', '6/21', '6/15', '6/12', '6/9', '6/7.5', '6/6', '6/4.5']);
+    assert.deepStrictEqual(CM.CHART.map(L => L.ch), ['E', 'FP', 'TOZ', 'LPED', 'PECFD', 'EDFCZP', 'FELOPZD', 'DEFPOTEC', 'LEFODPCT'], "classic 20/15 row (was the 20/13 row 'FDPLTCEO')");
+    assert.strictEqual(CM.acuityLabel(2, 'ft'), '20/70  ·  +0.54 logMAR'); assert.strictEqual(CM.acuityLabel(7, 'ft'), '20/20  ·  0.00 logMAR'); assert.strictEqual(CM.acuityLabel(8, 'ft'), '20/15  ·  -0.12 logMAR');
+    assert.strictEqual(CM.acuityLabel(2, 'm'), '6/21  ·  +0.54 logMAR', 'metric practices read 6/x'); assert.strictEqual(CM.acuityLabel(0, 'm'), '6/60  ·  +1.00 logMAR'); assert.strictEqual(CM.acuityLabel(99), '');
+    assert.deepStrictEqual([0, 3, 4, 5, 6, 8].map(CM.duochromeLine), [3, 3, 4, 5, 6, 6]);
+    // sRGB transfer and the contrast ladder
+    assert.strictEqual(CM.eotf(0), 0); assert.strictEqual(CM.eotf(255), 1); near(CM.eotf(10), 0.0030353, 1e-7); near(CM.eotf(11), 0.0033465, 1e-7); near(CM.eotf(128), 0.21586, 1e-5); near(CM.eotf(191), 0.52100, 1e-5); near(CM.eotf(224), 0.74540, 1e-5); near(CM.eotf(240), 0.87137, 1e-5); near(CM.eotf(247), 0.93011, 1e-5);
+    for (const g of [0, 7, 11, 100, 188, 255]) near(255 * CM.oetf(CM.eotf(g)), g, 1e-9, 'oetf inverts eotf');
+    assert.deepStrictEqual([0, 128, 191, 224, 240, 247].map(g => Math.round(CM.weber(g) * 100)), [100, 78, 48, 25, 13, 7], 'the old code-value ladder: 25 %, not the 26 % the comment claimed');
+    const lad = CM.contrastLadder();
+    assert.deepStrictEqual(lad.map(x => x.g), [0, 188, 225, 241, 248, 252], 'specified in luminance');
+    assert.deepStrictEqual(lad.map(x => x.pct), [100, 50, 25, 12, 6, 3]);
+    near(-Math.log10(CM.weber(252)), 1.57, 0.01, 'floor reaches the Pelli-Robson 1.5 referral level');
+    assert.strictEqual(CM.CONTRAST_ROWS.length, lad.length);
+    for (const r of CM.CONTRAST_ROWS.concat(CM.SLOAN_LINES)) { assert.strictEqual(r.length, 5); assert.strictEqual(new Set(r).size, 5); assert.ok([...r].every(c => CM.SLOAN.includes(c)), r); }
+    // duochrome balance
+    const Yr = CM.relLum('#c0161d'), Yg = CM.relLum('#0a702a'); near(Yr, 0.1187, 5e-4); near(Yg, 0.1182, 5e-4); assert.ok(Math.abs(Yr - Yg) / Yr < 0.005);
+    near(CM.relLum('#0a8a2a') / Yr, 1.551, 0.005, 'the rejected green'); near(CM.relLum('#fff'), 1, 1e-6); assert.strictEqual(CM.relLum('#000000'), 0);
+    // orientations and their answer keys
+    assert.strictEqual([0, 90, 180, 270].map(a => CM.orientationArrow('tumblingE', a)).join(' '), '→ ↓ ← ↑', "the E's own key (was '↑ → ↓ ←', rotated 90° from the glass)");
+    assert.strictEqual([0, 90, 180, 270, 45].map(a => CM.orientationArrow('landoltC', a)).join(' '), '↑ → ↓ ← ↗');
+    assert.strictEqual([90, 0, 270, 180, 90].map(a => CM.orientationArrow('tumblingE', a)).join(' '), '↓ → ↑ ← ↓', 'fixed line 4 as the patient sees it');
+    assert.strictEqual(CM.orientationArrow('tumblingE', 45), '45');
+    assert.deepStrictEqual(CM.fixedOrientations('landoltC', 4), [45, 180, 315, 90, 225]); assert.deepStrictEqual(CM.fixedOrientations('landoltC', 1), [135, 270, 45, 180, 315]);
+    assert.deepStrictEqual(CM.fixedOrientations('tumblingE', 4), [90, 0, 270, 180, 90]);
+    const rows = CM.CHART.map((_, i) => CM.fixedOrientations('tumblingE', i));
+    assert.strictEqual(new Set(rows.map(r => r.join())).size, 9, 'nine distinct fixed E rows (was two)');
+    rows.forEach((r, i) => { assert.deepStrictEqual(r.slice(0, 4).slice().sort((a, b) => a - b), [0, 90, 180, 270], 'row ' + i); assert.ok(CM.R4.includes(r[4])); });
+    assert.ok(rows.some(r => r[0] !== r[4]), 'positions 1 and 5 do not always match');
+    assert.strictEqual(CM.E_LINES.length, 9);
+    // mulberry32 and the plate sampler
+    let r = CM.rngStep(987654321); const first = [r[0]]; r = CM.rngStep(r[1]); first.push(r[0]); r = CM.rngStep(r[1]); first.push(r[0]);
+    assert.deepStrictEqual(first, [0.9514403040520847, 0.13489632960408926, 0.01530607370659709]); assert.strictEqual(CM.rngStep(0)[0], 0.26642920868471265);
+    let seed = 987654321; const rnd = () => { const x = CM.rngStep(seed); seed = x[1]; return x[0]; };
+    const dots = CM.sampleDots('74', rnd);
+    assert.ok(dots.length > 3000 && dots.length <= 3600, 'N is an upper bound (' + dots.length + ')');
+    assert.ok(dots.every(d => Math.hypot(d.cx - 0.5, d.cy - 0.5) + d.r <= 0.5 + 1e-12), 'no dot straddles the rim (was ~120 clipped at the canvas edge)');
+    assert.ok(dots.every(d => d.lvl >= 0 && d.lvl < 4 && d.r > 0));
+    let overlaps = 0; for (let i = 0; i < dots.length; i++) for (let j = i + 1; j < dots.length; j++) { const a = dots[i], b = dots[j]; if (Math.hypot(a.cx - b.cx, a.cy - b.cy) < a.r + b.r - 1e-12) overlaps++; }
+    assert.strictEqual(overlaps, 0);
+    const cover = dots.reduce((s, d) => s + Math.PI * d.r * d.r, 0) / (Math.PI * 0.25); assert.ok(cover > 0.4 && cover < 0.5, 'jamming density ~45 % (' + cover.toFixed(3) + ')');
+    seed = 987654321; const one = CM.sampleDots('7', rnd); assert.ok(one.length > 1500 && one.length <= 1800);
+    // Amsler in physical units
+    let am = CM.amsler(3.7795, 1080 * 0.82);
+    near(am.cellPx, 18.8975, 1e-4); near(am.sidePx, 377.95, 1e-4); assert.strictEqual(am.n, 20); assert.strictEqual(am.viewMm, 300); assert.strictEqual(am.fit, true); near(am.degPerCell, 0.955, 1e-3); near(am.dotPx, 2.27, 0.01, '1.2 mm dot');
+    am = CM.amsler(3.7795, 300); assert.strictEqual(am.fit, false); near(am.cellMm, 3.969, 1e-3); assert.strictEqual(am.viewMm, 227, 'the distance at which a cell is 1°');
+    near(5 / Math.tan(Math.PI / 180), 286.5, 0.1); near(11.7 / Math.tan(Math.PI / 180), 670.3, 0.1, 'the old 11.7 mm cell needed 67 cm');
+    assert.strictEqual(CM.AMSLER_CELL_MM, 5); assert.strictEqual(CM.AMSLER_VIEW_MM, 300);
+    // clock dial, Landolt ring, spacing
+    assert.deepStrictEqual([3, 1, 2, 4, 5, 6, 9, 12, 7].map(CM.clockAxis), [90, 30, 60, 120, 150, 180, 90, 180, 30]);
+    assert.deepStrictEqual(CM.landolt(5), { sw: 1, r: 2, gap: 1 }, 'ISO 8596: stroke = gap = d/5, parallel-sided');
+    near(CM.letterSpacing(100, 0.716, 0.106), 61); near(CM.letterSpacing(100, 0.688), 58.2);
+  });
+
+  // ---- store, DICOM and inbox changes from the same audit ----
+  await test('audit: cleanMark/cleanMarks reject non-positive radii, duplicate ids and second singletons', () => {
+    assert.deepStrictEqual(RS.cleanMark({ id: 'm1', kind: 'disc', cx: 1, cy: 2, rx: 3, ry: 4 }), { id: 'm1', kind: 'disc', cx: 1, cy: 2, rx: 3, ry: 4 });
+    assert.deepStrictEqual(RS.cleanMark({ id: 'm1', kind: 'disc', cx: 500, cy: 500, rx: 80, ry: 90 }).rx, 80);
+    for (const bad of [{ rx: 0, ry: 4 }, { rx: -40, ry: 4 }, { rx: 3, ry: -0 }, { rx: 3, ry: -5 }, { rx: -80, ry: -90 }, { rx: 0, ry: 0 }, { rx: 200, ry: -250 }])
+      assert.throws(() => RS.cleanMark(Object.assign({ id: 'm1', kind: 'cup', cx: 1, cy: 2 }, bad)), e => e.code === 'invalid' && /^mark-r[xy]$/.test(e.cause), JSON.stringify(bad));
+    assert.throws(() => RS.cleanMark({ id: 'm1', kind: 'disc', cx: 1, cy: 2, rx: NaN, ry: 4 }), e => e.code === 'invalid');
+    assert.throws(() => RS.cleanMark({ id: 'm1', kind: 'disc', cx: 1, cy: 2, rx: '40', ry: 4 }), e => e.code === 'invalid');
+    assert.throws(() => RS.cleanMark({ id: 'm1', kind: 'disc', cx: 1, cy: 2, rx: 1e7, ry: 4 }), e => e.code === 'invalid');
+    const d = (id, rx) => ({ id, kind: 'disc', cx: 1, cy: 1, rx, ry: rx }), l = (id) => ({ id, kind: 'lesion', x: 1, y: 1 });
+    assert.strictEqual(RS.cleanMarks([l('m1'), l('m2'), d('m3', 5)]).length, 3);
+    assert.throws(() => RS.cleanMarks([d('m1', 1), d('m1', 2)]), e => e.cause === 'mark-id-dup');
+    assert.throws(() => RS.cleanMarks([l('m1'), l('m1')]), e => e.cause === 'mark-id-dup');
+    assert.throws(() => RS.cleanMarks([d('m1', 1), d('m2', 2)]), e => e.cause === 'mark-singleton');
+    assert.throws(() => RS.cleanMarks([{ id: 'm1', kind: 'fovea-center', x: 1, y: 1 }, { id: 'm2', kind: 'fovea-center', x: 2, y: 2 }]), e => e.cause === 'mark-singleton');
+    assert.deepStrictEqual(RS.cleanMarks(null), []); assert.throws(() => RS.cleanMarks('x'), e => e.code === 'invalid');
+    assert.deepStrictEqual(['1e400', 1e9, -5, 'abc', 123.6, 4288].map(RS.cleanSize), [100000, 100000, 0, 0, 124, 4288]);
+    assert.throws(() => RS.cleanFields({ iop: true }), e => e.cause === 'field-value', 'a boolean is never a clinical value');
+    assert.deepStrictEqual(RS.cleanFields({ sph: 1.5, axis: 0 }), { sph: '1.5', axis: '0' });
+    // normEye clamps the disc diameter on every read (was: -2 survived a reload)
+    assert.deepStrictEqual([-2, 10, 0, 0.2, 1.92, '1.8'].map(v => RS.normalizeEncounter({ eyes: { OD: { discDiaMm: v } } }).eyes.OD.discDiaMm), [0.5, 4, 1.5, 0.5, 1.92, 1.8]);
+  });
+  await test('audit: a backup with a duplicate mark id or a second disc is rejected whole', async () => {
+    const s = await sampleBackup();
+    const m = JSON.parse(JSON.stringify(s.manifest)); m.encounters[0].eyes.OD.marks = [{ id: 'm1', kind: 'disc', cx: 1, cy: 1, rx: 1, ry: 1 }, { id: 'm1', kind: 'disc', cx: 1, cy: 1, rx: 2, ry: 2 }];
+    await assert.rejects(async () => RS.validateBackup(await RS.readBackup(RS.bakContainer(m, [s.bytes]))), e => e.code === 'invalid');
+    const m2 = JSON.parse(JSON.stringify(s.manifest)); m2.encounters[0].eyes.OD.marks = [{ id: 'm1', kind: 'disc', cx: 1, cy: 1, rx: 1, ry: -1 }];
+    await assert.rejects(async () => RS.validateBackup(await RS.readBackup(RS.bakContainer(m2, [s.bytes]))), e => e.code === 'invalid');
+    const m3 = JSON.parse(JSON.stringify(s.manifest)); m3.encounters[0].eyes.OD.marks = [{ id: 'm1', kind: 'lesion', x: 1, y: 1 }, { id: 'm2', kind: 'lesion', x: 2, y: 2 }];
+    assert.strictEqual((await RS.validateBackup(await RS.readBackup(RS.bakContainer(m3, [s.bytes])))).encounters[0].eyes.OD.marks.length, 2);
+  });
+  await test('audit: OP header — Pixel Spacing for a fundus camera, Acquisition DateTime only when it is a date', () => {
+    const s = studyFix(), w = 2, h = 2, rgb = new Uint8Array(w * h * 3);
+    const hdr = o => readPart10(RD.opFinish(RD.opHeader(Object.assign({ study: s, sopUID: RD.mintUID(), seriesUID: RD.mintUID(), syncUID: RD.mintUID(), seriesNumber: 2, instanceNumber: 1, eye: 'OD', sourceMime: 'image/png', sourceBytes: 4, w, h }, o)), w, h, rgb)).ds;
+    assert.strictEqual(S(hdr({ device: 'fundus', pixelMm: '0.0110' }), 0x00280030), '0.011\\0.011', 'row\\column, same nominal value');
+    assert.strictEqual(S(hdr({ device: 'fundus', pixelMm: 0.0093 }), 0x00280030), '0.0093\\0.0093');
+    assert.ok(!hdr({ device: 'fundus' }).has(0x00280030), 'unset: absent (and the settings panel says the object is not conformant)');
+    assert.ok(!hdr({ device: 'slitlamp', pixelMm: 0.011 }).has(0x00280030), 'a slit-lamp photo has no retinal scale');
+    assert.ok(!hdr({ device: 'fundus', pixelMm: 'abc' }).has(0x00280030)); assert.ok(!hdr({ device: 'fundus', pixelMm: 5 }).has(0x00280030));
+    assert.deepStrictEqual(['0.0110', '0,011', 0.0093, 'abc', 5, 0, -1, '0.00001', '1e-2'].map(RD.pixelMmOf), ['0.011', '0.011', '0.0093', null, null, null, null, null, '0.01']);
+    assert.strictEqual(S(hdr({ acquiredAt: '20261012090533' }), 0x0008002A), '20261012090533');
+    assert.ok(!hdr({ acquiredAt: '20160000000000' }).has(0x0008002A), "a camera's unset clock (was written as an invalid DT)");
+    assert.ok(!hdr({ acquiredAt: '20261012240000' }).has(0x0008002A)); assert.ok(!hdr({ acquiredAt: '20261312090533' }).has(0x0008002A)); assert.ok(!hdr({ acquiredAt: '20260230090533' }).has(0x0008002A), 'February 30th');
+    assert.ok(!hdr({ acquiredAt: null }).has(0x0008002A)); assert.ok(!hdr({ acquiredAt: '2026101209053' }).has(0x0008002A));
+    assert.deepStrictEqual(['20261012094107', '20240229000000', '20230229000000', '20261012096000', '00000101000000', 20261012094107].map(RD.validDT), [true, true, false, false, false, false]);
+  });
+  await test('audit: TIFF — a 16-bit palette is refused, the Orientation tag is honoured', async () => {
+    const cm16 = []; for (let c = 0; c < 3; c++) for (let i = 0; i < 65536; i++) cm16.push(0);
+    await assert.rejects(RI.decodeTiff(tiff({ w: 2, h: 1, spp: 1, bps: 16, photo: 3, cmap: cm16, strips: [Uint8Array.from([0, 1, 1, 0])] })), e => e.code === 'unsupported' && e.detail === 'bits-16-palette');
+    let r = await RI.decodeTiff(tiff({ w: 2, h: 1, spp: 1, bps: 8, photo: 1, orient: 6, strips: [Uint8Array.from([10, 200])] }));
+    assert.deepStrictEqual([r.w, r.h, r.data[0], r.data[4]], [1, 2, 10, 200], 'rotate 90° CW: 10 on top, 200 below (was 2×1 unrotated)');
+    r = await RI.decodeTiff(tiff({ w: 2, h: 1, spp: 1, bps: 8, photo: 1, orient: 3, strips: [Uint8Array.from([10, 200])] }));
+    assert.deepStrictEqual([r.w, r.h, r.data[0], r.data[4]], [2, 1, 200, 10], 'rotate 180°');
+    r = await RI.decodeTiff(tiff({ w: 2, h: 1, spp: 1, bps: 8, photo: 1, strips: [Uint8Array.from([10, 200])] }));
+    assert.deepStrictEqual([r.w, r.h, r.data[0], r.data[4]], [2, 1, 10, 200], 'default orientation 1 untouched');
+    // all eight on a 3×2 grey ramp: every transform is a permutation and the pairs invert each other
+    const w = 3, h = 2, src = new Uint8ClampedArray(w * h * 4); for (let i = 0; i < w * h; i++) { src[i * 4] = i * 10; src[i * 4 + 3] = 255; }
+    const px = (o) => { const out = []; for (let i = 0; i < o.w * o.h; i++) out.push(o.data[i * 4]); return out; };
+    assert.deepStrictEqual(px(RI.orientRgba(src, w, h, 2)), [20, 10, 0, 50, 40, 30]);
+    assert.deepStrictEqual(px(RI.orientRgba(src, w, h, 4)), [30, 40, 50, 0, 10, 20]);
+    assert.deepStrictEqual(px(RI.orientRgba(src, w, h, 5)), [0, 30, 10, 40, 20, 50]);
+    const o6 = RI.orientRgba(src, w, h, 6); assert.deepStrictEqual([o6.w, o6.h, ...px(o6)], [2, 3, 30, 0, 40, 10, 50, 20]);
+    const o8 = RI.orientRgba(src, w, h, 8); assert.deepStrictEqual([o8.w, o8.h, ...px(o8)], [2, 3, 20, 50, 10, 40, 0, 30]);
+    assert.deepStrictEqual(px(RI.orientRgba(src, w, h, 7)), [50, 20, 40, 10, 30, 0]);
+    for (const o of [2, 3, 4, 5, 6, 7, 8]) assert.strictEqual(new Set(px(RI.orientRgba(src, w, h, o))).size, 6, 'orientation ' + o + ' is a permutation');
+    assert.strictEqual(RI.orientRgba(src, w, h, 9).data, src);
   });
 
   console.log(`\n${passed} passed, ${failed} failed`);

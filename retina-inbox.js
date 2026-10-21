@@ -305,8 +305,12 @@
     const blocks = blocksOf(ifd);
     const across = Math.ceil(w / tw), down = Math.ceil(h / th), perPlane = across * down, planes = planar === 2 ? spp : 1;
     if (blocks.length < perPlane * planes) throw err('tiff', 'blocks');
+    // A palette image has 4- or 8-bit indices (TIFF 6.0); a 16-bit index kept only its
+    // high byte here and looked up the wrong colour, so it is refused, not decoded wrongly.
+    if (photo === 3 && bps > 8) throw err('unsupported', 'bits-' + bps + '-palette');
     const cmap = photo === 3 ? ifd.get(320) : null;
     if (photo === 3 && (!cmap || cmap.length < 3 * (1 << bps))) throw err('tiff', 'colormap');
+    const orient = g(274, 1);
     // Samples, 8-bit (16-bit keeps its high byte; 1/2/4-bit gray is scaled; palette
     // indices stay raw so they still index the colour map).
     const S = new Uint8Array(w * h * spp), bpb = bps / 8;
@@ -362,7 +366,31 @@
       else { R = G = B = photo === 0 ? 255 - S[p] : S[p]; }
       out[i * 4] = R; out[i * 4 + 1] = G; out[i * 4 + 2] = B; out[i * 4 + 3] = 255;   // extra (alpha) samples dropped: a photograph is opaque
     }
-    return { w, h, data: out };
+    return orientRgba(out, w, h, orient);
+  }
+  // TIFF Orientation (tag 274): the stored rows are turned into the visual picture, as a
+  // browser does for a JPEG's EXIF orientation. 1 is the default; 5–8 swap width and height.
+  //   2 mirror horizontal · 3 rotate 180 · 4 mirror vertical · 5 transpose · 6 rotate 90 CW ·
+  //   7 transverse · 8 rotate 90 CCW
+  function orientRgba(src, w, h, orient) {
+    orient = +orient || 1;
+    if (orient < 2 || orient > 8) return { w, h, data: src };
+    const swap = orient >= 5, W = swap ? h : w, H = swap ? w : h, out = new Uint8ClampedArray(W * H * 4);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      let X, Y;
+      switch (orient) {
+        case 2: X = w - 1 - x; Y = y; break;
+        case 3: X = w - 1 - x; Y = h - 1 - y; break;
+        case 4: X = x; Y = h - 1 - y; break;
+        case 5: X = y; Y = x; break;
+        case 6: X = h - 1 - y; Y = x; break;
+        case 7: X = h - 1 - y; Y = w - 1 - x; break;
+        default: X = y; Y = w - 1 - x; break;   // 8
+      }
+      const si = (y * w + x) * 4, di = (Y * W + X) * 4;
+      out[di] = src[si]; out[di + 1] = src[si + 1]; out[di + 2] = src[si + 2]; out[di + 3] = src[si + 3];
+    }
+    return { w: W, h: H, data: out };
   }
 
   // ---------- "finished being written" bookkeeping ----------
@@ -387,5 +415,5 @@
     };
   }
 
-  return { EXT, MIME, extKind, isWatchedName, sniff, complete, inspect, tokens, guessEye, exifDate, decodeTiff, readIfd, packbits, lzw, createTracker, MAX_PIXELS };
+  return { EXT, MIME, extKind, isWatchedName, sniff, complete, inspect, tokens, guessEye, exifDate, decodeTiff, orientRgba, readIfd, packbits, lzw, createTracker, MAX_PIXELS };
 });
