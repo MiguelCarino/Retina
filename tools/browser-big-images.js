@@ -76,14 +76,14 @@ function check(name, cond, detail) {
     const fOD = await noise(1), fOS = await noise(2);
     check("test pictures are > 3 MB each", fs.statSync(fOD).size > 3e6 && fs.statSync(fOS).size > 3e6);
 
-    // Each eye starts empty (a sample at most), so Load image makes it the eye's own picture.
+    // Each eye starts empty, so Load image makes it the eye's own picture.
     await p.setInputFiles("#fileInput", fOD);
     await p.waitForFunction(() => window.__ophtha.study.eyes.OD.imgRef, null, { timeout: 20000 });
     await p.evaluate(() => window.__ophtha.switchEye("OS"));
     await p.setInputFiles("#fileInput", fOS);
     await p.waitForFunction(() => window.__ophtha.study.eyes.OS.imgRef, null, { timeout: 20000 });
     await p.evaluate(() => window.__ophtha.study.eyes.OD.marks.push({ id: "m90", kind: "disc", cx: 500, cy: 400, rx: 80, ry: 90 }));
-    await p.click('#topnav button[data-mod="exam"]');
+    await p.click('.slice-menu .slice[data-id="exam"]');
     await p.fill('input.cl[data-eye="OD"][data-f="dx"]', "observation text");
     await settled();
     const before = await p.evaluate(() => { const e = window.__ophtha.study.eyes; return { OD: e.OD.img, OS: e.OS.img }; });

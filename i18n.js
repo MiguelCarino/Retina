@@ -191,7 +191,7 @@ const I18N = {
       // eye switch / mini / states
       'OD · Right':'OD · Derecho','OS · Left':'OS · Izquierdo',
       'Selected ruler = reference width':'Regla seleccionada = ancho de referencia','Selected ruler → PD distance':'Regla seleccionada → DIP lejos',
-      'No photo scale set':'Sin escala de foto','No image loaded':'Sin imagen cargada',
+      'No photo scale set':'Sin escala de foto',
       // tool titles
       'Select / move (V)':'Seleccionar / mover (V)','Pan / hand (H)':'Desplazar / mano (H)','Optic disc center (1)':'Centro del disco óptico (1)',
       'Fovea center (2)':'Centro de la fóvea (2)','Optic disc margin (3)':'Borde del disco óptico (3)','Optic cup margin (4)':'Borde de la excavación (4)',
@@ -245,7 +245,11 @@ const I18N = {
       testsNote:'Abre el optotipo elegido en otra ventana — colócala en la pantalla del paciente y contrólala desde aquí. Configura la pantalla, la distancia y la calibración de tamaño real en <b>Ajustes</b> (icono de engranaje).',
       monHint:'Colocar un optotipo en un segundo monitor usa el permiso de gestión de ventanas del navegador. Si no se concede, la ventana se abre aquí — arrástrala y presiona <b>F</b> para pantalla completa.',
       // html blocks
-      emptyP:'Arrastra aquí una foto de fondo de ojo o segmento anterior, o cárgala, para marcar el disco, la excavación y la fóvea y obtener la relación excavación/disco automática. ¿Solo quieres refractar o montar lentes? Abre el espacio <b>Examen</b> arriba — no hace falta imagen. Todo permanece en tu navegador; no se sube nada.',
+      emptyLede:'Arrastra aquí una foto de fondo de ojo o segmento anterior, o cárgala, para obtener la relación excavación/disco automática. Para refractar o montar lentes, abre <b>Examen</b>: no hace falta imagen.',
+      'Mark the disc, cup and fovea':'Marca el disco, la excavación y la fóvea',
+      'Runs in your browser. Nothing you add here is uploaded.':'Funciona en tu navegador. Nada de lo que añades aquí se sube.',
+      'Images leave only for an archive you set up in Settings.':'Las imágenes solo salen hacia un PACS que configures en Ajustes.',
+      'Modules':'Módulos',
       dispNote1:'Funciona por completo con la <b>Rx final</b> — sin foto. Carga una foto del rostro solo si quieres estimar la DIP a partir de ella.',
       dispNote2:'Carga una foto del rostro con una <b>tarjeta</b> (ID-1, 85,6 mm) junto a la ceja, en el plano de las pupilas. El paciente fija un objeto <b>lejano</b> (no la cámara) y la cámara está al menos a <b>1,5 m</b>, con zoom: una fijación cercana o una cámara próxima leen la DIP unos mm de menos. Traza una <b>regla</b> sobre el lado largo de la tarjeta y luego de pupila a pupila.',
       // the Visual-acuity hint (index.html:596) — the one string no locale defined
@@ -267,12 +271,10 @@ const I18N = {
       'Outline note (optional):':'Nota del contorno (opcional):',
       'API n/a':'API no disponible',
       // attributes: static titles, aria-label, alt, and the three titles set from JS
-      'Carino Systems — back to hub':'Carino Systems — volver al hub',
-      'Retina — reload':'Retina — recargar',
       'Fundus imaging & annotation':'Imagen de fondo de ojo y anotación',
       'Refraction, dispensing & optics':'Refracción, montaje y óptica',
       'Eye exam test charts':'Optotipos para exploración ocular',
-      'Retina on GitHub':'Retina en GitHub','Export report':'Exportar informe','Bigger (easier)':'Más grande (más fácil)',
+      'Export report':'Exportar informe','Bigger (easier)':'Más grande (más fácil)',
       'Randomize / flip':'Aleatorizar / voltear','Smaller (harder)':'Más pequeño (más difícil)',
       'Snellen: full chart / per-row':'Snellen: optotipo completo / por filas',
       'other eye':'otro ojo','fundus':'fondo de ojo',
@@ -868,7 +870,7 @@ const I18N = {
       'Sample':'サンプル','Open JSON':'JSONを開く',"Clear this eye's marks":'この眼のマークを消去','Load image…':'画像を読み込む…','Load sample fundus':'サンプル眼底を読み込む',
       'OD · Right':'OD · 右眼','OS · Left':'OS · 左眼',
       'Selected ruler = reference width':'選択した計測線 = 基準幅','Selected ruler → PD distance':'選択した計測線 → 遠用PD',
-      'No photo scale set':'写真スケール未設定','No image loaded':'画像がありません',
+      'No photo scale set':'写真スケール未設定',
       'Select / move (V)':'選択 / 移動 (V)','Pan / hand (H)':'画面移動 / ハンド (H)','Optic disc center (1)':'乳頭中心 (1)',
       'Fovea center (2)':'中心窩 (2)','Optic disc margin (3)':'乳頭辺縁 (3)','Optic cup margin (4)':'陥凹辺縁 (4)',
       'Lesion / finding pin (5)':'病変 / 所見ピン (5)','Measure distance (6)':'距離を計測 (6)',
@@ -917,7 +919,11 @@ const I18N = {
       'Fixed shows the classic chart letters in their original order; Randomize scrambles them. The Shuffle button re-randomizes any time.':'「固定」は従来の並び順で文字を表示し、「ランダム」は並びをシャッフルします。シャッフルボタンでいつでも再ランダム化できます。',
       testsNote:'選択した視標を別ウィンドウで開きます — 患者側の画面に置き、ここから操作します。ディスプレイ・距離・実寸キャリブレーションは<b>設定</b>(歯車アイコン)で行います。',
       monHint:'別モニターへの表示にはブラウザのウィンドウ管理許可を使います。許可がない場合はこの画面に開くので、ドラッグして移動し<b>F</b>で全画面にします。',
-      emptyP:'眼底または前眼部の写真をここにドロップするか読み込むと、乳頭・陥凹・中心窩をマークして自動でC/D比を算出できます。屈折検査や眼鏡調製だけなら上の<b>検査</b>ワークスペースへ — 画像は不要です。すべてブラウザ内で処理され、何もアップロードされません。',
+      emptyLede:'眼底または前眼部の写真をここにドロップするか読み込むと、C/D比を自動で算出します。屈折検査や眼鏡調製だけなら<b>検査</b>を開いてください — 画像は不要です。',
+      'Mark the disc, cup and fovea':'乳頭・陥凹・中心窩をマーク',
+      'Runs in your browser. Nothing you add here is uploaded.':'ブラウザ内で動作します。ここに追加したものはアップロードされません。',
+      'Images leave only for an archive you set up in Settings.':'画像が送られるのは、設定で指定した PACS だけです。',
+      'Modules':'モジュール',
       dispNote1:'<b>最終処方</b>だけで完結します — 写真は不要です。PDを写真から推定したい場合のみ顔写真を読み込んでください。',
       dispNote2:'眉の位置に<b>カード</b>(ID-1、85.6mm)を瞳孔と同じ面で当てた顔写真を読み込みます。被検者は<b>遠く</b>の目標を見て(カメラではなく)、カメラは<b>1.5m</b>以上離してズームします。近くを見たりカメラが近いと、PD は数mm小さく読まれます。カードの長辺に<b>計測線</b>を引き、次に瞳孔から瞳孔へ引きます。',
       // the Visual-acuity hint (index.html:596) — the one string no locale defined
@@ -936,9 +942,8 @@ const I18N = {
       'Monitor permission denied':'モニターの権限が拒否されました','Arrow note (optional):':'矢印のメモ(任意)：','Outline note (optional):':'輪郭のメモ(任意)：',
       'API n/a':'API利用不可',
       // attributes: static titles, aria-label, alt, and the three titles set from JS
-      'Carino Systems — back to hub':'Carino Systems — ハブへ戻る',
-      'Retina — reload':'Retina — 再読み込み','Fundus imaging & annotation':'眼底画像と注釈','Refraction, dispensing & optics':'屈折検査・眼鏡調製・光学',
-      'Eye exam test charts':'眼科検査の視標','Retina on GitHub':'RetinaのGitHub','Export report':'レポートを書き出す','Bigger (easier)':'大きく(易しい)',
+      'Fundus imaging & annotation':'眼底画像と注釈','Refraction, dispensing & optics':'屈折検査・眼鏡調製・光学',
+      'Eye exam test charts':'眼科検査の視標','Export report':'レポートを書き出す','Bigger (easier)':'大きく(易しい)',
       'Randomize / flip':'ランダム / 反転','Smaller (harder)':'小さく(難しい)','Snellen: full chart / per-row':'スネレン: 全体表示 / 行表示','other eye':'僚眼',
       'fundus':'眼底',
       'Hover and scroll, drag, or ↑/↓ to adjust (Shift = ×4)':'値の上でスクロール、ドラッグ、↑/↓で調整(Shift = ×4)',
@@ -1543,7 +1548,7 @@ const I18N = {
       // eye switch / mini / states
       'OD · Right':'OD · Direito','OS · Left':'OS · Esquerdo',
       'Selected ruler = reference width':'Régua selecionada = largura de referência','Selected ruler → PD distance':'Régua selecionada → DP longe',
-      'No photo scale set':'Sem escala de foto','No image loaded':'Nenhuma imagem',
+      'No photo scale set':'Sem escala de foto',
       // tool titles
       'Select / move (V)':'Selecionar / mover (V)','Pan / hand (H)':'Deslocar / mão (H)','Optic disc center (1)':'Centro do disco óptico (1)',
       'Fovea center (2)':'Centro da fóvea (2)','Optic disc margin (3)':'Borda do disco óptico (3)','Optic cup margin (4)':'Borda da escavação (4)',
@@ -1597,7 +1602,11 @@ const I18N = {
       testsNote:'Abre o optotipo escolhido em outra janela — coloque-a na tela voltada ao paciente e controle daqui. Configure a tela, a distância e a calibração de tamanho real em <b>Configurações</b> (ícone de engrenagem).',
       monHint:'Colocar um optotipo em um segundo monitor usa a permissão de gerenciamento de janelas do navegador. Se ela não for concedida, a janela abre aqui — arraste-a para lá e pressione <b>F</b> para tela cheia.',
       // html blocks
-      emptyP:'Arraste aqui uma foto de fundo de olho ou de segmento anterior, ou carregue uma, para marcar o disco, a escavação e a fóvea e obter a relação escavação/disco automática. Só quer fazer a refração ou montar óculos? Abra a área <b>Exame</b> acima — não precisa de imagem. Tudo fica no seu navegador; nada é enviado.',
+      emptyLede:'Arraste aqui uma foto de fundo de olho ou de segmento anterior, ou carregue uma, para obter a relação escavação/disco automática. Para fazer a refração ou montar óculos, abra <b>Exame</b>: não precisa de imagem.',
+      'Mark the disc, cup and fovea':'Marque o disco, a escavação e a fóvea',
+      'Runs in your browser. Nothing you add here is uploaded.':'Roda no seu navegador. Nada do que você adiciona aqui é enviado.',
+      'Images leave only for an archive you set up in Settings.':'As imagens só saem para um PACS que você configurar em Configurações.',
+      'Modules':'Módulos',
       dispNote1:'Funciona inteiramente a partir da <b>Rx final</b> — sem foto. Carregue uma foto do rosto apenas se quiser estimar a DP a partir dela.',
       dispNote2:'Carregue uma foto do rosto com um <b>cartão</b> (ID-1, 85,6 mm) junto à sobrancelha, no plano das pupilas. O paciente fixa um alvo <b>distante</b> (não a câmera) e a câmera fica a pelo menos <b>1,5 m</b>, com zoom: fixação de perto ou câmera próxima leem a DP alguns mm a menos. Trace uma <b>régua</b> sobre o lado longo do cartão e depois de pupila a pupila.',
       // the Visual-acuity hint (index.html:596) — the one string no locale defined
@@ -1619,12 +1628,10 @@ const I18N = {
       'Outline note (optional):':'Nota do contorno (opcional):',
       'API n/a':'API indisponível',
       // attributes: static titles, aria-label, alt, and the three titles set from JS
-      'Carino Systems — back to hub':'Carino Systems — voltar ao hub',
-      'Retina — reload':'Retina — recarregar',
       'Fundus imaging & annotation':'Retinografia e anotação',
       'Refraction, dispensing & optics':'Refração, montagem e óptica',
       'Eye exam test charts':'Optotipos para exame ocular',
-      'Retina on GitHub':'Retina no GitHub','Export report':'Exportar relatório','Bigger (easier)':'Maior (mais fácil)',
+      'Export report':'Exportar relatório','Bigger (easier)':'Maior (mais fácil)',
       'Randomize / flip':'Embaralhar / inverter','Smaller (harder)':'Menor (mais difícil)',
       'Snellen: full chart / per-row':'Snellen: tabela completa / por linha',
       'other eye':'outro olho','fundus':'retinografia',
@@ -2235,7 +2242,7 @@ const I18N = {
       // eye switch / mini / states
       'OD · Right':'OD · правый','OS · Left':'OS · левый',
       'Selected ruler = reference width':'Выбранная линейка = эталонная ширина','Selected ruler → PD distance':'Выбранная линейка → РЦ вдаль',
-      'No photo scale set':'Масштаб фото не задан','No image loaded':'Снимок не загружен',
+      'No photo scale set':'Масштаб фото не задан',
       // tool titles
       'Select / move (V)':'Выбор / перемещение (V)','Pan / hand (H)':'Панорама / рука (H)','Optic disc center (1)':'Центр диска зрительного нерва (1)',
       'Fovea center (2)':'Центр фовеа (2)','Optic disc margin (3)':'Граница диска (3)','Optic cup margin (4)':'Граница экскавации (4)',
@@ -2289,7 +2296,11 @@ const I18N = {
       testsNote:'Открывает выбранную таблицу в отдельном окне — поместите его на экран пациента и управляйте отсюда. Экран, расстояние и калибровку реального размера задайте в <b>Настройках</b> (значок шестерёнки).',
       monHint:'Показ таблицы на втором мониторе использует разрешение браузера на управление окнами. Если оно не выдано, окно откроется здесь — перетащите его и нажмите <b>F</b> для полного экрана.',
       // html blocks
-      emptyP:'Перетащите сюда фото глазного дна или переднего отрезка либо загрузите его, чтобы отметить диск, экскавацию и фовеа и автоматически получить отношение экскавации к диску (Э/Д). Нужна только рефракция или подбор очков? Откройте раздел <b>Осмотр</b> выше — снимок не нужен. Всё остаётся в вашем браузере; ничего не отправляется.',
+      emptyLede:'Перетащите сюда фото глазного дна или переднего отрезка либо загрузите его, чтобы автоматически получить отношение экскавации к диску (Э/Д). Для рефракции или подбора очков откройте раздел <b>Осмотр</b> — снимок не нужен.',
+      'Mark the disc, cup and fovea':'Отметьте диск, экскавацию и фовеа',
+      'Runs in your browser. Nothing you add here is uploaded.':'Работает в вашем браузере. Ничего из добавленного сюда не загружается.',
+      'Images leave only for an archive you set up in Settings.':'Изображения уходят только в PACS, который вы настроили в Настройках.',
+      'Modules':'Модули',
       dispNote1:'Работает полностью от <b>итогового рецепта</b> — фото не требуется. Загрузите фото лица, только если хотите оценить РЦ по нему.',
       dispNote2:'Загрузите фото лица с <b>картой</b> (ID-1, 85,6 мм) у брови, в плоскости зрачков. Пациент смотрит на <b>удалённую</b> цель (не в камеру), камера не ближе <b>1,5 м</b>, с зумом: фиксация вблизи или близкая камера занижают РЦ на несколько мм. Проведите <b>линейку</b> вдоль длинной стороны карты, затем от зрачка до зрачка.',
       // the Visual-acuity hint (index.html:596) — the one string no locale defined
@@ -2311,12 +2322,10 @@ const I18N = {
       'Outline note (optional):':'Заметка к контуру (необязательно):',
       'API n/a':'API недоступен',
       // attributes: static titles, aria-label, alt, and the three titles set from JS
-      'Carino Systems — back to hub':'Carino Systems — назад в хаб',
-      'Retina — reload':'Retina — перезагрузить',
       'Fundus imaging & annotation':'Снимок глазного дна и разметка',
       'Refraction, dispensing & optics':'Рефракция, подбор и оптика',
       'Eye exam test charts':'Таблицы для проверки зрения',
-      'Retina on GitHub':'Retina на GitHub','Export report':'Экспорт отчёта','Bigger (easier)':'Крупнее (легче)',
+      'Export report':'Экспорт отчёта','Bigger (easier)':'Крупнее (легче)',
       'Randomize / flip':'Перемешать / отразить','Smaller (harder)':'Мельче (труднее)',
       'Snellen: full chart / per-row':'Снеллен: вся таблица / по строкам',
       'other eye':'другой глаз','fundus':'глазное дно',

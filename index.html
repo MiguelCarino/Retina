@@ -83,23 +83,27 @@
     },300);});
   })();
   </script>
-  <script src="carino-clock.js" defer></script>
+  <!-- The shared navbar (it loads carino-clock.js itself), then the workspace/slice
+       behaviour of carino-ui.css; both before carino-lang.js, which adds its button
+       to the navbar. -->
+  <script src="carino-navbar.js" data-app="Retina" data-repo="Retina" defer></script>
+  <script src="carino-ui.js" defer></script>
   <script src="carino-lang.js" defer></script>
   <script src="i18n.js" defer></script>
   <script src="vendor/pdf-lib.min.js" defer></script>
   <link href="fonts/carino-fonts.css" rel="stylesheet">
+  <!-- Shared tokens and components first; the rules below only add to them. -->
+  <link rel="stylesheet" href="carino-ui.css">
   <style>
     :root{
+      /* --bg, --border, --text, --text-sec, --text-muted, --accent*, --ok/--warn/--err and
+         --mono come from carino-ui.css; these are Retina's own additions. */
       --surface:#0d0d0d; --surface-solid:#080808; --surface-hover:rgba(255,255,255,.08);
-      --border:#262626; --border-glow:rgba(234,179,8,.3);
-      --text:#ffffff; --text-dim:#a3a3a3; --text-muted:#666;
-      --accent:#eab308; --accent-faint:rgba(234,179,8,.05); --accent-glow:rgba(234,179,8,.15);
-      --ok:#22c55e; --warn:#eab308; --err:#ef4444;
+      --border-glow:rgba(234,179,8,.3);
       /* mark colors */
       --c-disc:#22d3ee; --c-cup:#a78bfa; --c-dcenter:#eab308; --c-fovea:#4ade80;
       --c-lesion:#f87171; --c-ruler:#fb923c;
       --font:'IBM Plex Sans','Red Hat Text','Liberation Sans',system-ui,-apple-system,sans-serif;
-      --mono:'IBM Plex Mono','Liberation Mono',ui-monospace,monospace;
       --r-sm:4px; --r-md:8px;
       --s1:.25rem; --s2:.5rem; --s3:.75rem; --s4:1rem; --s5:1.5rem;
       /* A touch target is a physical dimension, so it tracks the chrome upward but never
@@ -117,40 +121,20 @@
     *:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     @media (prefers-reduced-motion:reduce){*,*::before,*::after{transition-duration:.001ms!important;animation-duration:.001ms!important}}
     html,body{height:100%;overflow:hidden}
-    body{font-family:var(--font);background:#000;color:var(--text);line-height:1.5;display:flex;flex-direction:column}
+    body{font-family:var(--font);font-size:1rem;background:var(--bg);color:var(--text);line-height:1.5;display:flex;flex-direction:column}
 
-    /* ---------- Header (Carino navbar) ---------- */
-    /* Both clusters used to be flex-shrink:0 in a nowrap row inside overflow:hidden, so
-       below ~420px the right cluster — the language button included — was pushed off the
-       screen with no scrollbar and no way back. It wraps now. */
-    .header{display:flex;align-items:center;gap:16px;row-gap:8px;flex-wrap:wrap;padding:12px 20px;background:linear-gradient(180deg,#0f0f0f,#050505);border-bottom:1px solid var(--border);z-index:100;position:relative;justify-content:space-between;container-type:inline-size;container-name:hdr}
-    .header-left{display:flex;align-items:center;gap:18px;row-gap:6px;flex-wrap:wrap;min-width:0;flex:1 1 auto}
-    .header-right{display:flex;align-items:center;gap:10px;row-gap:6px;flex-wrap:wrap;justify-content:flex-end;flex:0 1 auto}
-    /* Right-cluster slot order, fleet convention, read right-to-left:
-       GitHub + LinkedIn last, language beside them, then status, then
-       this app's own controls furthest from the edge. Set with `order`
-       because carino-lang.js injects itself asynchronously. */
-    .header-right > * { order: 1; }
-    .header-right > .status-toggle { order: 2; }
-    .header-right > #cnLangBtn { order: 3; }
-    .header-right > .social-row { order: 4; }
-    .cs-brand{display:flex;align-items:center;flex-shrink:0}
-    .brand-name{font-family:'Red Hat Display',var(--font);font-weight:900;font-size:1.5rem;line-height:1;background:linear-gradient(130deg,#fef08a,#eab308 50%,#b45309);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none;white-space:nowrap}
-    .app-tag{color:var(--accent);font-family:var(--mono);font-size:.6rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;border:1px solid var(--border);border-radius:4px;padding:3px 6px;margin-left:10px;text-decoration:none;white-space:nowrap;transition:.15s}
-    .app-tag:hover{border-color:var(--accent);background:rgba(234,179,8,.12)}
-    .header-clock{display:flex;align-items:baseline;gap:8px;border-left:1px solid var(--border);padding-left:18px}
-    .clock-time{font-family:var(--mono);font-size:1.05rem;font-weight:700}
-    .clock-tz{font-family:var(--mono);font-size:.6rem;font-weight:700;color:#050505;background:var(--accent);padding:2px 5px;border-radius:3px}
-    .brand-greeting{font-family:var(--mono);font-size:.68rem;color:var(--text-muted)}
-    .social-row{display:flex;gap:8px}
+    /* ---------- Navbar controls (moved into the shared bar by carino-navbar.js) ---------- */
     .icon-btn{width:32px;height:32px;border:1px solid var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:.2s;text-decoration:none;background:transparent;cursor:pointer}
     .icon-btn:hover{border-color:var(--accent);color:#050505;background:var(--accent);transform:translateY(-2px);box-shadow:0 4px 12px var(--accent-glow)}
     .icon-btn svg{width:15px;height:15px}
-    /* Thresholds now sit on the header's own inline size, so a longer locale drops the
-       clock and the app tag at the width where the strings ACTUALLY stop fitting rather
-       than at the width the English ones do. */
-    @container hdr (max-width:1120px){.header-clock{display:none}}
-    @container hdr (max-width:800px){.app-tag{display:none}}
+    .cs-btn svg{width:14px;height:14px;flex-shrink:0}
+    /* Below 640px the bar keeps the brand: the labelled buttons drop to their icon. */
+    @media (max-width:640px){[data-carino-actions] .cs-btn span,.cn-actions .cs-btn span{display:none}[data-carino-actions] .cs-btn,.cn-actions .cs-btn{padding:0 9px}}
+
+    /* ---------- Module bar ---------- */
+    /* carino-ui.css owns the bar; Retina's body is a fixed-height column, so it is a row
+       of it rather than a sticky overlay. */
+    .slice-menu{flex:none}
 
     /* ---------- Layout ---------- */
     main{flex:1;display:flex;min-height:0}
@@ -163,7 +147,9 @@
        ~336px rail in Imaging and in the whole window in Exam, and only a container query
        can tell those apart. There is deliberately no max-width cap here; the width goes
        into a second pane instead (see the @container blocks below). */
-    main:not([data-mode="imaging"]) .panel{flex:1 1 auto;border-left:none}
+    main:not([data-mode="imaging"]) .panel{flex:1 1 auto;border-right:none}
+    /* Tests is about the chart screen, not the visit: the patient band steps aside. */
+    main[data-mode="tests"] #secPatient{display:none}
 
     /* Exam body: a grid of self-contained cards, in DOM order = clinical order = tab order.
        Under a column flow, tabbing out of the last field in a column teleported the caret
@@ -239,7 +225,7 @@
     .panel-eye .eye-switch{flex:1}
     .panel-eye .eye-switch button{flex:1;text-align:center}
 
-    .tool{width:2.625rem;height:2.625rem;border:1px solid var(--border);border-radius:var(--r-md);background:transparent;color:var(--text-dim);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s;position:relative}
+    .tool{width:2.625rem;height:2.625rem;border:1px solid var(--border);border-radius:var(--r-md);background:transparent;color:var(--text-sec);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s;position:relative}
     @media (pointer:coarse){.tool{width:var(--touch);height:var(--touch)}}
     .tool svg{width:20px;height:20px}
     .tool:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-faint)}
@@ -260,9 +246,13 @@
     #overlay text{font-family:var(--mono);paint-order:stroke;stroke:#000;stroke-width:3px;stroke-linejoin:round}
 
     .empty-hint{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:var(--text-muted);text-align:center;padding:24px;pointer-events:none}
-    .empty-hint h2{font-family:'Red Hat Display',var(--font);font-weight:900;text-transform:uppercase;letter-spacing:.02em;color:var(--text-dim);font-size:1.3rem}
+    .empty-hint h2{font-family:'Red Hat Display',var(--font);font-weight:900;text-transform:uppercase;letter-spacing:.02em;color:var(--text-sec);font-size:1.3rem}
     .empty-hint p{max-width:42ch;font-size:.9rem}
     .empty-hint .pointer-on{pointer-events:auto}
+    /* the short hero inside the empty viewport */
+    .empty-hint .short-hero{padding:16px;gap:12px}
+    .empty-hint .short-hero h1{color:var(--text)}
+    .empty-hint .sh-input{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
 
     /* overlay controls */
     .vp-topbar{position:absolute;top:12px;left:12px;right:12px;display:flex;gap:10px;align-items:center;pointer-events:none;z-index:5;flex-wrap:wrap}
@@ -270,14 +260,14 @@
     .eye-switch button{background:transparent;color:var(--text-muted);border:none;font-family:var(--mono);font-size:.72rem;font-weight:700;letter-spacing:.08em;padding:7px 14px;cursor:pointer;transition:.15s}
     .eye-switch button.active{background:var(--accent);color:#050505}
     .eye-switch button:not(.active):hover{color:var(--text);background:var(--surface-hover)}
-    .vp-chip{pointer-events:auto;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-md);font-family:var(--mono);font-size:.7rem;color:var(--text-dim);padding:7px 10px;display:flex;align-items:center;gap:8px}
+    .vp-chip{pointer-events:auto;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-md);font-family:var(--mono);font-size:.7rem;color:var(--text-sec);padding:7px 10px;display:flex;align-items:center;gap:8px}
     .vp-chip label{color:var(--text-muted)}
     .vp-chip input{width:52px;background:#000;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 5px;font-family:var(--mono);font-size:.72rem}
     .lesion-pick{pointer-events:auto}
     .lesion-pick select{background:var(--surface-solid);border:1px solid var(--border);color:var(--text);border-radius:var(--r-md);padding:7px 8px;font-family:var(--mono);font-size:.7rem}
 
     .vp-zoom{position:absolute;right:12px;bottom:12px;display:flex;flex-direction:column;gap:6px;z-index:5}
-    .vp-zoom button{width:34px;height:34px;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-md);color:var(--text-dim);cursor:pointer;font-size:1.1rem;transition:.15s;display:flex;align-items:center;justify-content:center}
+    .vp-zoom button{width:34px;height:34px;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-md);color:var(--text-sec);cursor:pointer;font-size:1.1rem;transition:.15s;display:flex;align-items:center;justify-content:center}
     .vp-zoom button:hover{border-color:var(--accent);color:var(--accent)}
     .vp-zoom button svg{width:16px;height:16px}
     .vp-zoom .zsep{width:22px;height:1px;background:var(--border);margin:2px auto}
@@ -289,7 +279,9 @@
     /* The panel is the element whose width actually changes between workspaces, so it is
        the query container. Its inline size is definite in both (a clamp here, flex:1 in
        Exam), so inline-size containment costs nothing and no descendant feeds back into it. */
-    .panel{flex:0 1 clamp(21rem,24vw,30rem);min-width:0;background:var(--surface);border-left:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column;container-type:inline-size;container-name:panel}
+    /* The settings rail sits on the LEFT of the canvas (fleet workspace rule); order, not
+       DOM position, so the canvas-first phone stack below needs no second copy. */
+    .panel{order:-1;flex:0 1 clamp(21rem,24vw,30rem);min-width:0;background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column;container-type:inline-size;container-name:panel}
     .sec{border-bottom:1px solid var(--border);padding:12px 14px}
     .sec h3{font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;display:flex;align-items:center;gap:8px}
     .sec h3 .badge{margin-left:auto;font-size:.6rem;color:var(--accent)}
@@ -303,7 +295,7 @@
     .metric .u{font-size:.6rem;color:var(--text-muted);font-weight:400}
     .metric.wide{grid-column:1 / -1}
 
-    .field{margin-bottom:8px;display:flex;flex-direction:column;min-width:0}
+    .field{margin-bottom:8px;display:flex;flex-direction:column;gap:0;min-width:0}
     .field label{display:block;font-family:var(--mono);font-size:.6rem;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px;overflow-wrap:break-word}
     /* a two-line label pushes its own label taller, never its input out of line */
     .field>input,.field>select,.field>textarea{margin-top:auto}
@@ -360,7 +352,7 @@
     input.step,input.seq{touch-action:pan-x}
     @media (pointer:coarse){
       .duo input,.duo select,.field input,.field select{min-height:var(--touch)}
-      .eye-switch button,.pmod button,.seg button,.vp-zoom button,.icon-btn,.hdr-btn,.eye-view button{min-height:var(--touch);min-width:var(--touch)}
+      .eye-switch button,.tabbtn,.seg button,.vp-zoom button,.icon-btn,.cs-btn,.eye-view button{min-height:var(--touch);min-width:var(--touch)}
       .finding .del{padding:8px 12px}
     }
     /* Merged OD/OS grid used across the Exam workspace (both eyes at once) */
@@ -389,16 +381,13 @@
     main:not([data-mode="imaging"]) .panel-eye{display:none!important}
     main:not([data-mode="imaging"]) #eyeBadge{display:none}
 
-    /* Panel module tabs */
-    .pmod{display:flex;flex-wrap:wrap;gap:4px;padding:10px 12px;background:var(--surface-solid);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:6}
-    .pmod button{flex:1 1 7rem;min-width:0;background:transparent;border:1px solid var(--border);color:var(--text-muted);font-family:var(--mono);font-size:.62rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:8px 6px;border-radius:var(--r-sm);cursor:pointer;transition:.15s;overflow-wrap:break-word}
-    .pmod button:hover{color:var(--text);border-color:var(--accent)}
-    .pmod button.active{background:var(--accent);color:#050505;border-color:var(--accent)}
+    /* Exam sub-views: Branding's underline tabs, pinned to the top of the panel */
+    #examTabs{padding:0 12px;background:var(--surface-solid);position:sticky;top:0;z-index:6}
     .mod{display:block}
     .mod.hidden{display:none!important}
     .note-box{font-size:.7rem;color:var(--text-muted);line-height:1.5;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-sm);padding:9px 11px;margin-bottom:10px}
-    .note-box b{color:var(--text-dim)}
-    .mini-btn{background:transparent;border:1px solid var(--border);color:var(--text-dim);border-radius:var(--r-sm);font-family:var(--font);font-size:.72rem;font-weight:600;padding:7px 9px;cursor:pointer;transition:.15s;width:100%;text-align:left}
+    .note-box b{color:var(--text-sec)}
+    .mini-btn{background:transparent;border:1px solid var(--border);color:var(--text-sec);border-radius:var(--r-sm);font-family:var(--font);font-size:.72rem;font-weight:600;padding:7px 9px;cursor:pointer;transition:.15s;width:100%;text-align:left}
     .mini-btn:hover{border-color:var(--accent);color:var(--accent)}
     .mini-btn .n{color:var(--accent);font-family:var(--mono);margin-right:6px}
 
@@ -406,7 +395,8 @@
     .finding{display:flex;align-items:center;gap:9px;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-sm);padding:7px 9px;cursor:pointer;transition:.15s}
     .finding:hover{border-color:var(--accent)}
     .finding.sel{border-color:var(--accent);background:var(--accent-faint)}
-    .finding .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+    .finding .dot{display:block;width:9px;height:9px;border-radius:50%;flex-shrink:0}
+    .finding .dot::before,.remote .dot::before{content:none}
     .finding .txt{flex:1;min-width:0}
     .finding .txt .t{font-size:.78rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .finding .txt .s{font-family:var(--mono);font-size:.6rem;color:var(--text-muted)}
@@ -414,15 +404,12 @@
     .finding .del:hover{color:var(--err)}
     .no-findings{font-size:.78rem;color:var(--text-muted);text-align:center;padding:8px}
 
-    .btn{background:var(--accent);color:#050505;border:none;border-radius:var(--r-sm);font-family:var(--font);font-weight:700;font-size:.8rem;padding:9px 12px;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;justify-content:center;gap:7px}
-    .btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
-    .btn.ghost{background:transparent;color:var(--text-dim);border:1px solid var(--border)}
-    .btn.ghost:hover{border-color:var(--accent);color:var(--accent);transform:none}
+    /* Branding's .btn, allowed to wrap: es/pt-BR/ru labels outgrow a 38px single line. */
+    .btn{height:auto;min-height:38px;padding:8px 14px;justify-content:center;text-align:center;line-height:1.3}
     .btn.wide{width:100%;max-width:22rem}
     .btn-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,9rem),1fr));gap:8px;max-width:34rem}
     /* compact action buttons inside the settings modal (no full-width stretch) */
     .modal-body .btn.wide{width:auto;max-width:100%}
-    .modal-body .btn{padding:8px 14px}
 
     .hidden{display:none!important}
     /* ---------- Storage: save-state icon, problem bar, saved-visit list ---------- */
@@ -435,7 +422,7 @@
     .sb-btn{background:transparent;border:1px solid var(--border);color:var(--text);border-radius:var(--r-sm);font-family:var(--font);font-size:.75rem;font-weight:600;padding:6px 10px;min-height:32px;cursor:pointer}
     .sb-btn:hover{border-color:var(--accent);color:var(--accent)}
     @media (max-width:600px){.store-bar{padding:8px 16px}}
-    .sv-head{margin-top:10px;color:var(--text-dim)}
+    .sv-head{margin-top:10px;color:var(--text-sec)}
     .sv-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:4px 0;border-top:1px solid var(--border);font-size:.75rem;min-width:0}
     .sv-row span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
     .sv-row .mini-btn{width:auto;flex-shrink:0}
@@ -451,15 +438,15 @@
     .sb-btn.danger:hover{background:var(--err);color:#050505;border-color:var(--err)}
     .sb-btn:disabled{opacity:.45;cursor:default}
     .pt-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px;grid-column:1/-1}   /* a whole row of the exam's patient grid */
-    .pt-chip{font-size:.72rem;color:var(--text-dim);flex:1 1 9rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .pt-chip{font-size:.72rem;color:var(--text-sec);flex:1 1 9rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .pt-row .mini-btn{width:auto}
     /* Previous visit: read-only reference beside the exam. No deltas, arrows or colour —
        values are shown as they were recorded, nothing is compared or judged. */
     #prevVisit{grid-column:1/-1;margin:10px 12px 0;border:1px solid var(--border);border-radius:var(--r-md);background:var(--surface-solid);font-size:.75rem}
-    #prevVisit summary{cursor:pointer;padding:8px 12px;font-family:var(--mono);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim)}
+    #prevVisit summary{cursor:pointer;padding:8px 12px;font-family:var(--mono);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-sec)}
     #prevVisit .pv-body{padding:0 12px 10px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,17rem),1fr));gap:8px 16px}
     #prevVisit .pv-eye{min-width:0}
-    #prevVisit .pv-eh{font-family:var(--mono);font-weight:700;color:var(--text-dim);margin-bottom:2px}
+    #prevVisit .pv-eh{font-family:var(--mono);font-weight:700;color:var(--text-sec);margin-bottom:2px}
     #prevVisit dl{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:2px 10px;margin:0}
     #prevVisit dt{color:var(--text-muted)}
     #prevVisit dd{margin:0;overflow-wrap:anywhere;font-family:var(--mono)}
@@ -500,7 +487,7 @@
     .snd-row input{margin-top:3px;flex-shrink:0;accent-color:var(--accent)}
     .snd-row .snd-main{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
     .snd-row .snd-sub{color:var(--text-muted);font-size:.72rem}
-    .snd-row .snd-size{font-family:var(--mono);font-size:.72rem;color:var(--text-dim);white-space:nowrap}
+    .snd-row .snd-size{font-family:var(--mono);font-size:.72rem;color:var(--text-sec);white-space:nowrap}
     .snd-row.off{cursor:default;opacity:.6}
     .ob-err{color:var(--err);font-size:.72rem;overflow-wrap:anywhere;white-space:normal}
     /* Inbox: one card per imported file. The eye control starts EMPTY unless the file
@@ -514,14 +501,14 @@
     .ib-top input{accent-color:var(--accent);margin-top:2px;flex-shrink:0}
     .ib-thumb{width:100%;aspect-ratio:4/3;background:#0b0b0b;border-radius:4px;display:flex;align-items:center;justify-content:center;overflow:hidden}
     .ib-thumb img{max-width:100%;max-height:100%;object-fit:contain}
-    .ib-doc{font-family:var(--mono);font-weight:700;font-size:1.1rem;color:var(--text-dim);border:1px solid var(--border);border-radius:4px;padding:10px 12px}
+    .ib-doc{font-family:var(--mono);font-weight:700;font-size:1.1rem;color:var(--text-sec);border:1px solid var(--border);border-radius:4px;padding:10px 12px}
     .ib-name{font-weight:600;overflow-wrap:anywhere}
     .ib-sub{color:var(--text-muted);font-size:.7rem;overflow-wrap:anywhere}
     .ib-warn{color:var(--err);font-size:.72rem;overflow-wrap:anywhere}
     .ib-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-    .ib-row .ib-k{color:var(--text-dim);font-size:.7rem;min-width:3.2rem}
+    .ib-row .ib-k{color:var(--text-sec);font-size:.7rem;min-width:3.2rem}
     .ib-eye{display:inline-flex;border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden}
-    .ib-eye button{background:transparent;border:0;border-left:1px solid var(--border);color:var(--text-dim);font:inherit;font-family:var(--mono);font-size:.72rem;font-weight:700;padding:5px 9px;cursor:pointer;min-height:28px}
+    .ib-eye button{background:transparent;border:0;border-left:1px solid var(--border);color:var(--text-sec);font:inherit;font-family:var(--mono);font-size:.72rem;font-weight:700;padding:5px 9px;cursor:pointer;min-height:28px}
     .ib-eye button:first-child{border-left:0}
     .ib-eye button.active{background:var(--accent);color:#050505}
     .ib-row select{flex:1 1 8rem;min-width:0;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font:inherit;font-size:.74rem;padding:5px 6px}
@@ -530,7 +517,7 @@
     .ib-skip{font-size:.72rem;color:var(--text-muted);margin-top:6px}
     .ib-skip summary{cursor:pointer}
     /* Other pictures of the current eye, and the visit's attached documents. */
-    .ef-group{font-size:.72rem;color:var(--text-dim);margin:12px 0 6px;font-weight:600}
+    .ef-group{font-size:.72rem;color:var(--text-sec);margin:12px 0 6px;font-weight:600}
     .ef-strip{display:flex;gap:8px;flex-wrap:wrap}
     .ef-item{display:flex;flex-direction:column;gap:4px;width:7.5rem;font-size:.7rem}
     .ef-item img{width:7.5rem;height:5.6rem;object-fit:cover;border-radius:4px;border:1px solid var(--border);background:#0b0b0b}
@@ -538,7 +525,7 @@
     .ef-item .sb-btn,.ef-doc .sb-btn{min-height:26px;padding:3px 7px;font-size:.68rem}
     .ef-doc{display:flex;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--border);font-size:.74rem;min-width:0}
     .ef-doc .ef-n{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
-    .arch-check{display:flex;align-items:center;gap:8px;font-size:.78rem;color:var(--text-dim);margin-top:8px;cursor:pointer}
+    .arch-check{display:flex;align-items:center;gap:8px;font-size:.78rem;color:var(--text-sec);margin-top:8px;cursor:pointer}
     .arch-check input{accent-color:var(--accent)}
     .arch-result{font-size:.78rem;margin-top:8px;line-height:1.45;overflow-wrap:anywhere}
     .arch-result:empty{display:none}
@@ -551,12 +538,11 @@
     .dlg-title{font-family:'Red Hat Display',var(--font);font-weight:900;font-size:1.05rem}
     .dlg-body{font-size:.85rem;line-height:1.5;white-space:pre-line;overflow-wrap:anywhere}
     .dlg-field{margin-top:10px}
-    .dlg-field label{display:block;font-size:.72rem;color:var(--text-dim);margin-bottom:4px}
+    .dlg-field label{display:block;font-size:.72rem;color:var(--text-sec);margin-bottom:4px}
     .dlg-field input,.dlg-field textarea{width:100%;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font:inherit;font-size:.85rem;padding:8px 10px}
     .dlg-field input:focus,.dlg-field textarea:focus{border-color:var(--accent);outline:none}
     .dlg-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:16px}
-    .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface-solid);border:1px solid var(--accent);color:var(--text);font-size:.82rem;padding:10px 18px;border-radius:var(--r-md);opacity:0;transition:.25s;z-index:500;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.5)}
-    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    .toast{z-index:800}
 
     /* scrollbars */
     .panel::-webkit-scrollbar,.vp-tools::-webkit-scrollbar{width:8px}
@@ -604,26 +590,24 @@
     .remote{max-width:26rem;margin-inline:auto}
     .remote .r-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,5rem),1fr));gap:6px}
     .remote .r-grid.two{grid-template-columns:repeat(auto-fit,minmax(min(100%,7.5rem),1fr))}
-    .remote button{background:transparent;border:1px solid var(--border);color:var(--text-dim);border-radius:var(--r-sm);font-family:var(--font);font-size:.72rem;font-weight:600;padding:8px 4px;cursor:pointer;transition:.15s}
+    .remote button{background:transparent;border:1px solid var(--border);color:var(--text-sec);border-radius:var(--r-sm);font-family:var(--font);font-size:.72rem;font-weight:600;padding:8px 4px;cursor:pointer;transition:.15s}
     .remote button:hover{border-color:var(--accent);color:var(--accent)}
     .remote button.danger{border-color:var(--err);color:var(--err)}
     .remote button.danger:hover{background:var(--err);color:#050505}
 
     /* ---------- Settings modal ---------- */
-    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;z-index:600;padding:20px}
-    .modal-overlay.hidden{display:none!important}
+    /* The shared navbar stays above every layer, so a dialog starts below it. */
+    .modal-scrim{z-index:600;padding:20px;padding-top:calc(var(--nav-h) + 12px)}
     /* The modal is a column: the head stays put, the body is what scrolls. Sizing the
        whole box in vh put the action buttons below the fold in a short window. */
-    .modal{width:min(var(--modal-w,520px),100%);max-height:min(100%,92dvh);display:flex;flex-direction:column;overflow:hidden;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:0 24px 70px rgba(0,0,0,.6)}
+    .modal{width:min(var(--modal-w,520px),100%);max-width:none;max-height:min(100%,92dvh);display:flex;flex-direction:column;overflow:hidden;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:0 24px 70px rgba(0,0,0,.6)}
     /* Height, not just max-height: without a definite height the modal shrink-wraps its
        content and the body's flex:1 1 auto has no free space to hand the preview. */
     #exportModal .modal{--modal-w:760px;height:min(100%,92dvh)}
     #cameraModal .modal{--modal-w:720px}
-    #testsModal  .modal{--modal-w:680px}
-    .modal-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--border);position:sticky;top:0;background:linear-gradient(180deg,#101010,#0b0b0b);z-index:1}
-    .modal-head h2{font-family:'Red Hat Display',var(--font);font-weight:900;font-size:1.05rem}
-    .modal-head .x{background:transparent;border:none;color:var(--text-muted);font-size:1.4rem;line-height:1;cursor:pointer;padding:2px 6px}
-    .modal-head .x:hover{color:var(--err)}
+    .modal-head{position:sticky;top:0;background:var(--bg-card);z-index:1}
+    .modal-head h2{margin:0}
+    .modal-x{font-size:1.4rem}
     .modal-body{padding:16px 18px;overflow-y:auto;min-height:0;flex:1 1 auto}
     /* the export preview is the flexible part; the action buttons stay pinned in view */
     #exportModal .modal-body{display:flex;flex-direction:column}
@@ -636,27 +620,12 @@
     /* The card must be allowed to be wider than the modal: capped at 100% it stopped
        growing at ~143 ppi while the slider and the label kept going. The wrapper scrolls. */
     .cal-wrap{overflow-x:auto;max-width:100%}
-    .cal-card{height:54mm;max-height:120px;width:85.6mm;flex:none;border:2px dashed var(--accent);border-radius:10px;background:linear-gradient(135deg,rgba(234,179,8,.12),transparent);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.62rem;color:var(--text-dim);margin:8px 0}
+    .cal-card{height:54mm;max-height:120px;width:85.6mm;flex:none;border:2px dashed var(--accent);border-radius:10px;background:linear-gradient(135deg,rgba(234,179,8,.12),transparent);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.62rem;color:var(--text-sec);margin:8px 0}
     .screens-list{display:flex;flex-direction:column;gap:6px;margin-top:8px}
-    .screen-item{font-family:var(--mono);font-size:.68rem;color:var(--text-dim);background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-sm);padding:7px 9px;display:flex;justify-content:space-between}
+    .screen-item{font-family:var(--mono);font-size:.68rem;color:var(--text-sec);background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-sm);padding:7px 9px;display:flex;justify-content:space-between}
     .screen-item .pri{color:var(--accent)}
     .hint-line{font-size:.7rem;color:var(--text-muted);line-height:1.5;margin-top:6px}
 
-    /* ---------- Top nav (workspace sections) ---------- */
-    .topnav{display:flex;gap:3px;margin-left:8px;border-left:1px solid var(--border);padding-left:14px}
-    .topnav button{display:flex;align-items:center;gap:7px;background:transparent;border:1px solid transparent;border-radius:var(--r-sm);color:var(--text-muted);font-family:var(--font);font-size:.78rem;font-weight:600;padding:7px 12px;cursor:pointer;transition:.15s;white-space:nowrap}
-    .topnav button svg{width:16px;height:16px;flex-shrink:0}
-    .topnav button:hover{color:var(--text);background:var(--surface-hover)}
-    .topnav button.active{color:var(--accent);background:var(--accent-faint);border-color:var(--border-glow)}
-    /* Export acts on the whole study, not on either panel, so it is header chrome. As a
-       panel button it cost a full-width row in Imaging and, past a 1120px panel where both
-       exam sub-tabs disappear, it was the only thing left in the exam tab bar. */
-    .hdr-btn{display:flex;align-items:center;gap:7px;background:transparent;border:1px solid var(--border-glow);border-radius:var(--r-sm);color:var(--accent);font-family:var(--font);font-size:.78rem;font-weight:600;padding:7px 12px;cursor:pointer;transition:.15s;white-space:nowrap}
-    .hdr-btn svg{width:16px;height:16px;flex-shrink:0}
-    .hdr-btn:hover{background:var(--accent);color:#050505;border-color:var(--accent)}
-    @container hdr (max-width:880px){.hdr-btn span{display:none}.hdr-btn{padding:7px 9px}}
-    @container hdr (max-width:1120px){.topnav{padding-left:10px;margin-left:4px}}
-    @container hdr (max-width:880px){.topnav button span{display:none}.topnav button{padding:7px 9px}}
 
     /* ---------- Floating viewport tools ---------- */
     .vp-tools{position:absolute;left:12px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;gap:5px;background:rgba(12,12,12,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid var(--border);border-radius:12px;padding:8px 6px;z-index:6;box-shadow:0 8px 24px rgba(0,0,0,.45);
@@ -766,7 +735,8 @@
       #exportModal .modal{--modal-w:min(1180px,calc(0.7072 * (92dvh - 89px) + 12rem + 52px))}
     }
     /* Tests modal */
-    #testsModal .test-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+    #mod-tests .test-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+    #mod-tests .sec{max-width:72rem}
     #testsRemoteView .remote{margin-bottom:0}
     /* Camera modal */
     /* a 720px-wide 4:3 box is 540px tall, which puts the capture button below the fold in
@@ -778,7 +748,7 @@
     #printReport{display:none}
     @media print{
       html,body{overflow:visible;height:auto;background:#fff;color:#000}
-      .header,.vp-tools,.center,.panel,.toast,.modal-overlay{display:none!important}
+      #carinoNav,.slice-menu,.vp-tools,.center,.panel,.toast,.modal-scrim{display:none!important}
       #printReport{display:block;padding:24px;font-family:var(--font)}
       #printReport h1{font-size:20px;margin-bottom:4px}
       #printReport .muted{color:#555;font-size:12px;margin-bottom:16px}
@@ -813,7 +783,7 @@
     @media (max-width:46rem){
       .workarea{flex-direction:column;overflow-y:auto}
       .center{flex:none;height:46dvh;min-height:14rem}
-      .panel{flex:none;width:100%;max-width:none;overflow:visible}
+      .panel{order:0;flex:none;width:100%;max-width:none;overflow:visible;border-right:none}
       .panel-eye{position:static}
       main:not([data-mode="imaging"]) .center{display:none!important}
       /* Same dock as the short-viewport case at :459. Without it the vertical rail's first
@@ -825,12 +795,16 @@
         max-height:none;overflow:visible;
       }
       .vp-tools .rail-sep{width:1px;height:26px;margin:0 4px}
+      /* No picture yet: the hero takes the height it needs and the canvas tools, which
+         have nothing to act on, step aside instead of covering it. */
+      .center.is-empty{height:auto;min-height:14rem}
+      .center.is-empty .empty-hint{position:relative;inset:auto;width:auto!important;height:auto!important;left:auto!important;top:auto!important}
+      .center.is-empty .vp-tools,.center.is-empty .vp-zoom,.center.is-empty .hud{display:none}
+      .center.is-empty .vp-topbar{position:relative;top:auto;left:auto;right:auto;padding:12px 12px 0}
     }
 
 
     @supports not (container-type:inline-size){
-      @media (max-width:1150px){.header-clock{display:none}}
-      @media (max-width:900px){.app-tag{display:none}.topnav button span{display:none}.topnav button{padding:7px 9px}}
       main:not([data-mode="imaging"]) #mod-exam .sec{grid-template-columns:repeat(auto-fill,minmax(19rem,1fr))}
       @media (min-width:1400px){
         #examTabs{display:none}
@@ -844,30 +818,9 @@
   </style>
 </head>
 <body>
-  <header class="header">
-    <div class="header-left">
-      <span class="cs-brand">
-        <a class="brand-name" href="https://carino.systems/" data-i18n-attr="title" title="Carino Systems — back to hub">Carino</a>
-        <a class="app-tag" href="./" data-i18n-attr="title" title="Retina — reload">Retina</a>
-      </span>
-      <div class="header-clock" aria-hidden="true">
-        <span class="clock-time">00:00:00</span>
-        <span class="clock-tz">LOCAL</span>
-      </div>
-      <nav class="topnav" id="topnav">
-        <button data-mod="imaging" class="active" data-i18n-attr="title" title="Fundus imaging & annotation">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5" fill="currentColor" stroke="none"/></svg><span>Imaging</span></button>
-        <button data-mod="exam" data-i18n-attr="title" title="Refraction, dispensing & optics">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="15" r="4"/><circle cx="18" cy="15" r="4"/><path d="M10 14c1-1 3-1 4 0M2 12l2-3h4M22 12l-2-3h-4"/></svg><span>Exam</span></button>
-        <button data-action="tests" data-i18n-attr="title" title="Eye exam test charts">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 8v8M9 16h6M10.5 8h3" stroke-width="2.4"/></svg><span>Tests</span></button>
-        <button data-action="patients" data-i18n-attr="title" title="Patients and earlier visits on this device">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.3-5.5 6.5-5.5s5.9 1.9 6.5 5.5M16 4.8a3.5 3.5 0 0 1 0 6.4M18.5 14.8c1.7.8 2.7 2.6 3 5.2"/></svg><span>Patients</span></button>
-      </nav>
-    </div>
-    <div class="header-right">
-      <!-- Settings is one of Retina's own controls, so it sits left of the
-           socials rather than inside them (see .header-right slot order). -->
+  <!-- Retina's own controls. carino-navbar.js moves this node (ids and handlers intact)
+       into the shared bar; Export is the main action and stays in the bar on phones. -->
+  <div data-carino-actions>
       <!-- Save state. Its label is state text written by renderSaveChip(), so it carries
            no data-i18n-attr (the registry would freeze the first state it saw). -->
       <button class="icon-btn save-chip" id="saveChip" type="button" data-state="pending" title="Opening storage…" aria-label="Opening storage…">
@@ -880,24 +833,23 @@
            Its label and count are state text (renderOutboxBtn), so no data-i18n-attr. -->
       <button class="icon-btn ob-btn hidden" id="outboxBtn" type="button" data-state="idle">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.7 4H7.3a2 2 0 0 0-1.8 1.1z"/></svg><span class="ob-n" id="outboxN"></span></button>
-      <button class="hdr-btn" id="exportOpen" data-i18n-attr="title" title="Export report">
+      <button class="cs-btn" id="patientsBtn" type="button" data-i18n-attr="title" title="Patients and earlier visits on this device">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.3-5.5 6.5-5.5s5.9 1.9 6.5 5.5M16 4.8a3.5 3.5 0 0 1 0 6.4M18.5 14.8c1.7.8 2.7 2.6 3 5.2"/></svg><span class="i18n">Patients</span></button>
+      <!-- Export acts on the whole study, from any module. -->
+      <button class="cs-btn primary" id="exportOpen" type="button" data-priority="1" data-i18n-attr="title" title="Export report">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V3M8 7l4-4 4 4M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg><span class="i18n">Export ↗</span></button>
       <button class="icon-btn" id="settingsBtn" data-i18n-attr="title,aria-label" title="Settings" aria-label="Settings">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       </button>
-      <div class="social-row">
-        <a href="https://carino.systems/legal.html" class="icon-btn" id="cnLegal" title="Legal notice &amp; privacy" aria-label="Legal notice &amp; privacy">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-        </a>
-        <a href="https://github.com/MiguelCarino/Retina" target="_blank" rel="noopener" class="icon-btn" data-i18n-attr="title" title="Retina on GitHub" aria-label="GitHub">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
-        </a>
-        <a href="https://www.linkedin.com/in/miguelcarino94/" target="_blank" rel="noopener" class="icon-btn" title="LinkedIn" aria-label="LinkedIn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
-        </a>
-      </div>
-    </div>
-  </header>
+  </div>
+  <!-- Modules: each one is a #hash (#imaging, #exam&tab=dispensing, #tests). CarinoUI.slices
+       routes them; the bar sits collapsed from the start because every module works on the
+       same visit. Labels stay visible at every width. -->
+  <nav class="slice-menu collapsed" aria-label="Modules" data-i18n-attr="aria-label">
+    <button type="button" class="slice" data-id="imaging" data-i18n-attr="title" title="Fundus imaging & annotation"><span class="s-num">01</span><span class="s-text">Imaging</span></button>
+    <button type="button" class="slice" data-id="exam" data-i18n-attr="title" title="Refraction, dispensing & optics"><span class="s-num">02</span><span class="s-text">Exam</span></button>
+    <button type="button" class="slice" data-id="tests" data-i18n-attr="title" title="Eye exam test charts"><span class="s-num">03</span><span class="s-text">Tests</span></button>
+  </nav>
   <!-- Storage problems: non-modal, never auto-dismissed while they hold. Rendered by renderBanner(). -->
   <div id="storageBanner" class="store-bar hidden" role="alert"></div>
   <!-- Visit context: relink question, visit open in another tab, last visit. Rendered by renderVisitBar(). -->
@@ -959,13 +911,19 @@
         </div>
       </div>
 
+      <!-- The suite's short hero, as Imaging's empty state: a first visit opens here (no
+           sample is seeded), so the privacy line is the first thing a new visitor reads. -->
       <div class="empty-hint" id="emptyHint">
-        <h2>No image loaded</h2>
-        <p data-i18n-html="emptyP">Drop a fundus / anterior-segment photo here, or load one, to mark the disc, cup and fovea for an automatic cup-to-disc ratio. Prefer to just refract or dispense? Open the <b>Exam</b> workspace above — no image needed. Everything stays in your browser; nothing is uploaded.</p>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center" class="pointer-on">
-          <button class="btn" id="loadBtn"><span class="i18n">Load image…</span></button>
-          <button class="btn ghost" id="cameraBtn2"><span class="i18n">Take photo…</span></button>
-          <button class="btn ghost" id="sampleBtn"><span class="i18n">Load sample fundus</span></button>
+        <div class="short-hero">
+          <img class="mark" src="logo.svg" alt="" width="48" height="48">
+          <h1 class="i18n">Mark the disc, cup and fovea</h1>
+          <p class="sh-lede" data-i18n-html="emptyLede">Drop a fundus or anterior-segment photo here, or load one, for an automatic cup-to-disc ratio. To refract or dispense, open <b>Exam</b>: no image needed.</p>
+          <div class="sh-input pointer-on">
+            <button class="btn btn-primary" id="loadBtn"><span class="i18n">Load image…</span></button>
+            <button class="btn" id="cameraBtn2"><span class="i18n">Take photo…</span></button>
+            <button class="btn" id="sampleBtn"><span class="i18n">Load sample fundus</span></button>
+          </div>
+          <p class="privacy-line"><span class="i18n">Runs in your browser. Nothing you add here is uploaded.</span> <span class="pl-also i18n">Images leave only for an archive you set up in Settings.</span></p>
         </div>
       </div>
 
@@ -1033,7 +991,7 @@
         <div class="sec">
           <h3>Findings <span class="badge" id="findCount">0</span></h3>
           <div class="findings" id="findings"><div class="no-findings">No marks yet.</div></div>
-          <button class="btn ghost hidden" id="clearEye" style="margin-top:10px;border-color:var(--err);color:var(--err)"><span class="i18n">Clear this eye's marks</span></button>
+          <button class="btn hidden" id="clearEye" style="margin-top:10px;border-color:var(--err);color:var(--err)"><span class="i18n">Clear this eye's marks</span></button>
         </div>
       </div>
 
@@ -1041,9 +999,9 @@
       <div class="mod hidden" id="mod-exam">
         <!-- Previous visit of the same patient, read-only. Rendered by renderPrevVisit(). -->
         <details id="prevVisit" class="hidden" open></details>
-        <div class="pmod" id="examTabs">
-          <button data-etab="refraction" class="active" data-i18n>Refraction</button>
-          <button data-etab="dispensing" data-i18n>Dispensing &amp; optics</button>
+        <div class="tabbar" id="examTabs">
+          <button type="button" class="tabbtn active" data-etab="refraction" data-i18n>Refraction</button>
+          <button type="button" class="tabbtn" data-etab="dispensing" data-i18n>Dispensing &amp; optics</button>
         </div>
         <div class="esub" id="esub-refraction">
         <div class="sec">
@@ -1250,16 +1208,58 @@
         </div><!-- /esub-dispensing -->
       </div>
 
-      <!-- Image & data (Imaging workspace only). Export moved to the header: it acts on
-           the whole study, not on this panel, and it is reachable from both workspaces. -->
+      <!-- ==================== TESTS MODULE (chart grid → remote) ==================== -->
+      <div class="mod hidden" id="mod-tests">
+        <div class="sec">
+          <h3>Eye exam tests</h3>
+          <div id="testsGridView">
+            <div class="note-box" data-i18n-html="testsNote">Opens the chosen chart in a separate window — put it on the patient-facing screen and control it from here. Set the display, distance and true-size calibration in <b>Settings</b> (gear icon).</div>
+            <div class="test-grid" id="testGrid"></div>
+          </div>
+          <div id="testsRemoteView" class="hidden">
+            <button class="btn wide" id="testsBackBtn" style="margin-bottom:12px">◂ <span class="i18n">Back to tests</span></button>
+            <div class="remote" id="remote">
+              <div class="r-head"><span class="dot"></span><span class="i18n">Presenting</span> · <span id="remoteTest">—</span></div>
+              <div class="r-acuity" id="remoteAcuity">—</div>
+              <!-- The answer key. The chart is on the far wall and, once shuffled, the
+                   clinician has no other way to know what it is showing. -->
+              <div class="r-showing hidden" id="remoteShowing"><span class="k i18n">Showing</span><span class="v" id="remoteShowingV">—</span></div>
+              <!-- Colour plates only. Every screen-based colour test is invalid on the wrong
+                   display, and the clinician is the only person who can check that. -->
+              <div class="hint-line hidden i18n" id="remoteColorNote">Colours are computed for sRGB. Results are invalid on an uncalibrated or wide-gamut display, or with Night Shift / f.lux / an OS colour filter on — those filters simulate colour blindness. A missed plate is a reason to refer for standardized plates, never a finding.</div>
+              <div class="r-grid" style="margin-bottom:6px">
+                <button id="rBigger" data-i18n-attr="title" title="Bigger (easier)">A+</button>
+                <button id="rRandom" data-i18n-attr="title" title="Randomize / flip"><span class="i18n">Shuffle</span></button>
+                <button id="rSmaller" data-i18n-attr="title" title="Smaller (harder)">A−</button>
+              </div>
+              <div class="r-grid two" style="margin-bottom:6px">
+                <button id="rPrev">◀ <span class="i18n">Prev</span></button>
+                <button id="rNext"><span class="i18n">Next</span> ▶</button>
+              </div>
+              <div class="r-grid two" style="margin-bottom:6px">
+                <button id="rScreenL">◂ <span class="i18n">Screen</span></button>
+                <button id="rScreenR"><span class="i18n">Screen</span> ▸</button>
+              </div>
+              <div class="r-grid">
+                <button id="rRows" data-i18n-attr="title" title="Snellen: full chart / per-row"><span class="i18n">Rows</span></button>
+                <button id="rMirror"><span class="i18n">Mirror</span></button>
+                <button id="rClose" class="danger"><span class="i18n">Close</span></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Image & data (Imaging workspace only). Export is in the navbar: it acts on
+           the whole study, not on this panel, and it is reachable from every module. -->
       <div class="sec" id="exportData">
         <h3>Image &amp; data</h3>
         <div class="btn-grid">
-          <button class="btn ghost" id="loadBtn2"><span class="i18n">Load image</span></button>
-          <button class="btn ghost" id="sampleBtn2"><span class="i18n">Sample</span></button>
-          <button class="btn ghost" id="cameraBtn"><span class="i18n">Camera</span></button>
-          <button class="btn ghost" id="importJson"><span class="i18n">Open JSON</span></button>
-          <button class="btn ghost" id="inboxOpen2"><span class="i18n">Inbox</span></button>
+          <button class="btn" id="loadBtn2"><span class="i18n">Load image</span></button>
+          <button class="btn" id="sampleBtn2"><span class="i18n">Sample</span></button>
+          <button class="btn" id="cameraBtn"><span class="i18n">Camera</span></button>
+          <button class="btn" id="importJson"><span class="i18n">Open JSON</span></button>
+          <button class="btn" id="inboxOpen2"><span class="i18n">Inbox</span></button>
         </div>
         <!-- The eye's other pictures and the visit's attached documents. State text,
              rendered by renderEyeFiles() with t(): no .i18n inside. -->
@@ -1275,15 +1275,15 @@
   <input type="file" id="backupInput" accept=".retinabak,application/octet-stream" class="hidden">
   <input type="file" id="brandLogoInput" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" class="hidden">
   <input type="file" id="brandProfileInput" accept="application/json,.json" class="hidden">
-  <div class="toast" id="toast"></div>
+  <div class="toast info" id="toast" role="status"></div>
   <div id="printReport"></div>
 
   <!-- Settings modal -->
-  <div class="modal-overlay hidden" id="settingsModal">
+  <div class="modal-scrim hidden" id="settingsModal">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="setTitle">
       <div class="modal-head">
-        <h2 id="setTitle" class="i18n">Settings</h2>
-        <button class="x" id="settingsClose" data-i18n-attr="aria-label" aria-label="Close">×</button>
+        <h2 class="modal-title i18n" id="setTitle">Settings</h2>
+        <button class="modal-x" id="settingsClose" data-i18n-attr="aria-label" aria-label="Close">×</button>
       </div>
       <div class="modal-body">
         <div class="set-group">
@@ -1293,7 +1293,7 @@
             <button data-v="secondary" class="i18n">Second monitor</button>
             <button data-v="ask" class="i18n">Ask each time</button>
           </div>
-          <button class="btn ghost wide" id="detectScreens" style="margin-top:8px"><span class="i18n">Detect monitors</span></button>
+          <button class="btn wide" id="detectScreens" style="margin-top:8px"><span class="i18n">Detect monitors</span></button>
           <div class="screens-list" id="screensList"></div>
           <div class="hint-line" data-i18n-html="monHint">Placing a chart on a second monitor uses your browser's window-management permission. If it isn't granted, the window opens here — drag it across and press <b>F</b> for fullscreen.</div>
         </div>
@@ -1313,7 +1313,7 @@
           <!-- Desktop only: draws the card on the chart display, so the value can
                be measured where it is used. Hidden in a browser, which has no way
                to know what display the chart is on. -->
-          <button id="calOnChartBtn" class="btn hidden" type="button"><span class="i18n">Calibrate on chart screen</span></button>
+          <button id="calOnChartBtn" class="btn btn-primary hidden" type="button"><span class="i18n">Calibrate on chart screen</span></button>
           <div class="hint-line"><span class="i18n">Display density</span>: <span id="calPpi">—</span></div>
           <!-- Desktop only: what was measured on which display. Rendered by renderCalList(): no .i18n. -->
           <div class="screens" id="calList"></div>
@@ -1474,18 +1474,18 @@
           <div class="hint-line" id="archInfo"></div>
         </div>
 
-        <button class="btn wide" id="settingsSave"><span class="i18n">Save settings</span></button>
+        <button class="btn btn-primary wide" id="settingsSave"><span class="i18n">Save settings</span></button>
       </div>
     </div>
   </div>
 
   <!-- Patients: search, patient detail with visits, unfiled visits, recently deleted.
        The body is rendered by renderPatients() with t(), so it carries no .i18n. -->
-  <div class="modal-overlay hidden" id="patientsModal">
+  <div class="modal-scrim hidden" id="patientsModal">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ptTitle">
       <div class="modal-head">
-        <h2 id="ptTitle" class="i18n">Patients</h2>
-        <button class="x" id="patientsClose" data-i18n-attr="aria-label" aria-label="Close">×</button>
+        <h2 class="modal-title i18n" id="ptTitle">Patients</h2>
+        <button class="modal-x" id="patientsClose" data-i18n-attr="aria-label" aria-label="Close">×</button>
       </div>
       <div class="modal-body">
         <div class="pl-top">
@@ -1506,7 +1506,7 @@
 
   <!-- Generic dialog (uiConfirm / uiPrompt). Every text in it is passed in already
        translated, so nothing here is registered for i18n. -->
-  <div class="modal-overlay hidden" id="dlgModal">
+  <div class="modal-scrim hidden" id="dlgModal">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="dlgTitle" aria-describedby="dlgBody">
       <div class="modal-head"><div class="dlg-title" id="dlgTitle" role="heading" aria-level="2"></div></div>
       <div class="modal-body">
@@ -1518,11 +1518,11 @@
   </div>
 
   <!-- Send to archive: what will be sent, ticked one by one. Rendered by renderSendList(). -->
-  <div class="modal-overlay hidden" id="sendModal">
+  <div class="modal-scrim hidden" id="sendModal">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="sendTitle">
       <div class="modal-head">
-        <h2 id="sendTitle" class="i18n">Send to archive</h2>
-        <button class="x" id="sendClose" data-i18n-attr="aria-label" aria-label="Close">×</button>
+        <h2 class="modal-title i18n" id="sendTitle">Send to archive</h2>
+        <button class="modal-x" id="sendClose" data-i18n-attr="aria-label" aria-label="Close">×</button>
       </div>
       <div class="modal-body">
         <div class="hint-line" id="sendTarget"></div>
@@ -1537,11 +1537,11 @@
   </div>
 
   <!-- Archive outbox: every object waiting, failed or sent. Rendered by renderOutbox(). -->
-  <div class="modal-overlay hidden" id="outboxModal">
+  <div class="modal-scrim hidden" id="outboxModal">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="obTitle">
       <div class="modal-head">
-        <h2 id="obTitle" class="i18n">Archive outbox</h2>
-        <button class="x" id="outboxClose" data-i18n-attr="aria-label" aria-label="Close">×</button>
+        <h2 class="modal-title i18n" id="obTitle">Archive outbox</h2>
+        <button class="modal-x" id="outboxClose" data-i18n-attr="aria-label" aria-label="Close">×</button>
       </div>
       <div class="modal-body">
         <div class="hint-line" id="obState"></div>
@@ -1554,11 +1554,11 @@
   <!-- Inbox: imported device exports waiting to be filed. The body is rendered by
        renderInbox() with t(), so only the heading carries .i18n. Files can be dropped
        anywhere on it. -->
-  <div class="modal-overlay hidden" id="inboxModal">
+  <div class="modal-scrim hidden" id="inboxModal">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ibTitle">
       <div class="modal-head">
-        <h2 id="ibTitle" class="i18n">Inbox</h2>
-        <button class="x" id="inboxClose" data-i18n-attr="aria-label" aria-label="Close">×</button>
+        <h2 class="modal-title i18n" id="ibTitle">Inbox</h2>
+        <button class="modal-x" id="inboxClose" data-i18n-attr="aria-label" aria-label="Close">×</button>
       </div>
       <div class="modal-body">
         <div class="hint-line" id="ibState"></div>
@@ -1570,11 +1570,11 @@
   </div>
 
   <!-- Export modal -->
-  <div class="modal-overlay hidden" id="exportModal">
+  <div class="modal-scrim hidden" id="exportModal">
     <div class="modal">
       <div class="modal-head">
-        <h2 class="i18n">Export</h2>
-        <button class="x" id="exportClose" data-i18n-attr="aria-label" aria-label="Close">×</button>
+        <h2 class="modal-title i18n">Export</h2>
+        <button class="modal-x" id="exportClose" data-i18n-attr="aria-label" aria-label="Close">×</button>
       </div>
       <div class="modal-body">
         <div class="export-preview" id="exportPreview"><div class="ep-loading i18n">Building preview…</div></div>
@@ -1583,12 +1583,12 @@
           <button class="btn" id="exportDcm"><span class="i18n">Download DICOM</span></button>
           <button class="btn" id="exportRx"><span class="i18n">Spectacle Rx</span></button>
           <button class="btn" id="exportOrder"><span class="i18n">Lens order</span></button>
-          <button class="btn ghost" id="exportPng"><span class="i18n">Annotated PNG</span></button>
-          <button class="btn ghost" id="exportJson"><span class="i18n">Study JSON</span></button>
-          <button class="btn ghost" id="printBtn"><span class="i18n">Print</span></button>
+          <button class="btn" id="exportPng"><span class="i18n">Annotated PNG</span></button>
+          <button class="btn" id="exportJson"><span class="i18n">Study JSON</span></button>
+          <button class="btn" id="printBtn"><span class="i18n">Print</span></button>
           <button class="btn" id="exportSend"><span class="i18n">Send to archive</span></button>
-          <button class="btn ghost" id="exportReferral"><span class="i18n">Referral letter</span></button>
-          <button class="btn ghost" id="exportAviso"><span class="i18n">Privacy notice template (ES)</span></button>
+          <button class="btn" id="exportReferral"><span class="i18n">Referral letter</span></button>
+          <button class="btn" id="exportAviso"><span class="i18n">Privacy notice template (ES)</span></button>
         </div>
         <!-- State text (renderSendHint): why Send is unavailable, or where it sends. -->
         <div class="hint-line" id="sendHint"></div>
@@ -1598,11 +1598,11 @@
 
   <!-- Referral letter: who it goes to, why, and whether to include the previous visit.
        Saved on the visit (enc.referral). Over the export modal, so it stacks above it. -->
-  <div class="modal-overlay hidden" id="referralModal">
+  <div class="modal-scrim hidden" id="referralModal">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="refTitle">
       <div class="modal-head">
-        <h2 id="refTitle" class="i18n">Referral letter</h2>
-        <button class="x" id="referralClose" data-i18n-attr="aria-label" aria-label="Close">×</button>
+        <h2 class="modal-title i18n" id="refTitle">Referral letter</h2>
+        <button class="modal-x" id="referralClose" data-i18n-attr="aria-label" aria-label="Close">×</button>
       </div>
       <div class="modal-body">
         <div class="hint-line i18n" style="margin:0 0 10px">A letter to an ophthalmologist with the values recorded in this visit. It states no diagnosis.</div>
@@ -1620,67 +1620,20 @@
   </div>
 
   <!-- Camera modal -->
-  <div class="modal-overlay hidden" id="cameraModal">
+  <div class="modal-scrim hidden" id="cameraModal">
     <div class="modal">
       <div class="modal-head">
-        <h2><span class="i18n">Camera</span> — <span class="camEye">OD</span></h2>
-        <button class="x" id="cameraClose" data-i18n-attr="aria-label" aria-label="Close">×</button>
+        <h2 class="modal-title"><span class="i18n">Camera</span> — <span class="camEye">OD</span></h2>
+        <button class="modal-x" id="cameraClose" data-i18n-attr="aria-label" aria-label="Close">×</button>
       </div>
       <div class="modal-body">
         <div class="cam-wrap"><video id="camVideo" autoplay playsinline muted></video></div>
         <div class="field"><label class="i18n">Camera device</label><select id="camSelect"></select></div>
         <div class="btn-grid">
           <button class="btn" id="camCapture"><span class="i18n">Capture</span> → <span class="camEye">OD</span></button>
-          <button class="btn ghost" id="camRefresh"><span class="i18n">Refresh devices</span></button>
+          <button class="btn" id="camRefresh"><span class="i18n">Refresh devices</span></button>
         </div>
         <div class="hint-line i18n">Pick your webcam or a connected fundus / slit-lamp camera. The captured frame becomes the current eye's image.</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Tests modal (grid → remote) -->
-  <div class="modal-overlay hidden" id="testsModal">
-    <div class="modal">
-      <div class="modal-head">
-        <h2 class="i18n">Eye exam tests</h2>
-        <button class="x" id="testsClose" data-i18n-attr="aria-label" aria-label="Close">×</button>
-      </div>
-      <div class="modal-body">
-        <div id="testsGridView">
-          <div class="note-box" data-i18n-html="testsNote">Opens the chosen chart in a separate window — put it on the patient-facing screen and control it from here. Set the display, distance and true-size calibration in <b>Settings</b> (gear icon).</div>
-          <div class="test-grid" id="testGrid"></div>
-        </div>
-        <div id="testsRemoteView" class="hidden">
-          <button class="btn ghost wide" id="testsBackBtn" style="margin-bottom:12px">◂ <span class="i18n">Back to tests</span></button>
-          <div class="remote" id="remote">
-            <div class="r-head"><span class="dot"></span><span class="i18n">Presenting</span> · <span id="remoteTest">—</span></div>
-            <div class="r-acuity" id="remoteAcuity">—</div>
-            <!-- The answer key. The chart is on the far wall and, once shuffled, the
-                 clinician has no other way to know what it is showing. -->
-            <div class="r-showing hidden" id="remoteShowing"><span class="k i18n">Showing</span><span class="v" id="remoteShowingV">—</span></div>
-            <!-- Colour plates only. Every screen-based colour test is invalid on the wrong
-                 display, and the clinician is the only person who can check that. -->
-            <div class="hint-line hidden i18n" id="remoteColorNote">Colours are computed for sRGB. Results are invalid on an uncalibrated or wide-gamut display, or with Night Shift / f.lux / an OS colour filter on — those filters simulate colour blindness. A missed plate is a reason to refer for standardized plates, never a finding.</div>
-            <div class="r-grid" style="margin-bottom:6px">
-              <button id="rBigger" data-i18n-attr="title" title="Bigger (easier)">A+</button>
-              <button id="rRandom" data-i18n-attr="title" title="Randomize / flip"><span class="i18n">Shuffle</span></button>
-              <button id="rSmaller" data-i18n-attr="title" title="Smaller (harder)">A−</button>
-            </div>
-            <div class="r-grid two" style="margin-bottom:6px">
-              <button id="rPrev">◀ <span class="i18n">Prev</span></button>
-              <button id="rNext"><span class="i18n">Next</span> ▶</button>
-            </div>
-            <div class="r-grid two" style="margin-bottom:6px">
-              <button id="rScreenL">◂ <span class="i18n">Screen</span></button>
-              <button id="rScreenR"><span class="i18n">Screen</span> ▸</button>
-            </div>
-            <div class="r-grid">
-              <button id="rRows" data-i18n-attr="title" title="Snellen: full chart / per-row"><span class="i18n">Rows</span></button>
-              <button id="rMirror"><span class="i18n">Mirror</span></button>
-              <button id="rClose" class="danger"><span class="i18n">Close</span></button>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -1735,7 +1688,7 @@
   // that syncPdPhotoState owns. '.test-card' stays even though renderTestGrid
   // redraws it: it is how the CI string checker learns the chart names are asked
   // for, and re-translating a translated label is a no-op.
-  const I18N_SEL=['.topnav button span','.sec h3','.subhead','.field label','.metric .k','.eye-switch button','.eye-view button','.vp-chip label','.mini-btn','.empty-hint h2','.i18n','.modal h2','.test-card .tc-name','.test-card .tc-sub','.seg button','.cmp-empty'];
+  const I18N_SEL=['.slice .s-text','.sec h3','.subhead','.field label','.metric .k','.eye-switch button','.eye-view button','.vp-chip label','.mini-btn','.i18n','.modal h2','.test-card .tc-name','.test-card .tc-sub','.seg button','.cmp-empty'];
   const I18N_TITLE_SEL=['.tool','#lesionType','.vp-zoom button'];
   // Attributes are opt-in through data-i18n-attr, never swept by attribute name:
   // the exam grids seed their acuity ladder from the placeholder text (bumpSeq),
@@ -2537,7 +2490,7 @@
     // The other tab flushes its last edits as it lets go; read the visit again after it.
     setTimeout(async()=>{
       let rec=null;try{rec=await RS.getEncounter(db,encRec.id);}catch(e){logStoreErr(e);}
-      if(rec&&!rec.deletedAt&&rec.rev!==baseRev&&!dirty){applyRecord(rec);await loadEyeImages();loadSampleBoth();switchEye('OD');}
+      if(rec&&!rec.deletedAt&&rec.rev!==baseRev&&!dirty){applyRecord(rec);await loadEyeImages();showEyeImages();switchEye('OD');}
       setSaveState('saved');syncInert();renderVisitBar();await refreshPatientCtx();recheckIdentity();
     },700);
   }
@@ -2576,7 +2529,7 @@
     releaseVisitLock();
     relink=null;relinkSnap=null;createdHere=opts.createdHere||null;ackConflict=null;linkedHere=null;lockedOut=false;
     if(!opts.keepChip)lastVisitChip=null;
-    applyRecord(rec);await loadEyeImages();loadSampleBoth();switchEye('OD');
+    applyRecord(rec);await loadEyeImages();showEyeImages();switchEye('OD');
     try{await RS.kvPut(db,'current',{id:rec.id});}catch(e){logStoreErr(e);}
     if(saveState==='readonly')setSaveState('saved');
     await claimVisit(rec.id);
@@ -2900,12 +2853,11 @@
       }finally{inflight--;}
     }).catch(logStoreErr);
   }
-  // Seed a sample fundus into any eye that has no image. Samples are placeholders
-  // for practice/annotation — flagged imgSample so exports can skip un-annotated ones.
-  function loadSampleBoth(){
-    let seeded=false;
-    ['OD','OS'].forEach(k=>{const e=study.eyes[k];if(!e.img){e.img=makeSampleFundus(k);e.w=1000;e.h=1000;e.imgSample=true;e.imgRef=null;e.imgPending=false;seeded=true;}});
-    applyEyeImage();if(E().img)fitToView();if(viewBoth)updateTwo();if(seeded)save();
+  // Show each eye's picture, or the empty state (the short hero with the privacy line).
+  // No sample is seeded any more: "Load sample fundus" there asks for one. Samples stay
+  // placeholders for practice, flagged imgSample so exports skip un-annotated ones.
+  function showEyeImages(){
+    applyEyeImage();if(E().img)fitToView();if(viewBoth)updateTwo();
   }
   // An eye's fundus is worth exporting only if it's a real (loaded) image or the
   // sample has been annotated — a bare sample counts as "no data registered".
@@ -2916,6 +2868,8 @@
       svg.setAttribute('width',e.w);svg.setAttribute('height',e.h);svg.setAttribute('viewBox','0 0 '+e.w+' '+e.h);
       stage.style.display='block';$('emptyHint').classList.add('hidden');
     }else{stage.style.display='none';$('emptyHint').classList.remove('hidden');}
+    // Phones let the empty state set the canvas height (see .center.is-empty).
+    $('emptyHint').parentNode.classList.toggle('is-empty',!e.img);
   }
   function fitToView(){
     const e=E();if(!e.img)return;
@@ -3461,22 +3415,35 @@
     });
   }
 
-  // ---------- Panel module tabs ----------
-  $('topnav').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
-    if(b.dataset.action==='tests'){openTestsModal();return;}
-    if(b.dataset.action==='patients'){openPatients();return;}
-    if(b.dataset.mod)setMod(b.dataset.mod);});
+  // ---------- Modules: #imaging, #exam (&tab=refraction|dispensing), #tests ----------
+  // The slice bar only sets the hash; CarinoUI.slices follows hashchange and calls setMod,
+  // so Back, bookmarks and shared links open the right module. An empty or unknown hash
+  // is Imaging.
+  $('patientsBtn').addEventListener('click',()=>openPatients());
   function setMod(m){panelMod=m;
     document.querySelector('main').setAttribute('data-mode',m);
-    document.querySelectorAll('#topnav button[data-mod]').forEach(b=>b.classList.toggle('active',b.dataset.mod===m));
-    ['imaging','exam'].forEach(id=>$('mod-'+id).classList.toggle('hidden',id!==m));
+    ['imaging','exam','tests'].forEach(id=>$('mod-'+id).classList.toggle('hidden',id!==m));
     if(m==='imaging'&&E().img)setTimeout(()=>{if(!viewBoth)fitToView();},0);
-    if(m==='exam')renderLensLayout();}
+    if(m==='exam')renderLensLayout();
+    if(m==='tests'){setTestsView(presentActive()?'remote':'grid');if(presentActive())updateRemote();}}
+  function initModules(){
+    if(!window.CarinoUI)return;
+    CarinoUI.slices({menu:document.querySelector('.slice-menu'),collapsed:true,onRoute(id,p){
+      if(!id){location.replace('#imaging');return;}
+      setMod(id);
+      if(id==='exam'&&(p.tab==='refraction'||p.tab==='dispensing'))setExamTab(p.tab);
+    }});
+  }
+  // carino-ui.js is deferred: it has run by DOMContentLoaded, this script has not waited.
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initModules);else initModules();
 
   // ---------- Exam sub-tabs (Refraction | Dispensing & optics) ----------
   $('examTabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
     if(b.dataset.etab)setExamTab(b.dataset.etab);});
   function setExamTab(t){
+    // The open sub-view is part of the link (#exam&tab=dispensing); replaceState, so a tab
+    // click is not a Back step.
+    if(panelMod==='exam'&&location.hash!=='#exam&tab='+t)history.replaceState(null,'','#exam&tab='+t);
     document.querySelectorAll('#examTabs button[data-etab]').forEach(b=>b.classList.toggle('active',b.dataset.etab===t));
     document.querySelectorAll('#mod-exam .esub').forEach(el=>el.classList.toggle('hidden',el.id!=='esub-'+t));
     if(t==='dispensing')renderLensLayout();
@@ -3645,7 +3612,7 @@
     }catch(e){toast(t('Invalid JSON file'));return;}
     if(!rec.meta.date)rec.meta.date=todayISO();
     if(!canPatients()){   // memory mode: shown, not stored (the orphan copy still keeps the text)
-      applyRecord(rec);await loadEyeImages();loadSampleBoth();switchEye('OD');save();toast(t('JSON loaded (re-attach image if needed)'));return;}
+      applyRecord(rec);await loadEyeImages();showEyeImages();switchEye('OD');save();toast(t('JSON loaded (re-attach image if needed)'));return;}
     const l=await leaveCurrent();if(!l.ok)return;
     try{await RS.putNew(db,rec);}catch(e){writeFailed(e);return;}
     await showRecord(rec);
@@ -5713,7 +5680,7 @@
         }catch(e){if(e&&e.code==='conflict')writeFailed(e);reject(e);}
       }).catch(logStoreErr);
     }).then(r=>{
-      loadSampleBoth();
+      showEyeImages();
       const img=r.placed.find(p=>p.where==='active'||p.where==='gallery');
       switchEye(img?img.eye:eye);setSaveState('saved');
       return r;
@@ -6986,17 +6953,14 @@
     boot(function(){measureFont();regen();render();});
   }
 
-  // Tests modal: grid (pick a test) → remote (control the presenting chart)
-  function openTestsModal(){$('testsModal').classList.remove('hidden');setTestsView(presentActive()?'remote':'grid');if(presentActive())updateRemote();}
-  function closeTestsModal(){$('testsModal').classList.add('hidden');}
+  // Tests module (#tests): grid (pick a test) → remote (control the presenting chart)
+  function openTestsModal(){if(location.hash.split('&')[0]!=='#tests')location.hash='#tests';else setMod('tests');}
   function setTestsView(v){$('testsGridView').classList.toggle('hidden',v!=='grid');$('testsRemoteView').classList.toggle('hidden',v!=='remote');}
-  $('testsClose').addEventListener('click',closeTestsModal);
   $('testsBackBtn').addEventListener('click',()=>setTestsView('grid'));
-  $('testsModal').addEventListener('click',e=>{if(e.target.id==='testsModal')closeTestsModal();});
 
   // Remote control (main window drives the popup). Selecting a test → remote view.
   function showRemote(id){$('remoteTest').textContent=t(TEST_NAMES[id]||id);setTestsView('remote');updateRemote();}
-  function hideRemote(){if(!$('testsModal').classList.contains('hidden'))setTestsView('grid');}
+  function hideRemote(){if(panelMod==='tests')setTestsView('grid');}
   function updateRemote(){if(!presentActive()){hideRemote();return;}
     try{const s=presentWin.CARINO&&presentWin.CARINO.state();if(s){presentTestId=s.test;$('remoteTest').textContent=t(TEST_NAMES[s.test]||s.test);$('remoteAcuity').textContent=s.acuity||'—';
       $('remoteShowing').classList.toggle('hidden',!s.showing);
@@ -7169,7 +7133,7 @@
   $('cameraClose').addEventListener('click',closeCamera);
   $('cameraModal').addEventListener('click',e=>{if(e.target.id==='cameraModal')closeCamera();});
   ['cameraBtn','cameraBtn2','cameraBtn3'].forEach(id=>{const el=$(id);if(el)el.addEventListener('click',openCamera);});
-  window.addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('exportModal').classList.contains('hidden'))closeExport();if(!$('cameraModal').classList.contains('hidden'))closeCamera();if(!$('testsModal').classList.contains('hidden'))closeTestsModal();}});
+  window.addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('exportModal').classList.contains('hidden'))closeExport();if(!$('cameraModal').classList.contains('hidden'))closeCamera();}});
 
   // ---------- Boot ----------
   // The canvas is a resizable Electron window and a container-queried box; both change
@@ -7206,9 +7170,8 @@
     const main=document.querySelector('main');main.inert=true;
     openStorage().catch(e=>{logStoreErr(e);if(storeMode==='pending'){enterMemory(e);loadLegacyIntoMemory();}}).then(()=>{
       if(!study.meta.date){study.meta.date=todayISO();}
-      // Each eye starts with a sample fundus so the Imaging workspace is never empty.
-      // (Samples are placeholders — see eyeHasImaging: un-annotated ones are left out of exports.)
-      loadSampleBoth();
+      // An eye with no picture shows the empty state; the sample is one click away there.
+      showEyeImages();
       switchEye('OD');    // switchEye → writeForm() populates all meta/clinical/disp/dispense fields
       computeMetrics();renderFindings();
       bootDone=true;syncInert();renderVisitBar();
