@@ -106,22 +106,15 @@
       --font:'IBM Plex Sans','Red Hat Text','Liberation Sans',system-ui,-apple-system,sans-serif;
       --r-sm:4px; --r-md:8px;
       --s1:.25rem; --s2:.5rem; --s3:.75rem; --s4:1rem; --s5:1.5rem;
-      /* A touch target is a physical dimension, so it tracks the chrome upward but never
-         shrinks below 44px when the root scale drops on a narrow phone. */
+      /* A touch target is a physical dimension: never below 44px. Type sizes come
+         from carino-ui.css's --fs-* scale on the browser's own root size. */
       --touch:max(2.75rem,44px);
-      /* One scale for the whole chrome: 15px at the 900px minimum, 16px at 1280,
-         18px from 1920 up. Every rem length below tracks it, including the card
-         track floors — bigger type therefore yields wider cards, not more of them.
-         It must never reach anything true-size; see the reset on the next line. */
-      font-size:clamp(14px,0.30vw + 12.4px,18px);
     }
-    /* undo the scale wherever a physical measurement is drawn */
-    .cal-card,.export-preview iframe{font-size:16px}
     *{box-sizing:border-box;margin:0;padding:0}
     *:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     @media (prefers-reduced-motion:reduce){*,*::before,*::after{transition-duration:.001ms!important;animation-duration:.001ms!important}}
     html,body{height:100%;overflow:hidden}
-    body{font-family:var(--font);font-size:1rem;background:var(--bg);color:var(--text);line-height:1.5;display:flex;flex-direction:column}
+    body{font-family:var(--font);font-size:var(--fs-body);background:var(--bg);color:var(--text);line-height:1.5;display:flex;flex-direction:column}
 
     /* ---------- Navbar controls (moved into the shared bar by carino-navbar.js) ---------- */
     .icon-btn{width:32px;height:32px;border:1px solid var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:.2s;text-decoration:none;background:transparent;cursor:pointer}
@@ -230,7 +223,7 @@
     .tool svg{width:20px;height:20px}
     .tool:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-faint)}
     .tool.active{border-color:var(--accent);color:#050505;background:var(--accent)}
-    .tool[data-key]::after{content:attr(data-key);position:absolute;bottom:1px;right:3px;font-family:var(--mono);font-size:.6rem;opacity:.5}
+    .tool[data-key]::after{content:attr(data-key);position:absolute;bottom:1px;right:3px;font-family:var(--mono);font-size:var(--fs-micro);opacity:.5}
     .rail-sep{width:32px;height:1px;background:var(--border);margin:4px 0}
 
     /* ---------- Center viewport ---------- */
@@ -246,8 +239,8 @@
     #overlay text{font-family:var(--mono);paint-order:stroke;stroke:#000;stroke-width:3px;stroke-linejoin:round}
 
     .empty-hint{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:var(--text-muted);text-align:center;padding:24px;pointer-events:none}
-    .empty-hint h2{font-family:'Red Hat Display',var(--font);font-weight:900;text-transform:uppercase;letter-spacing:.02em;color:var(--text-sec);font-size:1.3rem}
-    .empty-hint p{max-width:42ch;font-size:.9rem}
+    .empty-hint h2{font-family:'Red Hat Display',var(--font);font-weight:900;text-transform:uppercase;letter-spacing:.02em;color:var(--text-sec);font-size:var(--fs-h3)}
+    .empty-hint p{max-width:42ch;font-size:var(--fs-sec)}
     .empty-hint .pointer-on{pointer-events:auto}
     /* the short hero inside the empty viewport */
     .empty-hint .short-hero{padding:16px;gap:12px}
@@ -257,23 +250,23 @@
     /* overlay controls */
     .vp-topbar{position:absolute;top:12px;left:12px;right:12px;display:flex;gap:10px;align-items:center;pointer-events:none;z-index:5;flex-wrap:wrap}
     .eye-switch{display:flex;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden;pointer-events:auto}
-    .eye-switch button{background:transparent;color:var(--text-muted);border:none;font-family:var(--mono);font-size:.72rem;font-weight:700;letter-spacing:.08em;padding:7px 14px;cursor:pointer;transition:.15s}
+    .eye-switch button{background:transparent;color:var(--text-muted);border:none;font-family:var(--mono);font-size:var(--fs-btn);font-weight:700;letter-spacing:.08em;padding:7px 14px;cursor:pointer;transition:.15s}
     .eye-switch button.active{background:var(--accent);color:#050505}
     .eye-switch button:not(.active):hover{color:var(--text);background:var(--surface-hover)}
-    .vp-chip{pointer-events:auto;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-md);font-family:var(--mono);font-size:.7rem;color:var(--text-sec);padding:7px 10px;display:flex;align-items:center;gap:8px}
+    .vp-chip{pointer-events:auto;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-md);font-family:var(--mono);font-size:var(--fs-btn);color:var(--text-sec);padding:7px 10px;display:flex;align-items:center;gap:8px}
     .vp-chip label{color:var(--text-muted)}
-    .vp-chip input{width:52px;background:#000;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 5px;font-family:var(--mono);font-size:.72rem}
+    .vp-chip input{width:52px;background:#000;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 5px;font-family:var(--mono);font-size:var(--fs-btn)}
     .lesion-pick{pointer-events:auto}
-    .lesion-pick select{background:var(--surface-solid);border:1px solid var(--border);color:var(--text);border-radius:var(--r-md);padding:7px 8px;font-family:var(--mono);font-size:.7rem}
+    .lesion-pick select{background:var(--surface-solid);border:1px solid var(--border);color:var(--text);border-radius:var(--r-md);padding:7px 8px;font-family:var(--mono);font-size:var(--fs-btn)}
 
     .vp-zoom{position:absolute;right:12px;bottom:12px;display:flex;flex-direction:column;gap:6px;z-index:5}
-    .vp-zoom button{width:34px;height:34px;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-md);color:var(--text-sec);cursor:pointer;font-size:1.1rem;transition:.15s;display:flex;align-items:center;justify-content:center}
+    .vp-zoom button{width:34px;height:34px;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-md);color:var(--text-sec);cursor:pointer;font-size:var(--fs-lg);transition:.15s;display:flex;align-items:center;justify-content:center}
     .vp-zoom button:hover{border-color:var(--accent);color:var(--accent)}
     .vp-zoom button svg{width:16px;height:16px}
     .vp-zoom .zsep{width:22px;height:1px;background:var(--border);margin:2px auto}
-    .zoom-label{font-family:var(--mono);font-size:.6rem;color:var(--text-muted);text-align:center}
+    .zoom-label{font-family:var(--mono);font-size:var(--fs-micro);color:var(--text-muted);text-align:center}
 
-    .hud{position:absolute;left:12px;bottom:12px;font-family:var(--mono);font-size:.66rem;color:var(--text-muted);background:rgba(0,0,0,.6);border:1px solid var(--border);border-radius:var(--r-sm);padding:4px 8px;z-index:5;pointer-events:none}
+    .hud{position:absolute;left:12px;bottom:12px;font-family:var(--mono);font-size:var(--fs-label);color:var(--text-muted);background:rgba(0,0,0,.6);border:1px solid var(--border);border-radius:var(--r-sm);padding:4px 8px;z-index:5;pointer-events:none}
 
     /* ---------- Right panel ---------- */
     /* The panel is the element whose width actually changes between workspaces, so it is
@@ -283,23 +276,23 @@
        DOM position, so the canvas-first phone stack below needs no second copy. */
     .panel{order:-1;flex:0 1 clamp(21rem,24vw,30rem);min-width:0;background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column;container-type:inline-size;container-name:panel}
     .sec{border-bottom:1px solid var(--border);padding:12px 14px}
-    .sec h3{font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;display:flex;align-items:center;gap:8px}
-    .sec h3 .badge{margin-left:auto;font-size:.6rem;color:var(--accent)}
+    .sec h3{font-family:var(--mono);font-size:var(--fs-micro);letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+    .sec h3 .badge{margin-left:auto;font-size:var(--fs-micro);color:var(--accent)}
 
     .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,8rem),1fr));gap:8px}
     .metric{background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-md);padding:10px}
-    .metric .k{font-family:var(--mono);font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted)}
-    .metric .v{font-family:var(--mono);font-size:1.15rem;font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums}
+    .metric .k{font-family:var(--mono);font-size:var(--fs-micro);letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted)}
+    .metric .v{font-family:var(--mono);font-size:var(--fs-h3);font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums}
     /* A cup larger than, or outside, the disc: the number is shown but not trusted. */
     .metric .v.warn{color:#f59e0b}
-    .metric .u{font-size:.6rem;color:var(--text-muted);font-weight:400}
+    .metric .u{font-size:var(--fs-micro);color:var(--text-muted);font-weight:400}
     .metric.wide{grid-column:1 / -1}
 
     .field{margin-bottom:8px;display:flex;flex-direction:column;gap:0;min-width:0}
-    .field label{display:block;font-family:var(--mono);font-size:.6rem;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px;overflow-wrap:break-word}
+    .field label{display:block;font-family:var(--mono);font-size:var(--fs-micro);letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px;overflow-wrap:break-word}
     /* a two-line label pushes its own label taller, never its input out of line */
     .field>input,.field>select,.field>textarea{margin-top:auto}
-    .field input,.field select,.field textarea{width:100%;background:#000;border:1px solid var(--border);color:var(--text);border-radius:var(--r-sm);padding:7px 9px;font-family:var(--font);font-size:.82rem;transition:.15s}
+    .field input,.field select,.field textarea{width:100%;background:#000;border:1px solid var(--border);color:var(--text);border-radius:var(--r-sm);padding:7px 9px;font-family:var(--font);font-size:var(--fs-sm);transition:.15s}
     .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent)}
     .field textarea{resize:vertical;min-height:3.25rem;font-family:var(--font)}
     /* the shared exam notes are the one free-text field with room to earn */
@@ -344,9 +337,9 @@
     input[type=range]:hover{accent-color:var(--accent)}
     input.step.scrubbing{cursor:ns-resize;border-color:var(--accent);user-select:none;background-color:var(--accent-faint)}
     input.step::-webkit-outer-spin-button,input.step::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
-    .subhead{font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:14px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;align-items:baseline;column-gap:6px;row-gap:2px;min-width:0}
+    .subhead{font-family:var(--mono);font-size:var(--fs-micro);letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:14px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;align-items:baseline;column-gap:6px;row-gap:2px;min-width:0}
     .subhead:first-child{margin-top:0}
-    .subhead .hint{margin-left:auto;min-width:0;flex-shrink:1;color:var(--text-muted);letter-spacing:.04em;text-transform:none;font-size:.6rem}
+    .subhead .hint{margin-left:auto;min-width:0;flex-shrink:1;color:var(--text-muted);letter-spacing:.04em;text-transform:none;font-size:var(--fs-micro)}
     /* Frees the vertical axis for the scrub gesture. NOT touch-action:none — the field
        must still let a horizontal fling reach the page. */
     input.step,input.seq{touch-action:pan-x}
@@ -369,9 +362,9 @@
     /* No ellipsis. A clinical column header that reads "ESTADO DEL C…" is worse than a
        taller row: es/pt-BR/ru run 1.4–1.9× the English width in these cells. Wrapping
        grows the whole header row, so every header in the row stays aligned. */
-    .duo .h{font-family:var(--mono);font-size:.6rem;letter-spacing:.03em;text-transform:uppercase;color:var(--text-muted);text-align:center;line-height:1.25;min-width:0;align-self:end;white-space:normal;overflow-wrap:break-word;hyphens:auto}
-    .duo .rl{font-family:var(--mono);font-size:.66rem;font-weight:700;color:var(--accent)}
-    .duo input,.duo select{width:100%;min-width:0;background:#000;border:1px solid var(--border);color:var(--text);border-radius:var(--r-sm);padding:6px 4px;font-family:var(--mono);font-size:.74rem;text-align:center}
+    .duo .h{font-family:var(--mono);font-size:var(--fs-micro);letter-spacing:.03em;text-transform:uppercase;color:var(--text-muted);text-align:center;line-height:1.25;min-width:0;align-self:end;white-space:normal;overflow-wrap:break-word;hyphens:auto}
+    .duo .rl{font-family:var(--mono);font-size:var(--fs-label);font-weight:700;color:var(--accent)}
+    .duo input,.duo select{width:100%;min-width:0;background:#000;border:1px solid var(--border);color:var(--text);border-radius:var(--r-sm);padding:6px 4px;font-family:var(--mono);font-size:var(--fs-btn);text-align:center}
     .duo select{text-align:left}
     .duo input:focus,.duo select:focus{border-color:var(--accent)}
     /* these merged fields are too narrow for the stepper arrow glyph — hide it
@@ -385,9 +378,9 @@
     #examTabs{padding:0 12px;background:var(--surface-solid);position:sticky;top:0;z-index:6}
     .mod{display:block}
     .mod.hidden{display:none!important}
-    .note-box{font-size:.7rem;color:var(--text-muted);line-height:1.5;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-sm);padding:9px 11px;margin-bottom:10px}
+    .note-box{font-size:var(--fs-btn);color:var(--text-muted);line-height:1.5;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-sm);padding:9px 11px;margin-bottom:10px}
     .note-box b{color:var(--text-sec)}
-    .mini-btn{background:transparent;border:1px solid var(--border);color:var(--text-sec);border-radius:var(--r-sm);font-family:var(--font);font-size:.72rem;font-weight:600;padding:7px 9px;cursor:pointer;transition:.15s;width:100%;text-align:left}
+    .mini-btn{background:transparent;border:1px solid var(--border);color:var(--text-sec);border-radius:var(--r-sm);font-family:var(--font);font-size:var(--fs-btn);font-weight:600;padding:7px 9px;cursor:pointer;transition:.15s;width:100%;text-align:left}
     .mini-btn:hover{border-color:var(--accent);color:var(--accent)}
     .mini-btn .n{color:var(--accent);font-family:var(--mono);margin-right:6px}
 
@@ -398,11 +391,11 @@
     .finding .dot{display:block;width:9px;height:9px;border-radius:50%;flex-shrink:0}
     .finding .dot::before,.remote .dot::before{content:none}
     .finding .txt{flex:1;min-width:0}
-    .finding .txt .t{font-size:.78rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .finding .txt .s{font-family:var(--mono);font-size:.6rem;color:var(--text-muted)}
-    .finding .del{background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:1rem;line-height:1;padding:2px 4px}
+    .finding .txt .t{font-size:var(--fs-sm);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .finding .txt .s{font-family:var(--mono);font-size:var(--fs-micro);color:var(--text-muted)}
+    .finding .del{background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:var(--fs-body);line-height:1;padding:2px 4px}
     .finding .del:hover{color:var(--err)}
-    .no-findings{font-size:.78rem;color:var(--text-muted);text-align:center;padding:8px}
+    .no-findings{font-size:var(--fs-sm);color:var(--text-muted);text-align:center;padding:8px}
 
     /* Branding's .btn, allowed to wrap: es/pt-BR/ru labels outgrow a 38px single line. */
     .btn{height:auto;min-height:38px;padding:8px 14px;justify-content:center;text-align:center;line-height:1.3}
@@ -416,20 +409,20 @@
     .save-chip[data-state=saving]{color:var(--accent)}
     .save-chip[data-state=error],.save-chip[data-state=memory]{color:var(--err);border-color:rgba(239,68,68,.6)}
     .save-chip[data-state=readonly]{color:var(--warn);border-color:var(--border-glow)}
-    .store-bar{display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap;flex-shrink:0;padding:8px 20px;background:#1c0b0b;border-bottom:1px solid rgba(239,68,68,.45);font-size:.8rem;line-height:1.4}
+    .store-bar{display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap;flex-shrink:0;padding:8px 20px;background:#1c0b0b;border-bottom:1px solid rgba(239,68,68,.45);font-size:var(--fs-sm);line-height:1.4}
     .store-bar .sb-msg{flex:1 1 18rem;min-width:0}
     .store-bar .sb-acts{display:flex;gap:8px;flex-wrap:wrap}
-    .sb-btn{background:transparent;border:1px solid var(--border);color:var(--text);border-radius:var(--r-sm);font-family:var(--font);font-size:.75rem;font-weight:600;padding:6px 10px;min-height:32px;cursor:pointer}
+    .sb-btn{background:transparent;border:1px solid var(--border);color:var(--text);border-radius:var(--r-sm);font-family:var(--font);font-size:var(--fs-sm);font-weight:600;padding:6px 10px;min-height:32px;cursor:pointer}
     .sb-btn:hover{border-color:var(--accent);color:var(--accent)}
     @media (max-width:600px){.store-bar{padding:8px 16px}}
     .sv-head{margin-top:10px;color:var(--text-sec)}
-    .sv-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:4px 0;border-top:1px solid var(--border);font-size:.75rem;min-width:0}
+    .sv-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:4px 0;border-top:1px solid var(--border);font-size:var(--fs-sm);min-width:0}
     .sv-row span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
     .sv-row .mini-btn{width:auto;flex-shrink:0}
     /* ---------- Patients & visits ---------- */
     /* The visit bar (relink / open in another tab / last visit) is information, not an
        error: it uses the surface colour so a red storage problem still stands out. */
-    .info-bar{display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap;flex-shrink:0;padding:8px 20px;background:var(--surface-solid);border-bottom:1px solid var(--border-glow);font-size:.8rem;line-height:1.4}
+    .info-bar{display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap;flex-shrink:0;padding:8px 20px;background:var(--surface-solid);border-bottom:1px solid var(--border-glow);font-size:var(--fs-sm);line-height:1.4}
     .info-bar .sb-msg{flex:1 1 18rem;min-width:0}
     .info-bar .sb-acts{display:flex;gap:8px;flex-wrap:wrap}
     @media (max-width:600px){.info-bar{padding:8px 16px}}
@@ -438,12 +431,12 @@
     .sb-btn.danger:hover{background:var(--err);color:#050505;border-color:var(--err)}
     .sb-btn:disabled{opacity:.45;cursor:default}
     .pt-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px;grid-column:1/-1}   /* a whole row of the exam's patient grid */
-    .pt-chip{font-size:.72rem;color:var(--text-sec);flex:1 1 9rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .pt-chip{font-size:var(--fs-btn);color:var(--text-sec);flex:1 1 9rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .pt-row .mini-btn{width:auto}
     /* Previous visit: read-only reference beside the exam. No deltas, arrows or colour —
        values are shown as they were recorded, nothing is compared or judged. */
-    #prevVisit{grid-column:1/-1;margin:10px 12px 0;border:1px solid var(--border);border-radius:var(--r-md);background:var(--surface-solid);font-size:.75rem}
-    #prevVisit summary{cursor:pointer;padding:8px 12px;font-family:var(--mono);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-sec)}
+    #prevVisit{grid-column:1/-1;margin:10px 12px 0;border:1px solid var(--border);border-radius:var(--r-md);background:var(--surface-solid);font-size:var(--fs-sm)}
+    #prevVisit summary{cursor:pointer;padding:8px 12px;font-family:var(--mono);font-size:var(--fs-micro);letter-spacing:.08em;text-transform:uppercase;color:var(--text-sec)}
     #prevVisit .pv-body{padding:0 12px 10px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,17rem),1fr));gap:8px 16px}
     #prevVisit .pv-eye{min-width:0}
     #prevVisit .pv-eh{font-family:var(--mono);font-weight:700;color:var(--text-sec);margin-bottom:2px}
@@ -451,98 +444,99 @@
     #prevVisit dt{color:var(--text-muted)}
     #prevVisit dd{margin:0;overflow-wrap:anywhere;font-family:var(--mono)}
     #prevVisit dd.tx{font-family:var(--font)}
-    .pv-line{font-size:.7rem;color:var(--text-muted);margin-top:8px}
+    .pv-line{font-size:var(--fs-btn);color:var(--text-muted);margin-top:8px}
     /* Patients modal */
     #patientsModal .modal{--modal-w:760px;height:min(100%,92dvh)}
     .pl-top{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
-    .pl-top input{flex:1 1 14rem;min-width:0;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font:inherit;font-size:.85rem;padding:8px 10px}
+    .pl-top input{flex:1 1 14rem;min-width:0;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font:inherit;font-size:var(--fs-mono);padding:8px 10px}
     .pl-top input:focus{border-color:var(--accent);outline:none}
     .pl-top .mini-btn{width:auto;flex-shrink:0}
-    .pl-group{font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:14px 0 4px}
-    .pl-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--border);min-width:0;font-size:.8rem}
+    .pl-group{font-family:var(--mono);font-size:var(--fs-micro);letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:14px 0 4px}
+    .pl-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--border);min-width:0;font-size:var(--fs-sm)}
     .pl-row .pl-main{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .pl-row .pl-sub{color:var(--text-muted);font-size:.72rem}
+    .pl-row .pl-sub{color:var(--text-muted);font-size:var(--fs-btn)}
     .pl-row .sb-acts{display:flex;gap:6px;flex-wrap:wrap;flex-shrink:0}
     .pl-row.cur .pl-main{color:var(--accent)}
     button.pl-main{background:none;border:none;color:var(--text);font:inherit;text-align:left;cursor:pointer;padding:0}
     button.pl-main:hover{color:var(--accent)}
-    .pl-empty{color:var(--text-muted);font-size:.78rem;padding:8px 0}
+    .pl-empty{color:var(--text-muted);font-size:var(--fs-sm);padding:8px 0}
     .pl-back{margin-bottom:6px}
     .pl-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:4px 0 8px}
-    .pl-head b{font-size:1rem}
+    .pl-head b{font-size:var(--fs-body)}
     /* ---------- Archive: outbox button, send list, outbox list ---------- */
     .ob-btn{position:relative;width:auto;min-width:32px;padding:0 7px;gap:5px}
-    .ob-btn .ob-n{font-family:var(--mono);font-size:.68rem;font-weight:700}
+    .ob-btn .ob-n{font-family:var(--mono);font-size:var(--fs-btn);font-weight:700}
     .ob-btn .ob-n:empty{display:none}
     .ob-btn[data-state=sending]{color:var(--accent)}
     .ob-btn[data-state=failed],.ob-btn[data-state=paused]{color:var(--err);border-color:rgba(239,68,68,.6)}
-    /* Opened from the export modal, so it must sit above it (and below the generic dialog). */
-    #sendModal{z-index:650}
+    /* Opened from the export modal, so it must sit above it (and below the generic dialog).
+       carino-ui.css puts every .modal-scrim at 2147483600, above the navbar. */
+    #sendModal{z-index:2147483610}
     #sendModal .modal{--modal-w:620px}
-    #referralModal{z-index:650}
+    #referralModal{z-index:2147483610}
     #referralModal .modal{--modal-w:560px}
     #refPrevRow.dim{opacity:.5;cursor:default}
     #outboxModal .modal{--modal-w:760px;height:min(100%,92dvh)}
-    .snd-row{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-top:1px solid var(--border);font-size:.8rem;min-width:0;cursor:pointer}
+    .snd-row{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-top:1px solid var(--border);font-size:var(--fs-sm);min-width:0;cursor:pointer}
     .snd-row input{margin-top:3px;flex-shrink:0;accent-color:var(--accent)}
     .snd-row .snd-main{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
-    .snd-row .snd-sub{color:var(--text-muted);font-size:.72rem}
-    .snd-row .snd-size{font-family:var(--mono);font-size:.72rem;color:var(--text-sec);white-space:nowrap}
+    .snd-row .snd-sub{color:var(--text-muted);font-size:var(--fs-btn)}
+    .snd-row .snd-size{font-family:var(--mono);font-size:var(--fs-btn);color:var(--text-sec);white-space:nowrap}
     .snd-row.off{cursor:default;opacity:.6}
-    .ob-err{color:var(--err);font-size:.72rem;overflow-wrap:anywhere;white-space:normal}
+    .ob-err{color:var(--err);font-size:var(--fs-btn);overflow-wrap:anywhere;white-space:normal}
     /* Inbox: one card per imported file. The eye control starts EMPTY unless the file
        name suggested a side — a guess is shown as a suggestion, never as a choice. */
     #inboxModal .modal{--modal-w:900px;height:min(100%,92dvh)}
     #inboxModal.drag .modal{outline:2px dashed var(--accent);outline-offset:-6px}
     .ib-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,13.5rem),1fr));gap:10px;margin-top:6px}
-    .ib-card{border:1px solid var(--border);border-radius:var(--r-sm);padding:8px;display:flex;flex-direction:column;gap:6px;min-width:0;font-size:.78rem}
+    .ib-card{border:1px solid var(--border);border-radius:var(--r-sm);padding:8px;display:flex;flex-direction:column;gap:6px;min-width:0;font-size:var(--fs-sm)}
     .ib-card.sel{border-color:var(--accent)}
     .ib-top{display:flex;gap:8px;align-items:flex-start;min-width:0}
     .ib-top input{accent-color:var(--accent);margin-top:2px;flex-shrink:0}
     .ib-thumb{width:100%;aspect-ratio:4/3;background:#0b0b0b;border-radius:4px;display:flex;align-items:center;justify-content:center;overflow:hidden}
     .ib-thumb img{max-width:100%;max-height:100%;object-fit:contain}
-    .ib-doc{font-family:var(--mono);font-weight:700;font-size:1.1rem;color:var(--text-sec);border:1px solid var(--border);border-radius:4px;padding:10px 12px}
+    .ib-doc{font-family:var(--mono);font-weight:700;font-size:var(--fs-lg);color:var(--text-sec);border:1px solid var(--border);border-radius:4px;padding:10px 12px}
     .ib-name{font-weight:600;overflow-wrap:anywhere}
-    .ib-sub{color:var(--text-muted);font-size:.7rem;overflow-wrap:anywhere}
-    .ib-warn{color:var(--err);font-size:.72rem;overflow-wrap:anywhere}
+    .ib-sub{color:var(--text-muted);font-size:var(--fs-btn);overflow-wrap:anywhere}
+    .ib-warn{color:var(--err);font-size:var(--fs-btn);overflow-wrap:anywhere}
     .ib-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-    .ib-row .ib-k{color:var(--text-sec);font-size:.7rem;min-width:3.2rem}
+    .ib-row .ib-k{color:var(--text-sec);font-size:var(--fs-btn);min-width:3.2rem}
     .ib-eye{display:inline-flex;border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden}
-    .ib-eye button{background:transparent;border:0;border-left:1px solid var(--border);color:var(--text-sec);font:inherit;font-family:var(--mono);font-size:.72rem;font-weight:700;padding:5px 9px;cursor:pointer;min-height:28px}
+    .ib-eye button{background:transparent;border:0;border-left:1px solid var(--border);color:var(--text-sec);font:inherit;font-family:var(--mono);font-size:var(--fs-btn);font-weight:700;padding:5px 9px;cursor:pointer;min-height:28px}
     .ib-eye button:first-child{border-left:0}
     .ib-eye button.active{background:var(--accent);color:#050505}
-    .ib-row select{flex:1 1 8rem;min-width:0;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font:inherit;font-size:.74rem;padding:5px 6px}
-    .ib-hint{color:var(--text-muted);font-size:.68rem;font-style:italic}
+    .ib-row select{flex:1 1 8rem;min-width:0;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font:inherit;font-size:var(--fs-btn);padding:5px 6px}
+    .ib-hint{color:var(--text-muted);font-size:var(--fs-btn);font-style:italic}
     .ib-acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto}
-    .ib-skip{font-size:.72rem;color:var(--text-muted);margin-top:6px}
+    .ib-skip{font-size:var(--fs-btn);color:var(--text-muted);margin-top:6px}
     .ib-skip summary{cursor:pointer}
     /* Other pictures of the current eye, and the visit's attached documents. */
-    .ef-group{font-size:.72rem;color:var(--text-sec);margin:12px 0 6px;font-weight:600}
+    .ef-group{font-size:var(--fs-btn);color:var(--text-sec);margin:12px 0 6px;font-weight:600}
     .ef-strip{display:flex;gap:8px;flex-wrap:wrap}
-    .ef-item{display:flex;flex-direction:column;gap:4px;width:7.5rem;font-size:.7rem}
+    .ef-item{display:flex;flex-direction:column;gap:4px;width:7.5rem;font-size:var(--fs-btn)}
     .ef-item img{width:7.5rem;height:5.6rem;object-fit:cover;border-radius:4px;border:1px solid var(--border);background:#0b0b0b}
     .ef-item .sb-acts{display:flex;gap:4px;flex-wrap:wrap}
-    .ef-item .sb-btn,.ef-doc .sb-btn{min-height:26px;padding:3px 7px;font-size:.68rem}
-    .ef-doc{display:flex;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--border);font-size:.74rem;min-width:0}
+    .ef-item .sb-btn,.ef-doc .sb-btn{min-height:26px;padding:3px 7px;font-size:var(--fs-btn)}
+    .ef-doc{display:flex;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--border);font-size:var(--fs-btn);min-width:0}
     .ef-doc .ef-n{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
-    .arch-check{display:flex;align-items:center;gap:8px;font-size:.78rem;color:var(--text-sec);margin-top:8px;cursor:pointer}
+    .arch-check{display:flex;align-items:center;gap:8px;font-size:var(--fs-sm);color:var(--text-sec);margin-top:8px;cursor:pointer}
     .arch-check input{accent-color:var(--accent)}
-    .arch-result{font-size:.78rem;margin-top:8px;line-height:1.45;overflow-wrap:anywhere}
+    .arch-result{font-size:var(--fs-sm);margin-top:8px;line-height:1.45;overflow-wrap:anywhere}
     .arch-result:empty{display:none}
     .arch-result[data-ok="0"]{color:var(--err)}
     .arch-result[data-ok="1"]{color:var(--accent)}
     /* Generic in-app dialog (replaces window.confirm/prompt: they block automation and
        the desktop shell has no prompt at all). Above every other modal. */
-    #dlgModal{z-index:700}
+    #dlgModal{z-index:2147483620}
     #dlgModal .modal{--modal-w:460px}
-    .dlg-title{font-family:'Red Hat Display',var(--font);font-weight:900;font-size:1.05rem}
-    .dlg-body{font-size:.85rem;line-height:1.5;white-space:pre-line;overflow-wrap:anywhere}
+    .dlg-title{font-family:'Red Hat Display',var(--font);font-weight:900;font-size:var(--fs-lg)}
+    .dlg-body{font-size:var(--fs-mono);line-height:1.5;white-space:pre-line;overflow-wrap:anywhere}
     .dlg-field{margin-top:10px}
-    .dlg-field label{display:block;font-size:.72rem;color:var(--text-sec);margin-bottom:4px}
-    .dlg-field input,.dlg-field textarea{width:100%;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font:inherit;font-size:.85rem;padding:8px 10px}
+    .dlg-field label{display:block;font-size:var(--fs-btn);color:var(--text-sec);margin-bottom:4px}
+    .dlg-field input,.dlg-field textarea{width:100%;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font:inherit;font-size:var(--fs-mono);padding:8px 10px}
     .dlg-field input:focus,.dlg-field textarea:focus{border-color:var(--accent);outline:none}
     .dlg-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:16px}
-    .toast{z-index:800}
+    .toast{z-index:2147483630}
 
     /* scrollbars */
     .panel::-webkit-scrollbar,.vp-tools::-webkit-scrollbar{width:8px}
@@ -552,13 +546,13 @@
     .test-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,9.5rem),1fr));gap:8px}
     .test-card{display:flex;flex-direction:column;gap:4px;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-md);padding:10px;cursor:pointer;transition:.15s;text-align:left;color:var(--text)}
     .test-card:hover{border-color:var(--accent);background:var(--accent-faint);transform:translateY(-1px)}
-    .test-card .tc-ico{font-size:1.1rem;line-height:1}
-    .test-card .tc-name{font-size:.76rem;font-weight:600}
-    .test-card .tc-sub{font-family:var(--mono);font-size:.6rem;color:var(--text-muted)}
+    .test-card .tc-ico{font-size:var(--fs-lg);line-height:1}
+    .test-card .tc-name{font-size:var(--fs-sm);font-weight:600}
+    .test-card .tc-sub{font-family:var(--mono);font-size:var(--fs-micro);color:var(--text-muted)}
     .remote{background:var(--surface-solid);border:1px solid var(--accent);border-radius:var(--r-md);padding:10px;margin-bottom:12px}
-    .remote .r-head{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+    .remote .r-head{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:var(--fs-micro);letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
     .remote .r-head .dot{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok)}
-    .remote .r-acuity{font-family:var(--mono);font-size:1.1rem;font-weight:700;text-align:center;margin:2px 0 8px}
+    .remote .r-acuity{font-family:var(--mono);font-size:var(--fs-lg);font-weight:700;text-align:center;margin:2px 0 8px}
     /* Paper, not chrome: this box predicts a printed page, so it fixes its own light
        palette instead of inheriting the dark application tokens. */
     .brand-preview{background:#fff;color:#111;border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden;margin:10px 0 4px}
@@ -566,23 +560,23 @@
     .brand-preview .bp-head{display:flex;align-items:flex-start;gap:9px;padding:9px 11px 6px}
     .brand-preview .bp-head img{max-height:26px;max-width:96px;object-fit:contain;flex-shrink:0}
     .brand-preview .bp-id{min-width:0;flex:1}
-    .brand-preview .bp-name{font-weight:700;font-size:.8rem;line-height:1.2;overflow-wrap:anywhere}
-    .brand-preview .bp-detail{font-size:.6rem;color:#666;margin-top:2px;overflow-wrap:anywhere;white-space:pre-line}
-    .brand-preview .bp-contact{font-size:.6rem;color:#666;text-align:right;flex-shrink:0;max-width:38%;overflow-wrap:anywhere}
+    .brand-preview .bp-name{font-weight:700;font-size:var(--fs-sm);line-height:1.2;overflow-wrap:anywhere}
+    .brand-preview .bp-detail{font-size:var(--fs-micro);color:#666;margin-top:2px;overflow-wrap:anywhere;white-space:pre-line}
+    .brand-preview .bp-contact{font-size:var(--fs-micro);color:#666;text-align:right;flex-shrink:0;max-width:38%;overflow-wrap:anywhere}
     .brand-preview .bp-rule{height:1px;background:#ccc;margin:0 11px}
-    .brand-preview .bp-title{font-size:.95rem;font-weight:700;padding:8px 11px 10px;color:#B8870A}
+    .brand-preview .bp-title{font-size:var(--fs-body);font-weight:700;padding:8px 11px 10px;color:#B8870A}
     .brand-logo-row{display:flex;gap:10px;align-items:stretch;margin-top:8px}
     .brand-logo-box{flex:0 0 120px;height:52px;border:1px dashed var(--border);border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;background:#fff;padding:4px}
     .brand-logo-box img{max-width:100%;max-height:100%;object-fit:contain}
-    .brand-logo-box span{font-family:var(--mono);font-size:.58rem;color:#888}
+    .brand-logo-box span{font-family:var(--mono);font-size:var(--fs-micro);color:#888}
     .brand-logo-side{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
-    .bl-meta{font-family:var(--mono);font-size:.58rem;color:var(--text-muted)}
+    .bl-meta{font-family:var(--mono);font-size:var(--fs-micro);color:var(--text-muted)}
     .brand-accent{display:flex;gap:6px;align-items:center}
     .brand-accent input[type=color]{width:38px;height:32px;padding:2px;background:#000;border:1px solid var(--border);border-radius:var(--r-sm);cursor:pointer;flex-shrink:0}
     .brand-accent input[type=text],.brand-accent #brandAccentHex{flex:1;min-width:0;font-family:var(--mono)}
     .remote .r-showing{display:flex;align-items:baseline;gap:8px;justify-content:center;margin:-4px 0 8px;flex-wrap:wrap}
-    .remote .r-showing .k{font-family:var(--mono);font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)}
-    .remote .r-showing .v{font-family:var(--mono);font-size:.86rem;font-weight:700;color:var(--accent);letter-spacing:.08em;overflow-wrap:anywhere}
+    .remote .r-showing .k{font-family:var(--mono);font-size:var(--fs-micro);letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)}
+    .remote .r-showing .v{font-family:var(--mono);font-size:var(--fs-mono);font-weight:700;color:var(--accent);letter-spacing:.08em;overflow-wrap:anywhere}
     .remote #remoteColorNote{margin:0 0 8px}
     .remote button:disabled{opacity:.4;cursor:not-allowed}
     /* This is a remote control. It should never be as wide as a page — cap it and let the
@@ -590,14 +584,13 @@
     .remote{max-width:26rem;margin-inline:auto}
     .remote .r-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,5rem),1fr));gap:6px}
     .remote .r-grid.two{grid-template-columns:repeat(auto-fit,minmax(min(100%,7.5rem),1fr))}
-    .remote button{background:transparent;border:1px solid var(--border);color:var(--text-sec);border-radius:var(--r-sm);font-family:var(--font);font-size:.72rem;font-weight:600;padding:8px 4px;cursor:pointer;transition:.15s}
+    .remote button{background:transparent;border:1px solid var(--border);color:var(--text-sec);border-radius:var(--r-sm);font-family:var(--font);font-size:var(--fs-btn);font-weight:600;padding:8px 4px;cursor:pointer;transition:.15s}
     .remote button:hover{border-color:var(--accent);color:var(--accent)}
     .remote button.danger{border-color:var(--err);color:var(--err)}
     .remote button.danger:hover{background:var(--err);color:#050505}
 
     /* ---------- Settings modal ---------- */
-    /* The shared navbar stays above every layer, so a dialog starts below it. */
-    .modal-scrim{z-index:600;padding:20px;padding-top:calc(var(--nav-h) + 12px)}
+    .modal-scrim{padding:20px}
     /* The modal is a column: the head stays put, the body is what scrolls. Sizing the
        whole box in vh put the action buttons below the fold in a short window. */
     .modal{width:min(var(--modal-w,520px),100%);max-width:none;max-height:min(100%,92dvh);display:flex;flex-direction:column;overflow:hidden;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:0 24px 70px rgba(0,0,0,.6)}
@@ -607,24 +600,24 @@
     #cameraModal .modal{--modal-w:720px}
     .modal-head{position:sticky;top:0;background:var(--bg-card);z-index:1}
     .modal-head h2{margin:0}
-    .modal-x{font-size:1.4rem}
+    .modal-x{font-size:var(--fs-h2)}
     .modal-body{padding:16px 18px;overflow-y:auto;min-height:0;flex:1 1 auto}
     /* the export preview is the flexible part; the action buttons stay pinned in view */
     #exportModal .modal-body{display:flex;flex-direction:column}
     .set-group{margin-bottom:18px}
-    .set-group>.sg-title{font-family:var(--mono);font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px}
+    .set-group>.sg-title{font-family:var(--mono);font-size:var(--fs-micro);letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px}
     .seg{display:flex;flex-wrap:wrap;gap:4px;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-md);padding:3px}
-    .seg button{flex:1 1 6rem;min-width:0;background:transparent;border:none;color:var(--text-muted);font-family:var(--mono);font-size:.68rem;font-weight:700;padding:8px 6px;border-radius:var(--r-sm);cursor:pointer;transition:.15s}
+    .seg button{flex:1 1 6rem;min-width:0;background:transparent;border:none;color:var(--text-muted);font-family:var(--mono);font-size:var(--fs-btn);font-weight:700;padding:8px 6px;border-radius:var(--r-sm);cursor:pointer;transition:.15s}
     .seg button.active{background:var(--accent);color:#050505}
     .seg button:not(.active):hover{color:var(--text)}
     /* The card must be allowed to be wider than the modal: capped at 100% it stopped
        growing at ~143 ppi while the slider and the label kept going. The wrapper scrolls. */
     .cal-wrap{overflow-x:auto;max-width:100%}
-    .cal-card{height:54mm;max-height:120px;width:85.6mm;flex:none;border:2px dashed var(--accent);border-radius:10px;background:linear-gradient(135deg,rgba(234,179,8,.12),transparent);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.62rem;color:var(--text-sec);margin:8px 0}
+    .cal-card{height:54mm;max-height:120px;width:85.6mm;flex:none;border:2px dashed var(--accent);border-radius:10px;background:linear-gradient(135deg,rgba(234,179,8,.12),transparent);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:var(--fs-micro);color:var(--text-sec);margin:8px 0}
     .screens-list{display:flex;flex-direction:column;gap:6px;margin-top:8px}
-    .screen-item{font-family:var(--mono);font-size:.68rem;color:var(--text-sec);background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-sm);padding:7px 9px;display:flex;justify-content:space-between}
+    .screen-item{font-family:var(--mono);font-size:var(--fs-btn);color:var(--text-sec);background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-sm);padding:7px 9px;display:flex;justify-content:space-between}
     .screen-item .pri{color:var(--accent)}
-    .hint-line{font-size:.7rem;color:var(--text-muted);line-height:1.5;margin-top:6px}
+    .hint-line{font-size:var(--fs-btn);color:var(--text-muted);line-height:1.5;margin-top:6px}
 
 
     /* ---------- Floating viewport tools ---------- */
@@ -650,7 +643,7 @@
 
     /* Eye-view toggle (1 vs 2 eyes) */
     .eye-view{display:flex;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden;pointer-events:auto}
-    .eye-view button{background:transparent;color:var(--text-muted);border:none;font-family:var(--mono);font-size:.68rem;font-weight:700;padding:7px 11px;cursor:pointer;transition:.15s;white-space:nowrap}
+    .eye-view button{background:transparent;color:var(--text-muted);border:none;font-family:var(--mono);font-size:var(--fs-btn);font-weight:700;padding:7px 11px;cursor:pointer;transition:.15s;white-space:nowrap}
     .eye-view button.active{background:var(--accent);color:#050505}
     .eye-view button:not(.active):hover{color:var(--text);background:var(--surface-hover)}
 
@@ -662,8 +655,8 @@
     .center.two.act-OD #otherPane{right:0;border-left:1px solid var(--border)}
     .center.two.act-OS #otherPane{left:0;border-right:1px solid var(--border)}
     #otherPane img{max-width:100%;max-height:100%;object-fit:contain}
-    #otherPane .cmp-empty{color:var(--text-muted);font-size:.82rem;padding:20px;text-align:center}
-    .pane-tag{position:absolute;top:52px;transform:translateX(-50%);font-family:var(--mono);font-size:.68rem;font-weight:700;color:var(--text-muted);background:var(--surface-solid);border:1px solid var(--border);padding:3px 9px;border-radius:4px;z-index:7;display:none;pointer-events:none}
+    #otherPane .cmp-empty{color:var(--text-muted);font-size:var(--fs-sm);padding:20px;text-align:center}
+    .pane-tag{position:absolute;top:52px;transform:translateX(-50%);font-family:var(--mono);font-size:var(--fs-btn);font-weight:700;color:var(--text-muted);background:var(--surface-solid);border:1px solid var(--border);padding:3px 9px;border-radius:4px;z-index:7;display:none;pointer-events:none}
     .center.two .pane-tag{display:block}
     .pane-tag.left{left:25%} .pane-tag.right{left:75%}
     .pane-tag.act{color:#050505;background:var(--accent);border-color:var(--accent)}
@@ -687,7 +680,7 @@
     }
 
     /* Inline text editor on the canvas */
-    .vp-textedit{position:absolute;z-index:8;background:rgba(6,6,6,.9);border:1px solid var(--accent);border-radius:5px;color:#fff;font-family:var(--mono);font-size:14px;padding:5px 9px;min-width:96px;max-width:60%;box-shadow:0 6px 20px rgba(0,0,0,.55),0 0 0 3px var(--accent-glow);outline:none;caret-color:var(--accent)}
+    .vp-textedit{position:absolute;z-index:8;background:rgba(6,6,6,.9);border:1px solid var(--accent);border-radius:5px;color:#fff;font-family:var(--mono);font-size:var(--fs-sec);padding:5px 9px;min-width:96px;max-width:60%;box-shadow:0 6px 20px rgba(0,0,0,.55),0 0 0 3px var(--accent-glow);outline:none;caret-color:var(--accent)}
     .vp-textedit::placeholder{color:var(--text-muted)}
     .vp-textedit.hidden{display:none}
     #vpLesionEdit{min-width:210px}
@@ -699,14 +692,14 @@
     /* Lens centration layout */
     .lens-layout{background:#0a0a0a;border:1px solid var(--border);border-radius:var(--r-md);padding:10px;margin-top:6px}
     .lens-layout svg{width:100%;height:auto;display:block}
-    .lens-note{font-family:var(--mono);font-size:.6rem;color:var(--text-muted);margin-top:6px;line-height:1.5}
+    .lens-note{font-family:var(--mono);font-size:var(--fs-micro);color:var(--text-muted);margin-top:6px;line-height:1.5}
 
     /* Monitor selection */
     .screen-item{cursor:pointer}
     .screen-item.main{background:var(--accent);border-color:var(--accent)}
     .screen-item.main span{color:#050505}
     .screen-item.test{border:2px solid var(--accent);background:var(--accent-faint)}
-    .screen-item .use{font-family:var(--mono);font-size:.6rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+    .screen-item .use{font-family:var(--mono);font-size:var(--fs-micro);color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
     .screen-item.main .use{color:#050505}
 
     /* Export modal */
@@ -718,7 +711,7 @@
     /* The frame is the sheet: aspect-ratio 595/842 (the A4 the report is laid out on) so a
        1140px-wide preview shows a page-shaped page, not one stranded in a grey slab. */
     .export-preview iframe{display:block;height:100%;width:auto;aspect-ratio:595/842;max-width:100%;border:1px solid var(--border);border-radius:var(--r-md);background:#1c1c1c}
-    .ep-loading{margin:auto;color:var(--text-muted);font-family:var(--mono);font-size:.82rem;padding:20px;text-align:center}
+    .ep-loading{margin:auto;color:var(--text-muted);font-family:var(--mono);font-size:var(--fs-sm);padding:20px;text-align:center}
     .export-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
     /* A portrait page in a landscape modal is height-bound, so the width left over either
        side is dead. Past 52rem the actions become a side column: the sheet gets the row of
@@ -931,7 +924,7 @@
         <button id="zoomIn" title="Zoom in">+</button>
         <div class="zoom-label" id="zoomLabel">100%</div>
         <button id="zoomOut" title="Zoom out">−</button>
-        <button id="zoomFit" title="Fit to view" style="font-size:.7rem">FIT</button>
+        <button id="zoomFit" title="Fit to view" style="font-size:var(--fs-btn)">FIT</button>
         <div class="zsep"></div>
         <button id="loadBtn3" data-i18n-attr="aria-label" title="Load image…" aria-label="Load image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/><path d="M12 3v13M7 8l5-5 5 5"/></svg></button>
         <button id="cameraBtn3" data-i18n-attr="aria-label" title="Take photo…" aria-label="Take photo…"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
