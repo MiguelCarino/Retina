@@ -24,6 +24,12 @@
 
 const I18N = {
     es:{
+      // Navbar greeting and overflow button (carino-navbar.js asks window.t)
+      "Late shift.": "Turno nocturno.",
+      "Good morning.": "Buenos días.",
+      "Good afternoon.": "Buenas tardes.",
+      "Good evening.": "Buenas noches.",
+      "More": "Más",
       /* Report branding (clinic letterhead, logo, licence line) and the colour-vision
          plate. The market-specific choices here are deliberate — see the licence and
          tax-ID labels, which name what each market actually prints on a prescription. */
@@ -718,6 +724,12 @@ const I18N = {
       'The camera\'s nominal retinal scale (manufacturer figure, or field of view in degrees × 0.29 mm/° ÷ image width in pixels). Written as DICOM Pixel Spacing on fundus images; it is required for a fundus camera, so without it those objects are not conformant. The disc-based mm/px is an assumption and is never written.':'Escala retiniana nominal de la cámara (dato del fabricante, o campo de visión en grados × 0,29 mm/° ÷ ancho de la imagen en píxeles). Se escribe como Pixel Spacing DICOM en las imágenes de fondo de ojo; es obligatorio para una cámara de fondo de ojo, así que sin él esos objetos no son conformes. Los mm/px derivados de la papila son una suposición y nunca se escriben.'
     },
     ja:{
+      // Navbar greeting and overflow button (carino-navbar.js asks window.t)
+      "Late shift.": "夜勤お疲れさま。",
+      "Good morning.": "おはようございます。",
+      "Good afternoon.": "こんにちは。",
+      "Good evening.": "こんばんは。",
+      "More": "その他",
       /* Report branding (clinic letterhead, logo, licence line) and the colour-vision
          plate. The market-specific choices here are deliberate — see the licence and
          tax-ID labels, which name what each market actually prints on a prescription. */
@@ -1381,6 +1393,12 @@ const I18N = {
     }
     ,
     'pt-BR':{
+      // Navbar greeting and overflow button (carino-navbar.js asks window.t)
+      "Late shift.": "Turno da noite.",
+      "Good morning.": "Bom dia.",
+      "Good afternoon.": "Boa tarde.",
+      "Good evening.": "Boa noite.",
+      "More": "Mais",
       /* Report branding (clinic letterhead, logo, licence line) and the colour-vision
          plate. The market-specific choices here are deliberate — see the licence and
          tax-ID labels, which name what each market actually prints on a prescription. */
@@ -2075,6 +2093,12 @@ const I18N = {
       'The camera\'s nominal retinal scale (manufacturer figure, or field of view in degrees × 0.29 mm/° ÷ image width in pixels). Written as DICOM Pixel Spacing on fundus images; it is required for a fundus camera, so without it those objects are not conformant. The disc-based mm/px is an assumption and is never written.':'Escala retiniana nominal da câmera (valor do fabricante, ou campo de visão em graus × 0,29 mm/° ÷ largura da imagem em pixels). Gravada como Pixel Spacing DICOM nas imagens de fundo; é obrigatória para um retinógrafo, portanto sem ela esses objetos não são conformes. O mm/px derivado do disco é uma suposição e nunca é gravado.'
     },
     ru:{
+      // Navbar greeting and overflow button (carino-navbar.js asks window.t)
+      "Late shift.": "Ночная смена.",
+      "Good morning.": "Доброе утро.",
+      "Good afternoon.": "Добрый день.",
+      "Good evening.": "Добрый вечер.",
+      "More": "Ещё",
       /* Report branding (clinic letterhead, logo, licence line) and the colour-vision
          plate. The market-specific choices here are deliberate — see the licence and
          tax-ID labels, which name what each market actually prints on a prescription. */

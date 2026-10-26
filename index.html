@@ -1791,6 +1791,8 @@
   const fleetLang=()=>((window.CarinoLang&&window.CarinoLang.current)||'en');
   document.addEventListener('DOMContentLoaded',()=>applyLang(fleetLang()));
   window.addEventListener('carino:langchange',()=>applyLang(fleetLang()));
+  // carino-navbar.js translates its greeting and overflow button through window.t:
+  // 'Late shift.' 'Good morning.' 'Good afternoon.' 'Good evening.' 'More'
 
   // ---------- Persistence (IndexedDB, see retina-store.js) ----------
   // The encounter used to be ONE localStorage key, capped at ~5 MB per origin: two
