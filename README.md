@@ -630,12 +630,12 @@ encounter. Export a backup (Patients ▸ Export backup) before you switch and im
 it in the new one.
 
 ### The icon
-The desktop icon is the Carino fleet ring with a pupil in the middle, drawn by
-[`desktop/assets/make_icon.py`](desktop/assets/make_icon.py). The site's favicon,
-`logo.webp`, is an older hand-drawn eye and shares nothing with it. They are two
-different files on purpose: what `retina.carino.systems` serves is a separate
-decision from what an application ships as its icon, and replacing the favicon has
-not been decided.
+The icon is the Carino fleet mark — the hub's gold C with an eye inside it — and
+the site's favicon and the desktop app now wear the same one. It is generated in
+the Branding repo (`marks/marks.py`) and deployed here as `logo.svg`/`logo.webp`;
+[`desktop/assets/make_icon.py`](desktop/assets/make_icon.py) rasterises
+`desktop/assets/logo.svg` into the window icon and the `.icns`/`.ico`/Linux
+packaging set, and needs `rsvg-convert`.
 
 ### Known limits
 - The database is not encrypted. Anyone who can sign in to this computer's
