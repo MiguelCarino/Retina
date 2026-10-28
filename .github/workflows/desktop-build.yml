@@ -147,6 +147,30 @@ jobs:
           { echo "### ${{ matrix.os }}"; echo; echo '```'; ls -l desktop/dist; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
           exit $missing
 
+      # A signature that no longer matches the bundle is invisible on this
+      # list of files: the dmg is there, and on Apple Silicon the app inside
+      # it will not open. Check both architectures' signatures, then start the
+      # one this runner can run natively and make sure it stays up.
+      - name: Verify the macOS app is signed and starts
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          set -euo pipefail
+          for app in desktop/dist/mac*/Carino-Retina.app; do
+            echo "--- $app"
+            codesign --verify --deep --strict --verbose=2 "$app"
+            codesign -dv "$app" 2>&1 | grep -E "Signature|Identifier|Format"
+          done
+          app=desktop/dist/mac-arm64/Carino-Retina.app
+          "$app/Contents/MacOS/Carino-Retina" & pid=$!
+          sleep 20
+          if kill -0 "$pid" 2>/dev/null; then
+            echo "app still running after 20 s"
+            kill "$pid"
+          else
+            st=0; wait "$pid" || st=$?; echo "app exited early with status $st"; exit 1
+          fi
+
       - uses: actions/upload-artifact@v7
         with:
           name: carino-retina-${{ matrix.os }}

@@ -21,6 +21,7 @@
   "build": {
     "appId": "systems.carino.retina",
     "productName": "Carino-Retina",
+    "afterPack": "build/adhoc-sign.js",
     "afterSign": "build/notarize.js",
     "files": ["main.js", "preload.js", "i18n.js", "archive.js", "inbox-watcher.js", "assets/icon.png"],
     "extraResources": [
