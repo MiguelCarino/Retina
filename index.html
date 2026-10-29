@@ -864,6 +864,10 @@
     :root[data-carino-theme="color"] .cal-card{background:var(--accent-faint)}
     :root[data-carino-theme="color"] .lens-layout{background:var(--bg-elev)}
     :root[data-carino-theme="color"] .export-preview iframe{background:var(--bg-elev)}
+    /* tool icons share the colour of the outline they draw; hover/active keep the accent */
+    :root[data-carino-theme="color"] .tool[data-tool="disc"]:not(.active):not(:hover){color:var(--ct-teal)}
+    :root[data-carino-theme="color"] .tool[data-tool="cup"]:not(.active):not(:hover){color:var(--ct-purple)}
+    :root[data-carino-theme="color"] .tool[data-tool="fovea-center"]:not(.active):not(:hover){color:var(--ct-green)}
   </style>
 </head>
 <body>
