@@ -39,6 +39,9 @@
       { "from": "../retina-aviso.js", "to": "web/retina-aviso.js" },
       { "from": "../logo.webp", "to": "web/logo.webp" },
       { "from": "../logo.svg", "to": "web/logo.svg" },
+      { "from": "../logo-color.svg", "to": "web/logo-color.svg" },
+      { "from": "../carino-theme.css", "to": "web/carino-theme.css" },
+      { "from": "../carino-theme.js", "to": "web/carino-theme.js" },
       { "from": "../LICENSE", "to": "web/LICENSE" },
       { "from": "../fonts", "to": "web/fonts" },
       { "from": "../vendor", "to": "web/vendor" }

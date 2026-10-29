@@ -87,10 +87,29 @@
        behaviour of carino-ui.css; both before carino-lang.js, which adds its button
        to the navbar. -->
   <script src="carino-navbar.js" data-app="Retina" data-repo="Retina" defer></script>
+  <script src="carino-theme.js" data-mark="logo.svg" data-mark-color="logo-color.svg" defer></script>
   <script src="carino-ui.js" defer></script>
   <script src="carino-lang.js" defer></script>
   <script src="i18n.js" defer></script>
   <script src="vendor/pdf-lib.min.js" defer></script>
+  <!-- Theme before first paint, so neither theme flashes the other:
+       ?theme=gold|color (review links; not stored) > carino-theme cookie
+       (shared across *.carino.systems) > localStorage > Gold & Black. -->
+  <meta name="theme-color" content="#050505" id="carinoThemeColor">
+  <script>
+  (function () {
+    var d = document.documentElement, t = null;
+    function pick(v) { return v === 'gold' ? 'gold' : (v === 'color' || v === 'colour') ? 'color' : null; }
+    try { t = pick(new URLSearchParams(location.search).get('theme')); } catch (e) {}
+    if (!t) { try { var m = document.cookie.match(/(?:^|;\s*)carino-theme=([^;]*)/); if (m) t = pick(decodeURIComponent(m[1])); } catch (e) {} }
+    if (!t) { try { t = pick(localStorage.getItem('carino-theme')); } catch (e) {} }
+    t = t || 'gold';
+    d.setAttribute('data-carino-theme', t);
+    var dark = d.getAttribute('data-theme') !== 'light' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches;
+    var meta = document.getElementById('carinoThemeColor');
+    if (meta) meta.content = t === 'gold' ? '#050505' : (dark ? '#0e1420' : '#eef3fc');
+  })();
+  </script>
   <link href="fonts/carino-fonts.css" rel="stylesheet">
   <!-- Shared tokens and components first; the rules below only add to them. -->
   <link rel="stylesheet" href="carino-ui.css">
@@ -809,6 +828,42 @@
       @media (max-width:900px){.center.two #viewport{width:100%!important;height:50%}}
     }
   </style>
+  <!-- Colourful theme + the switch; nothing applies until data-carino-theme="color". -->
+  <link rel="stylesheet" href="carino-theme.css">
+  <style>
+    /* the hero mark in both colourings; the theme picks one */
+    .short-hero .mark.mk-color,:root[data-carino-theme="color"] .short-hero .mark.mk-gold{display:none}
+    :root[data-carino-theme="color"] .short-hero .mark.mk-color{display:block}
+    /* Colourful: carino-theme.css remaps the tokens, so everything that reads one follows;
+       these are the values above written for black. The image itself stays on black on
+       purpose (.center with a picture, #fundus, the other-eye pane, thumbnails, the camera,
+       the on-image text editor): a fundus is read on black. The empty viewport is chrome,
+       so it takes the page; the tools floating over the picture take the theme's glass.
+       The mark colours (--c-disc …) are the overlay's and are kept as they are. */
+    :root[data-carino-theme="color"]{--surface:var(--bg-card);--surface-solid:var(--bg-card);--surface-hover:var(--ct-hover);--border-glow:var(--accent-dim)}
+    :root[data-carino-theme="color"] body{background-image:var(--stage-grad)}
+    :root[data-carino-theme="color"] .center.is-empty{background:transparent}
+    :root[data-carino-theme="color"] .icon-btn:hover{color:var(--ct-on-accent);box-shadow:var(--ct-shadow-1)}
+    :root[data-carino-theme="color"] .tool.active,:root[data-carino-theme="color"] .eye-switch button.active,:root[data-carino-theme="color"] .ib-eye button.active,:root[data-carino-theme="color"] .seg button.active,
+    :root[data-carino-theme="color"] .eye-view button.active,:root[data-carino-theme="color"] .pane-tag.act,:root[data-carino-theme="color"] .screen-item.main span,:root[data-carino-theme="color"] .screen-item.main .use{color:var(--ct-on-accent)}
+    :root[data-carino-theme="color"] .sb-btn.danger:hover,:root[data-carino-theme="color"] .remote button.danger:hover{color:var(--ct-on-accent)}
+    :root[data-carino-theme="color"] .vp-chip,:root[data-carino-theme="color"] .eye-switch,:root[data-carino-theme="color"] .eye-view,:root[data-carino-theme="color"] .pane-tag,:root[data-carino-theme="color"] .vp-zoom button{background:var(--ct-glass);box-shadow:var(--ct-shadow-1)}
+    :root[data-carino-theme="color"] .vp-tools{background:var(--ct-glass);box-shadow:var(--ct-shadow-2)}
+    :root[data-carino-theme="color"] .hud{background:var(--ct-glass);color:var(--text-sec)}
+    /* sits straight on the black picture: light grey whatever the theme */
+    :root[data-carino-theme="color"] .zoom-label{color:#c4c7c5}
+    :root[data-carino-theme="color"] .vp-chip input,:root[data-carino-theme="color"] .field input,:root[data-carino-theme="color"] .field select,:root[data-carino-theme="color"] .field textarea,:root[data-carino-theme="color"] .duo input,:root[data-carino-theme="color"] .duo select,
+    :root[data-carino-theme="color"] .brand-accent input[type=color]{background:var(--bg-elev)}
+    :root[data-carino-theme="color"] .metric .v.warn{color:var(--warn)}
+    :root[data-carino-theme="color"] input.step.out-of-range{border-color:var(--warn);color:var(--warn)}
+    :root[data-carino-theme="color"] .store-bar{background:var(--ct-err-bg);border-bottom-color:var(--ct-err-line);color:var(--ct-err-fg)}
+    :root[data-carino-theme="color"] .save-chip[data-state=error],:root[data-carino-theme="color"] .save-chip[data-state=memory],:root[data-carino-theme="color"] .sb-btn.danger{border-color:var(--ct-err-line)}
+    :root[data-carino-theme="color"] .panel::-webkit-scrollbar-thumb,:root[data-carino-theme="color"] .vp-tools::-webkit-scrollbar-thumb{background:var(--ct-scroll)}
+    :root[data-carino-theme="color"] .modal{box-shadow:var(--ct-shadow-3)}
+    :root[data-carino-theme="color"] .cal-card{background:var(--accent-faint)}
+    :root[data-carino-theme="color"] .lens-layout{background:var(--bg-elev)}
+    :root[data-carino-theme="color"] .export-preview iframe{background:var(--bg-elev)}
+  </style>
 </head>
 <body>
   <!-- Retina's own controls. carino-navbar.js moves this node (ids and handlers intact)
@@ -908,7 +963,8 @@
            sample is seeded), so the privacy line is the first thing a new visitor reads. -->
       <div class="empty-hint" id="emptyHint">
         <div class="short-hero">
-          <img class="mark" src="logo.svg" alt="" width="48" height="48">
+          <img class="mark mk-gold" src="logo.svg" alt="" width="48" height="48">
+          <img class="mark mk-color" src="logo-color.svg" alt="" width="48" height="48">
           <h1 class="i18n">Mark the disc, cup and fovea</h1>
           <p class="sh-lede" data-i18n-html="emptyLede">Drop a fundus or anterior-segment photo here, or load one, for an automatic cup-to-disc ratio. To refract or dispense, open <b>Exam</b>: no image needed.</p>
           <div class="sh-input pointer-on">
