@@ -871,6 +871,29 @@
   </style>
 </head>
 <body>
+<!-- Key words: the navbar shows them, translated, under its Language tab. -->
+<ul data-carino-words hidden>
+  <li>Patients</li>
+  <li>Refraction</li>
+  <li>Dispensing &amp; optics</li>
+  <li>Referral letter</li>
+  <li>Send to archive</li>
+  <li>Inbox</li>
+</ul>
+
+<!-- Bundled libraries: the navbar lists them in its About window, Licence tab. -->
+<ul data-carino-libs data-href="https://github.com/MiguelCarino/Retina/blob/main/vendor/README.md" hidden>
+  <li data-licence="MIT">pdf-lib</li>
+  <li data-licence="Apache-2.0">tslib</li>
+  <li data-licence="MIT">@pdf-lib/fontkit</li>
+</ul>
+
+
+<!-- What this page must say: the navbar shows it in its About window. -->
+<div data-carino-about hidden>
+  <p><span class="i18n">Runs in your browser. Nothing you add here is uploaded.</span> <span class="pl-also i18n">Images leave only for an archive you set up in Settings.</span></p>
+</div>
+
   <!-- Retina's own controls. carino-navbar.js moves this node (ids and handlers intact)
        into the shared bar; Export is the main action and stays in the bar on phones. -->
   <div data-carino-actions>
@@ -977,7 +1000,6 @@
             <button class="btn" id="cameraBtn2"><span class="i18n">Take photo…</span></button>
             <button class="btn" id="sampleBtn"><span class="i18n">Load sample fundus</span></button>
           </div>
-          <p class="privacy-line"><span class="i18n">Runs in your browser. Nothing you add here is uploaded.</span> <span class="pl-also i18n">Images leave only for an archive you set up in Settings.</span></p>
         </div>
       </div>
 
