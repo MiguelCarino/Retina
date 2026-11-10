@@ -1227,6 +1227,44 @@ const b64 = bytes => 'data:image/jpeg;base64,' + Buffer.from(bytes).toString('ba
     assert.strictEqual(RI.orientRgba(src, w, h, 9).data, src);
   });
 
+  // ---- retina-preview.js: the report preview shows the document that is written ----
+  const RPV = require(path.resolve(__dirname, '..', 'retina-preview.js'));
+  await test('preview: Print document — the report verbatim, A4 @page, sheet chrome only on screen', async () => {
+    const html = RPV.printDocHtml('<h1>Eye examination report</h1><table><tr><td>x</td></tr></table>',
+      { fontsHref: 'https://example.test/fonts/carino-fonts.css', fontFamily: "'IBM Plex Sans',sans-serif", lang: 'ja', title: 'A "q" <b>' });
+    assert.ok(html.startsWith('<!doctype html><html lang="ja">'));
+    assert.ok(html.includes('<div id="printReport"><h1>Eye examination report</h1><table><tr><td>x</td></tr></table></div>'), 'report body untouched');
+    assert.ok(html.includes('@page{size:A4;margin:10mm}'));
+    assert.ok(html.includes('<title>A &quot;q&quot; &lt;b&gt;</title>'), 'title escaped');
+    assert.ok(html.includes('<link rel="stylesheet" href="https://example.test/fonts/carino-fonts.css">'));
+    assert.ok(/@media screen\{[^]*box-shadow[^]*\}@media print\{\.rp-break\{display:none\}\}/.test(html), 'sheet + page lines are screen-only');
+    assert.ok(html.includes('print-color-adjust:exact'), 'band and header cells print as previewed');
+    assert.ok(!/<script/i.test(html), 'no script in the printed document');
+    assert.ok(!/https?:\/\/(?!example\.test)/.test(html), 'no outside address of its own');
+    assert.ok(!RPV.printDocHtml('', { fontFamily: 'x;}</style><script>' }).includes('</style><script>'), 'font family cannot close the style block');
+  });
+  await test('preview: sheet scaling and page lines', async () => {
+    assert.strictEqual(Math.round(RPV.SHEET_W), 794, 'A4 is 210 mm at 96 dpi');
+    assert.strictEqual(RPV.fitScale(1200), 1); assert.strictEqual(RPV.fitScale(RPV.PAGE_PX), 1); assert.strictEqual(RPV.fitScale(0), 1);
+    const k = RPV.fitScale(360 - 22); assert.ok(k > 0.4 && k < 0.42, 'a 360 px phone scales the sheet, not the text: ' + k);
+    assert.deepStrictEqual(RPV.pageBreaks(0), { pages: 1, breaks: [] });
+    assert.deepStrictEqual(RPV.pageBreaks(RPV.CONTENT_H), { pages: 1, breaks: [] }, 'exactly one page of content is one page');
+    const two = RPV.pageBreaks(RPV.CONTENT_H + 10); assert.strictEqual(two.pages, 2); assert.deepStrictEqual(two.breaks, [Math.round(RPV.CONTENT_H)]);
+    assert.deepStrictEqual(RPV.pageBreaks(250, 100), { pages: 3, breaks: [100, 200] });
+  });
+  await test('preview: PDF stage — the produced bytes, page count, honest fallback', async () => {
+    const PDFLib = require(path.resolve(__dirname, '..', 'vendor', 'pdf-lib.min.js'));
+    const d = await PDFLib.PDFDocument.create(); d.addPage(); d.addPage(); d.addPage();
+    const bytes = await d.save();
+    assert.strictEqual(await RPV.pdfPageCount(bytes, PDFLib), 3);
+    assert.strictEqual(await RPV.pdfPageCount(new Uint8Array([1, 2, 3]), PDFLib), 0, 'unreadable bytes: no count, no throw');
+    assert.strictEqual(await RPV.pdfPageCount(bytes, null), 0);
+    const f = RPV.pdfStageHtml('blob:https://x/1', { title: 'PDF "preview"', viewer: true, noViewerText: 'none' });
+    assert.ok(f.startsWith('<iframe title="PDF &quot;preview&quot;" src="blob:https://x/1#toolbar=0&navpanes=0&view=Fit">'));
+    const n = RPV.pdfStageHtml('blob:https://x/1', { viewer: false, noViewerText: 'No <viewer>' });
+    assert.ok(!n.includes('<iframe') && n.includes('No &lt;viewer&gt;'), 'no viewer: says so instead of a blank frame');
+  });
+
   console.log(`\n${passed} passed, ${failed} failed`);
   process.exit(failed ? 1 : 0);
 })();

@@ -721,7 +721,17 @@ const I18N = {
       'darkest line: clock hour × 30 = axis':'línea más oscura: hora del reloj × 30 = eje',
       'seg':'seg',
       'Fundus camera pixel spacing (mm per pixel at the retina)':'Espaciado de píxel de la cámara de fondo de ojo (mm por píxel en la retina)',
-      'The camera\'s nominal retinal scale (manufacturer figure, or field of view in degrees × 0.29 mm/° ÷ image width in pixels). Written as DICOM Pixel Spacing on fundus images; it is required for a fundus camera, so without it those objects are not conformant. The disc-based mm/px is an assumption and is never written.':'Escala retiniana nominal de la cámara (dato del fabricante, o campo de visión en grados × 0,29 mm/° ÷ ancho de la imagen en píxeles). Se escribe como Pixel Spacing DICOM en las imágenes de fondo de ojo; es obligatorio para una cámara de fondo de ojo, así que sin él esos objetos no son conformes. Los mm/px derivados de la papila son una suposición y nunca se escriben.'
+      'The camera\'s nominal retinal scale (manufacturer figure, or field of view in degrees × 0.29 mm/° ÷ image width in pixels). Written as DICOM Pixel Spacing on fundus images; it is required for a fundus camera, so without it those objects are not conformant. The disc-based mm/px is an assumption and is never written.':'Escala retiniana nominal de la cámara (dato del fabricante, o campo de visión en grados × 0,29 mm/° ÷ ancho de la imagen en píxeles). Se escribe como Pixel Spacing DICOM en las imágenes de fondo de ojo; es obligatorio para una cámara de fondo de ojo, así que sin él esos objetos no son conformes. Los mm/px derivados de la papila son una suposición y nunca se escriben.',
+      /* Report preview (#rpModal): every document is shown before it is written. */
+      'Preview':'Vista previa',
+      'Print preview':'Vista previa de impresión',
+      '1 page':'1 página',
+      '{n} pages':'{n} páginas',
+      'Page {n}':'Página {n}',
+      'This browser cannot show a PDF inside the page. Download it to read it.':'Este navegador no puede mostrar un PDF dentro de la página. Descárguelo para leerlo.',
+      'Other documents':'Otros documentos',
+      'Print report':'Imprimir informe',
+      'This browser cannot print the PDF from the preview. Download it and print it from there.':'Este navegador no puede imprimir el PDF desde la vista previa. Descárguelo e imprímalo desde allí.'
     },
     ja:{
       // Navbar greeting and overflow button (carino-navbar.js asks window.t)
@@ -1389,7 +1399,17 @@ const I18N = {
       'darkest line: clock hour × 30 = axis':'最も濃い線: 時計の時刻 × 30 = 軸',
       'seg':'seg',
       'Fundus camera pixel spacing (mm per pixel at the retina)':'眼底カメラのピクセル間隔(網膜上の mm/ピクセル)',
-      'The camera\'s nominal retinal scale (manufacturer figure, or field of view in degrees × 0.29 mm/° ÷ image width in pixels). Written as DICOM Pixel Spacing on fundus images; it is required for a fundus camera, so without it those objects are not conformant. The disc-based mm/px is an assumption and is never written.':'カメラの公称網膜スケール(メーカー値、または画角(度) × 0.29 mm/° ÷ 画像の幅(ピクセル))。眼底画像に DICOM Pixel Spacing として書き込まれます。眼底カメラでは必須のため、未設定ではそれらのオブジェクトは規格に適合しません。乳頭由来の mm/px は仮定値であり、書き込まれません。'
+      'The camera\'s nominal retinal scale (manufacturer figure, or field of view in degrees × 0.29 mm/° ÷ image width in pixels). Written as DICOM Pixel Spacing on fundus images; it is required for a fundus camera, so without it those objects are not conformant. The disc-based mm/px is an assumption and is never written.':'カメラの公称網膜スケール(メーカー値、または画角(度) × 0.29 mm/° ÷ 画像の幅(ピクセル))。眼底画像に DICOM Pixel Spacing として書き込まれます。眼底カメラでは必須のため、未設定ではそれらのオブジェクトは規格に適合しません。乳頭由来の mm/px は仮定値であり、書き込まれません。',
+      /* Report preview (#rpModal): every document is shown before it is written. */
+      'Preview':'プレビュー',
+      'Print preview':'印刷プレビュー',
+      '1 page':'1ページ',
+      '{n} pages':'{n}ページ',
+      'Page {n}':'{n}ページ目',
+      'This browser cannot show a PDF inside the page. Download it to read it.':'このブラウザーではページ内にPDFを表示できません。保存してからご覧ください。',
+      'Other documents':'その他の書類',
+      'Print report':'報告書を印刷',
+      'This browser cannot print the PDF from the preview. Download it and print it from there.':'このブラウザーではプレビューからPDFを印刷できません。保存してから印刷してください。'
     }
     ,
     'pt-BR':{
@@ -2090,7 +2110,17 @@ const I18N = {
       'darkest line: clock hour × 30 = axis':'linha mais escura: hora do relógio × 30 = eixo',
       'seg':'seg',
       'Fundus camera pixel spacing (mm per pixel at the retina)':'Espaçamento de pixel do retinógrafo (mm por pixel na retina)',
-      'The camera\'s nominal retinal scale (manufacturer figure, or field of view in degrees × 0.29 mm/° ÷ image width in pixels). Written as DICOM Pixel Spacing on fundus images; it is required for a fundus camera, so without it those objects are not conformant. The disc-based mm/px is an assumption and is never written.':'Escala retiniana nominal da câmera (valor do fabricante, ou campo de visão em graus × 0,29 mm/° ÷ largura da imagem em pixels). Gravada como Pixel Spacing DICOM nas imagens de fundo; é obrigatória para um retinógrafo, portanto sem ela esses objetos não são conformes. O mm/px derivado do disco é uma suposição e nunca é gravado.'
+      'The camera\'s nominal retinal scale (manufacturer figure, or field of view in degrees × 0.29 mm/° ÷ image width in pixels). Written as DICOM Pixel Spacing on fundus images; it is required for a fundus camera, so without it those objects are not conformant. The disc-based mm/px is an assumption and is never written.':'Escala retiniana nominal da câmera (valor do fabricante, ou campo de visão em graus × 0,29 mm/° ÷ largura da imagem em pixels). Gravada como Pixel Spacing DICOM nas imagens de fundo; é obrigatória para um retinógrafo, portanto sem ela esses objetos não são conformes. O mm/px derivado do disco é uma suposição e nunca é gravado.',
+      /* Report preview (#rpModal): every document is shown before it is written. */
+      'Preview':'Pré-visualizar',
+      'Print preview':'Pré-visualização de impressão',
+      '1 page':'1 página',
+      '{n} pages':'{n} páginas',
+      'Page {n}':'Página {n}',
+      'This browser cannot show a PDF inside the page. Download it to read it.':'Este navegador não consegue exibir um PDF dentro da página. Baixe-o para lê-lo.',
+      'Other documents':'Outros documentos',
+      'Print report':'Imprimir relatório',
+      'This browser cannot print the PDF from the preview. Download it and print it from there.':'Este navegador não consegue imprimir o PDF a partir da pré-visualização. Baixe-o e imprima a partir daí.'
     },
     ru:{
       // Navbar greeting and overflow button (carino-navbar.js asks window.t)
@@ -2791,7 +2821,17 @@ const I18N = {
       'darkest line: clock hour × 30 = axis':'самая тёмная линия: час на циферблате × 30 = ось',
       'seg':'seg',
       'Fundus camera pixel spacing (mm per pixel at the retina)':'Шаг пикселя фундус-камеры (мм на пиксель на сетчатке)',
-      'The camera\'s nominal retinal scale (manufacturer figure, or field of view in degrees × 0.29 mm/° ÷ image width in pixels). Written as DICOM Pixel Spacing on fundus images; it is required for a fundus camera, so without it those objects are not conformant. The disc-based mm/px is an assumption and is never written.':'Номинальный масштаб сетчатки камеры (значение производителя или поле зрения в градусах × 0,29 мм/° ÷ ширина снимка в пикселях). Записывается как DICOM Pixel Spacing в снимках глазного дна; для фундус-камеры он обязателен, и без него эти объекты не соответствуют стандарту. Полученные по диску мм/пкс — допущение, они никогда не записываются.'
+      'The camera\'s nominal retinal scale (manufacturer figure, or field of view in degrees × 0.29 mm/° ÷ image width in pixels). Written as DICOM Pixel Spacing on fundus images; it is required for a fundus camera, so without it those objects are not conformant. The disc-based mm/px is an assumption and is never written.':'Номинальный масштаб сетчатки камеры (значение производителя или поле зрения в градусах × 0,29 мм/° ÷ ширина снимка в пикселях). Записывается как DICOM Pixel Spacing в снимках глазного дна; для фундус-камеры он обязателен, и без него эти объекты не соответствуют стандарту. Полученные по диску мм/пкс — допущение, они никогда не записываются.',
+      /* Report preview (#rpModal): every document is shown before it is written. */
+      'Preview':'Предпросмотр',
+      'Print preview':'Предпросмотр печати',
+      '1 page':'1 страница',
+      '{n} pages':'Страниц: {n}',
+      'Page {n}':'Страница {n}',
+      'This browser cannot show a PDF inside the page. Download it to read it.':'Этот браузер не может показать PDF на странице. Скачайте файл, чтобы прочитать его.',
+      'Other documents':'Другие документы',
+      'Print report':'Печать отчёта',
+      'This browser cannot print the PDF from the preview. Download it and print it from there.':'Этот браузер не может напечатать PDF из предпросмотра. Скачайте его и распечатайте оттуда.'
     }
 };
 window.I18N = I18N;

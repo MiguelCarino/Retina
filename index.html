@@ -614,16 +614,11 @@
     /* The modal is a column: the head stays put, the body is what scrolls. Sizing the
        whole box in vh put the action buttons below the fold in a short window. */
     .modal{width:min(var(--modal-w,520px),100%);max-width:none;max-height:min(100%,92dvh);display:flex;flex-direction:column;overflow:hidden;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:0 24px 70px rgba(0,0,0,.6)}
-    /* Height, not just max-height: without a definite height the modal shrink-wraps its
-       content and the body's flex:1 1 auto has no free space to hand the preview. */
-    #exportModal .modal{--modal-w:760px;height:min(100%,92dvh)}
     #cameraModal .modal{--modal-w:720px}
     .modal-head{position:sticky;top:0;background:var(--bg-card);z-index:1}
     .modal-head h2{margin:0}
     .modal-x{font-size:var(--fs-h2)}
     .modal-body{padding:16px 18px;overflow-y:auto;min-height:0;flex:1 1 auto}
-    /* the export preview is the flexible part; the action buttons stay pinned in view */
-    #exportModal .modal-body{display:flex;flex-direction:column}
     .set-group{margin-bottom:18px}
     .set-group>.sg-title{font-family:var(--mono);font-size:var(--fs-micro);letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px}
     .seg{display:flex;flex-wrap:wrap;gap:4px;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--r-md);padding:3px}
@@ -722,30 +717,42 @@
     .screen-item .use{font-family:var(--mono);font-size:var(--fs-micro);color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
     .screen-item.main .use{color:#050505}
 
-    /* Export modal */
-    /* align-items:stretch, not center: the iframe is height:100% of this box, and a
-       centred flex item is sized by its content instead — the A4 page collapsed to the
-       iframe's intrinsic 150px and floated in the middle of a white void. The loading
-       card centres itself with margin:auto so it does not need the container to. */
-    .export-preview{flex:1 1 auto;min-height:14rem;overflow:hidden;margin-bottom:14px;display:flex;align-items:stretch;justify-content:center}
-    /* The frame is the sheet: aspect-ratio 595/842 (the A4 the report is laid out on) so a
-       1140px-wide preview shows a page-shaped page, not one stranded in a grey slab. */
-    .export-preview iframe{display:block;height:100%;width:auto;aspect-ratio:595/842;max-width:100%;border:1px solid var(--border);border-radius:var(--r-md);background:#1c1c1c}
+    /* ---------- Report previews: the Export modal (Study PDF) and #rpModal ----------
+       Both are the fleet's .rpv (carino-ui.css 18b): title, ✕, status, options, file name
+       and the Print/Download buttons in the left column, the document on the right.
+       Only what is Retina's own is here. */
     .ep-loading{margin:auto;color:var(--text-muted);font-family:var(--mono);font-size:var(--fs-sm);padding:20px;text-align:center}
-    .export-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
-    /* A portrait page in a landscape modal is height-bound, so the width left over either
-       side is dead. Past 52rem the actions become a side column: the sheet gets the row of
-       buttons back as height, and the slack becomes something to read instead of a slab.
-       Declared after the base rules it overrides — a media query adds no specificity. */
-    @media (min-width:52rem){
-      #exportModal .modal-body{flex-direction:row;gap:14px}
-      #exportModal .export-preview{margin-bottom:0;min-width:0}
-      #exportModal .export-actions{flex:0 0 12rem;grid-template-columns:1fr;align-content:start}
-      /* An A4 page in a height-capped modal is height-bound, so the width it needs is
-         derivable: sheet (0.7072 x the body height left after the 89px head + body padding)
-         + the 12rem action column + 52px of gap, padding and borders. Without this the
-         modal keeps a fixed width and the difference shows up as dead grey either side. */
-      #exportModal .modal{--modal-w:min(1180px,calc(0.7072 * (92dvh - 89px) + 12rem + 52px))}
+    /* The PDF viewer and the scaled print sheet scroll inside their own frame; the stage
+       never scrolls, or the scaled frame's unscaled layout box would add a scrollbar. */
+    .rpv-stage{overflow:hidden}
+    .rpv-stage>.ep-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#333}
+    /* Export: the other documents are buttons that open their own preview. Compact rows in
+       the column; on a phone one strip that scrolls sideways, so the page keeps its height. */
+    .ex-docs .btn{min-height:32px;padding:6px 10px;justify-content:flex-start;text-align:left}
+    #sendHint{margin:0}
+    #sendHint:empty{display:none}
+    /* A short window (1280x720): the options scroll inside the column, so the Print and
+       Download buttons stay pinned at its foot instead of scrolling out of view. */
+    @media (min-width:701px){
+      .rpv-side>.rpv-opts{flex:0 1 auto;min-height:0;overflow-y:auto}
+      .rpv-side>.rpv-actions{flex:none}
+    }
+    /* Report preview (#rpModal) keeps the shared .rpv-scrim z-index, below the navbar, and
+       follows #exportModal in the DOM so it stacks over it. Only when it opens over a
+       .modal-scrim (settings at …600, referral at …610) is it raised above that scrim
+       (openReportPreview sets .rp-over-modal); the generic dialog stays above at …620. */
+    #rpModal.rp-over-modal{z-index:2147483615}
+    /* The browser's PDF viewer in the Export stage is its own window and can take a tap
+       meant for a dialog opened over it (Referral's Preview lost its first tap on phones).
+       While any other dialog is open, the viewer underneath takes no pointer input. */
+    body:has(.modal-scrim:not(.hidden)) #exportModal .rpv-stage iframe,
+    body:has(#rpModal:not(.hidden)) #exportModal .rpv-stage iframe{pointer-events:none}
+    @media (max-width:700px){
+      .ex-docs{flex-direction:row!important;flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px}
+      .ex-docs .btn{flex:none;white-space:nowrap}
+      /* four output actions: two rows of two rather than four slivers */
+      #exportModal .rpv-actions{flex-wrap:wrap}
+      #exportModal .rpv-actions>*{flex:1 1 calc(50% - 4px)}
     }
     /* Tests modal */
     #mod-tests .test-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
@@ -863,7 +870,6 @@
     :root[data-carino-theme="color"] .modal{box-shadow:var(--ct-shadow-3)}
     :root[data-carino-theme="color"] .cal-card{background:var(--accent-faint)}
     :root[data-carino-theme="color"] .lens-layout{background:var(--bg-elev)}
-    :root[data-carino-theme="color"] .export-preview iframe{background:var(--bg-elev)}
     /* tool icons share the colour of the outline they draw; hover/active keep the accent */
     :root[data-carino-theme="color"] .tool[data-tool="disc"]:not(.active):not(:hover){color:var(--ct-teal)}
     :root[data-carino-theme="color"] .tool[data-tool="cup"]:not(.active):not(:hover){color:var(--ct-purple)}
@@ -1646,29 +1652,38 @@
   </div>
 
   <!-- Export modal -->
-  <div class="modal-scrim hidden" id="exportModal">
-    <div class="modal">
-      <div class="modal-head">
-        <h2 class="modal-title i18n">Export</h2>
-        <button class="modal-x" id="exportClose" data-i18n-attr="aria-label" aria-label="Close">×</button>
-      </div>
-      <div class="modal-body">
-        <div class="export-preview" id="exportPreview"><div class="ep-loading i18n">Building preview…</div></div>
-        <div class="export-actions">
-          <button class="btn" id="exportPdf"><span class="i18n">Download PDF</span></button>
-          <button class="btn" id="exportDcm"><span class="i18n">Download DICOM</span></button>
-          <button class="btn" id="exportRx"><span class="i18n">Spectacle Rx</span></button>
-          <button class="btn" id="exportOrder"><span class="i18n">Lens order</span></button>
-          <button class="btn" id="exportPng"><span class="i18n">Annotated PNG</span></button>
-          <button class="btn" id="exportJson"><span class="i18n">Study JSON</span></button>
-          <button class="btn" id="printBtn"><span class="i18n">Print</span></button>
-          <button class="btn" id="exportSend"><span class="i18n">Send to archive</span></button>
-          <button class="btn" id="exportReferral"><span class="i18n">Referral letter</span></button>
-          <button class="btn" id="exportAviso"><span class="i18n">Privacy notice template (ES)</span></button>
+  <div class="rpv-scrim hidden" id="exportModal">
+    <div class="rpv" role="dialog" aria-modal="true" aria-labelledby="exportTitle">
+      <aside class="rpv-side">
+        <div class="rpv-head">
+          <h2 class="rpv-title i18n" id="exportTitle">Export</h2>
+          <button type="button" class="modal-x rpv-x" id="exportClose" data-i18n-attr="aria-label,title" aria-label="Close" title="Close">✕</button>
         </div>
-        <!-- State text (renderSendHint): why Send is unavailable, or where it sends. -->
-        <div class="hint-line" id="sendHint"></div>
-      </div>
+        <!-- State text (buildExportPreview): the Study PDF's page count. -->
+        <p class="rpv-status" id="exportStatus" role="status" aria-live="polite"></p>
+        <div class="rpv-opts">
+          <fieldset class="ex-docs">
+            <legend class="i18n">Other documents</legend>
+            <button class="btn" id="exportRx"><span class="i18n">Spectacle Rx</span></button>
+            <button class="btn" id="exportOrder"><span class="i18n">Lens order</span></button>
+            <button class="btn" id="exportReferral"><span class="i18n">Referral letter</span></button>
+            <button class="btn" id="printBtn"><span class="i18n">Print report</span></button>
+            <button class="btn" id="exportPng"><span class="i18n">Annotated PNG</span></button>
+            <button class="btn" id="exportJson"><span class="i18n">Study JSON</span></button>
+            <button class="btn" id="exportAviso"><span class="i18n">Privacy notice template (ES)</span></button>
+          </fieldset>
+          <!-- State text (renderSendHint): why Send is unavailable, or where it sends. -->
+          <p class="hint-line" id="sendHint"></p>
+        </div>
+        <p class="rpv-name" id="exportName"></p>
+        <div class="rpv-actions">
+          <button class="btn" id="exportSend"><span class="i18n">Send to archive</span></button>
+          <button class="btn" id="exportDcm"><span class="i18n">Download DICOM</span></button>
+          <button class="btn" id="exportPrint" disabled><span class="i18n">Print</span></button>
+          <button class="btn btn-primary" id="exportPdf"><span class="i18n">Download PDF</span></button>
+        </div>
+      </aside>
+      <div class="rpv-stage" id="exportPreview"><div class="ep-loading i18n">Building preview…</div></div>
     </div>
   </div>
 
@@ -1689,7 +1704,7 @@
         <div class="hint-line" id="refNote"></div>
         <div class="dlg-actions">
           <button type="button" class="sb-btn" id="refCancel"><span class="i18n">Cancel</span></button>
-          <button type="button" class="sb-btn primary" id="refGo"><span class="i18n">Download PDF</span></button>
+          <button type="button" class="sb-btn primary" id="refGo"><span class="i18n">Preview</span></button>
         </div>
       </div>
     </div>
@@ -1714,12 +1729,38 @@
     </div>
   </div>
 
+  <!-- Report preview (openReportPreview): every PDF and the printed report is shown here
+       before anything is written. The stage holds the very bytes that get downloaded, or
+       the very document that gets printed; the ✕ (or Esc) drops it and saves nothing. Below the
+       pinned navbar, above the export, referral and settings modals. The title, status
+       and commit label are state text set by openReportPreview: no .i18n. -->
+  <div class="rpv-scrim hidden" id="rpModal">
+    <div class="rpv" role="dialog" aria-modal="true" aria-labelledby="rpTitle">
+      <aside class="rpv-side">
+        <div class="rpv-head">
+          <h2 class="rpv-title" id="rpTitle"></h2>
+          <button type="button" class="modal-x rpv-x" id="rpX" data-i18n-attr="aria-label,title" aria-label="Close" title="Close">✕</button>
+        </div>
+        <p class="rpv-status" id="rpStatus" role="status" aria-live="polite"></p>
+        <p class="rpv-name" id="rpName"></p>
+        <!-- rpPrint prints a PDF preview's frame (the bytes Download writes); hidden for the
+             HTML report, whose commit button rpGo is itself Print. -->
+        <div class="rpv-actions">
+          <button type="button" class="btn hidden" id="rpPrint" disabled><span class="i18n">Print</span></button>
+          <button type="button" class="btn btn-primary" id="rpGo" disabled></button>
+        </div>
+      </aside>
+      <div class="rpv-stage" id="rpStage"></div>
+    </div>
+  </div>
+
 <!-- Not deferred: the app below needs it while it runs. -->
 <script src="retina-store.js"></script>
 <script src="retina-clinical.js"></script>
 <script src="retina-dicom.js"></script>
 <script src="retina-inbox.js"></script>
 <script src="retina-aviso.js"></script>
+<script src="retina-preview.js"></script>
 <script>
 (function(){
   'use strict';
@@ -4911,9 +4952,11 @@
   $('archPixelMm').addEventListener('change',()=>{syncArch();arch.pixelMm=RD.pixelMmOf(parseStep($('archPixelMm').value,'num'));saveArch();syncArchiveUI();});
 
   // ---------- Download DICOM ----------
+  // From the export modal it wraps the Study PDF previewed there (exportPdfBytes), so the
+  // encapsulated report is the document the user saw; called elsewhere it builds one.
   async function downloadDicom(){
     const doc=t('DICOM files');
-    const pdf=await runExport(doc,generateStudyPdf);if(!pdf)return;
+    const pdf=(!$('exportModal').classList.contains('hidden')&&exportPdfBytes)||await runExport(doc,generateStudyPdf);if(!pdf)return;
     let objs;
     try{objs=await buildDicomObjects(pdf);}catch(e){console.error(e);toast(tf('{doc} failed',{doc})+': '+dicomErrText(e));return;}
     const id=study.meta.patientId||'study';
@@ -4950,6 +4993,7 @@
       const v=await uiPrompt({title:t('Patient ID needed'),body:t('The archive files every object under a patient ID. Enter this patient’s ID to send.'),label:t('Patient ID'),ok:t('Continue')});
       if(v==null||!String(v).trim())return;
       study.meta.patientId=String(v).trim().slice(0,64);writeForm();save();evaluateLink();await flush();
+      if(exportOpen())buildExportPreview();
     }
     // Sent — or only queued — under other details: one study must never carry two
     // patients. What the archive confirmed (kv sentId:<visit>) is not enough: objects
@@ -5052,7 +5096,7 @@
     const chosen=plan.items.filter(r=>r.on&&!r.off);if(!chosen.length)return;
     $('sendGo').disabled=true;
     const wantReport=chosen.some(r=>r.kind==='report');
-    const pdf=wantReport?await generateStudyPdf():null;
+    const pdf=wantReport?((exportOpen()&&exportPdfBytes)||await generateStudyPdf()):null;
     const equip=await dicomEquip();
     const out=await commitIdentity(async()=>{
       const en=encObj();
@@ -5998,20 +6042,21 @@
     toast(tf('Building {doc}…',{doc}));
     try{return await fn();}catch(err){console.error(err);toast(tf('{doc} failed',{doc})+': '+err.message);return null;}
   }
-  $('exportPdf').addEventListener('click',async()=>{
+  // The export modal IS the Study PDF's preview: Download PDF writes the bytes shown there
+  // (exportPdfBytes, set by openExport), never a second build that could differ from them.
+  $('exportPdf').addEventListener('click',()=>{
+    const bytes=exportPdfBytes;if(!bytes)return;
     const doc=t('Study PDF');
-    const bytes=await runExport(doc,generateStudyPdf);if(!bytes)return;
-    download(fname('',/*ext*/'pdf'),new Blob([bytes],{type:'application/pdf'}));toast(tf('Exported: {doc}',{doc}));
+    download(exportPdfName||fname('','pdf'),new Blob([bytes],{type:'application/pdf'}));toast(tf('Exported: {doc}',{doc}));
   });
-  $('exportRx').addEventListener('click',async()=>{
-    const doc=t('Spectacle Rx');
-    const bytes=await runExport(doc,generateRxPdf);if(!bytes)return;
-    download(fname('Rx','pdf'),new Blob([bytes],{type:'application/pdf'}));toast(tf('Exported: {doc}',{doc}));
+  // Every other document opens the report preview first; its own button downloads.
+  $('exportRx').addEventListener('click',()=>{
+    if(!studyHasContent()){toast(t('Nothing to export yet — add data or an image'));return;}
+    openReportPreview({doc:'Spectacle Rx',name:fname('Rx','pdf'),pdf:generateRxPdf});
   });
-  $('exportOrder').addEventListener('click',async()=>{
-    const doc=t('Lens order');
-    const bytes=await runExport(doc,generateOrderPdf);if(!bytes)return;
-    download(fname('order','pdf'),new Blob([bytes],{type:'application/pdf'}));toast(tf('Exported: {doc}',{doc}));
+  $('exportOrder').addEventListener('click',()=>{
+    if(!studyHasContent()){toast(t('Nothing to export yet — add data or an image'));return;}
+    openReportPreview({doc:'Lens order',name:fname('order','pdf'),pdf:generateOrderPdf});
   });
 
   // ---------- Referral letter and privacy notice ----------
@@ -6043,27 +6088,26 @@
   $('referralClose').addEventListener('click',closeReferral);
   $('refCancel').addEventListener('click',closeReferral);
   $('referralModal').addEventListener('click',e=>{if(e.target.id==='referralModal')closeReferral();});
-  $('refGo').addEventListener('click',async()=>{
+  // Preview over the referral dialog: the ✕ returns to it, Download writes and closes both.
+  $('refGo').addEventListener('click',()=>{
     const r=referralFromForm();if(!r.reason.trim()){syncReferral();$('refReason').focus();return;}
     keepReferral();
-    const doc=t('Referral letter');
-    const bytes=await runExport(doc,()=>generateReferralPdf(r));if(!bytes)return;
-    download(fname('referral','pdf'),new Blob([bytes],{type:'application/pdf'}));toast(tf('Exported: {doc}',{doc}));
-    $('referralModal').classList.add('hidden');
+    if(!studyHasContent()){toast(t('Nothing to export yet — add data or an image'));return;}
+    openReportPreview({doc:'Referral letter',name:fname('referral','pdf'),pdf:()=>generateReferralPdf(r),
+      after:()=>$('referralModal').classList.add('hidden')});
   });
   // The notice depends on the clinic's details only, so it needs no patient data and is
   // also offered next to those details in Settings.
-  async function exportAviso(){
-    const doc=t('Privacy notice template (ES)');toast(tf('Building {doc}…',{doc}));
-    try{const bytes=await generateAvisoPdf();
-      download('aviso_de_privacidad_plantilla.pdf',new Blob([bytes],{type:'application/pdf'}));toast(tf('Exported: {doc}',{doc}));}
-    catch(err){console.error(err);toast(tf('{doc} failed',{doc})+': '+err.message);}
+  function exportAviso(){
+    openReportPreview({doc:'Privacy notice template (ES)',name:'aviso_de_privacidad_plantilla.pdf',pdf:generateAvisoPdf});
   }
   $('exportAviso').addEventListener('click',exportAviso);
   $('brandAviso').addEventListener('click',exportAviso);
 
   // ---------- Print ----------
-  $('printBtn').addEventListener('click',()=>{buildReport();window.print();});
+  // Print previews the report in a frame and prints THAT frame (as Topo does). buildReport
+  // still fills #printReport too, so a Ctrl+P on the page prints the same report.
+  $('printBtn').addEventListener('click',()=>{openReportPreview({doc:'Print preview',commit:'Print',html:buildReport});});
   function buildReport(){
     const m=study.meta,b=brandSnapshot();
     // Print is a second, entirely separate document builder. Branding it in the same
@@ -6096,8 +6140,123 @@
     });
     if(b.enabled&&b.footerNote)h+='<p class="pr-foot">'+esc(b.footerNote)+'</p>';
     $('printReport').innerHTML=h;
+    return h;
     function esc(s){return String(s).replace(/[<>&"]/g,ch=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[ch]);}
   }
+
+  // ---------- Report preview (#rpModal) ----------
+  // cfg: {doc: English name (title, toast), name: file name, commit?: English label
+  // (default 'Download PDF'), and either pdf: async()=>bytes or html: ()=>report HTML;
+  // after?: run once the PDF is written}. A PDF stage shows the produced bytes in the
+  // browser's own viewer, Download writes those same bytes and Print (rpPrint) prints that
+  // viewer; an HTML stage is the very document Print (rpGo) prints
+  // (frame.contentWindow.print()). The ✕ drops it; nothing is saved.
+  const RP=window.RetinaPreview;
+  const rp={seq:0,cfg:null,url:null,bytes:null,back:null};
+  function rpStatus(s){$('rpStatus').textContent=s||'';}
+  function rpPagesText(n){return !n?'':n===1?t('1 page'):tf('{n} pages',{n});}
+  function rpDropUrl(){if(rp.url){URL.revokeObjectURL(rp.url);rp.url=null;}}
+  function rpFrame(){return $('rpStage').querySelector('iframe');}
+  // A PDF preview has no file of its own to print: Print prints the browser's viewer of the
+  // very bytes Download writes (no second build). Without an inline viewer there is nothing
+  // to print, so the button stays disabled and the note on the stage says to download.
+  const pdfViewer=()=>navigator.pdfViewerEnabled!==false;
+  function printPdfFrame(stage){
+    const fr=stage.querySelector('iframe');if(!fr)return;
+    try{fr.contentWindow.focus();fr.contentWindow.print();}
+    catch(e){console.warn('Print from the PDF preview failed.',e);toast(t('This browser cannot print the PDF from the preview. Download it and print it from there.'));}
+  }
+  // A stage narrower than the sheet shows the sheet scaled down, as it will print, rather
+  // than the report reflowed to a phone's width. Only the HTML sheet needs it: the PDF
+  // viewer fits its own pages.
+  function rpFit(){
+    const fr=rpFrame(),stage=$('rpStage');if(!fr||!rp.cfg||rp.cfg.pdf)return;
+    Object.assign(fr.style,{width:'',height:'',transform:'',transformOrigin:''});
+    const k=RP.fitScale(stage.clientWidth);if(k>=1)return;
+    Object.assign(fr.style,{width:RP.PAGE_PX+'px',height:Math.round(stage.clientHeight/k)+'px',transform:'scale('+k+')',transformOrigin:'0 0'});
+  }
+  function rpLabels(){const c=rp.cfg;if(!c)return;
+    $('rpTitle').textContent=t(c.doc);$('rpName').textContent=c.name||'';$('rpGo').textContent=t(c.commit||'Download PDF');
+    $('rpPrint').classList.toggle('hidden',!c.pdf);}
+  function openReportPreview(cfg){
+    rp.cfg=cfg;rp.back=document.activeElement;rpLabels();
+    $('rpModal').classList.toggle('rp-over-modal',!!document.querySelector('.modal-scrim:not(.hidden):not([hidden])'));
+    $('rpModal').classList.remove('hidden');
+    document.addEventListener('keydown',rpKey,true);
+    setTimeout(()=>{if(rp.cfg)$('rpX').focus();},0);
+    return rpBuild();
+  }
+  async function rpBuild(){
+    const seq=++rp.seq,cfg=rp.cfg,stage=$('rpStage');if(!cfg)return;
+    $('rpGo').disabled=true;$('rpPrint').disabled=true;rp.bytes=null;rpDropUrl();rpStatus('');
+    stage.innerHTML='<div class="ep-loading">'+escHtml(t('Building preview…'))+'</div>';
+    try{
+      if(cfg.pdf){
+        const bytes=await cfg.pdf();
+        if(seq!==rp.seq)return;
+        rp.bytes=bytes;rp.url=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
+        stage.innerHTML=RP.pdfStageHtml(rp.url,{title:t('PDF preview'),viewer:pdfViewer(),
+          noViewerText:t('This browser cannot show a PDF inside the page. Download it to read it.')});
+        const pf=rpFrame();if(pf)pf.classList.add('rpv-frame');
+        $('rpPrint').disabled=!pf;
+        const n=await RP.pdfPageCount(bytes,window.PDFLib);
+        if(seq!==rp.seq)return;
+        rpStatus(rpPagesText(n));
+      }else{
+        const doc=RP.printDocHtml(cfg.html(),{fontsHref:new URL('fonts/carino-fonts.css',document.baseURI).href,
+          fontFamily:getComputedStyle(document.documentElement).getPropertyValue('--font').trim(),lang,title:'Carino Retina'});
+        const fr=document.createElement('iframe');fr.title=t('Print preview');fr.className='rpv-frame';
+        // srcdoc before the frame is attached, so the only load event is this document's.
+        await new Promise(done=>{let fin=false;const end=()=>{if(fin)return;fin=true;fr.onload=null;done();};
+          fr.onload=end;setTimeout(end,5000);fr.srcdoc=doc;stage.replaceChildren(fr);});
+        if(seq!==rp.seq)return;
+        let pages=0;
+        try{
+          const d=fr.contentDocument;if(d.fonts)await d.fonts.ready;
+          await Promise.all([...d.images].map(img=>img.complete?null:new Promise(r=>{img.onload=img.onerror=r;})));
+          if(seq!==rp.seq)return;
+          const pad=parseFloat(d.defaultView.getComputedStyle(d.body).paddingTop)||0;
+          const pb=RP.pageBreaks(d.getElementById('printReport').getBoundingClientRect().height);pages=pb.pages;
+          pb.breaks.forEach((y,i)=>{const line=d.createElement('div');line.className='rp-break';line.style.top=(pad+y)+'px';
+            const tag=d.createElement('span');tag.textContent=tf('Page {n}',{n:i+2});line.append(tag);d.body.append(line);});
+        }catch(e){console.warn('Report preview: could not measure the pages.',e);}
+        rpFit();rpStatus(rpPagesText(pages));
+      }
+      $('rpGo').disabled=false;
+    }catch(err){
+      if(seq!==rp.seq)return;console.error(err);
+      stage.innerHTML='<div class="ep-loading">'+escHtml(t('Preview unavailable')+' — '+(err&&err.message||err))+'</div>';
+    }
+  }
+  function closeReportPreview(){
+    rp.seq++;rp.cfg=null;rp.bytes=null;rpDropUrl();
+    $('rpModal').classList.add('hidden');$('rpModal').classList.remove('rp-over-modal');$('rpStage').replaceChildren();rpStatus('');$('rpGo').disabled=true;$('rpPrint').disabled=true;
+    document.removeEventListener('keydown',rpKey,true);
+    const back=rp.back;rp.back=null;try{if(back&&back.focus)back.focus();}catch(e){}
+  }
+  // Capture phase on document: Escape closes only the preview, not the modal beneath it.
+  function rpKey(e){if(e.key==='Escape'){e.preventDefault();e.stopPropagation();closeReportPreview();}}
+  function rpCommit(){
+    const cfg=rp.cfg;if(!cfg||$('rpGo').disabled)return;
+    if(cfg.pdf){
+      const bytes=rp.bytes;if(!bytes)return;
+      download(cfg.name,new Blob([bytes],{type:'application/pdf'}));toast(tf('Exported: {doc}',{doc:t(cfg.doc)}));
+      closeReportPreview();if(cfg.after)cfg.after();
+    }else{
+      const fr=rpFrame();if(!fr||!fr.contentWindow)return;
+      fr.contentWindow.focus();fr.contentWindow.print();
+    }
+  }
+  $('rpGo').addEventListener('click',rpCommit);
+  $('rpPrint').addEventListener('click',()=>{if(rp.cfg&&rp.cfg.pdf&&!$('rpPrint').disabled)printPdfFrame($('rpStage'));});
+  $('rpX').addEventListener('click',closeReportPreview);
+  $('rpModal').addEventListener('click',e=>{if(e.target.id==='rpModal')closeReportPreview();});
+  window.addEventListener('resize',()=>{if(rp.cfg)rpFit();});
+  // The navbar stays reachable above the preview (unless it was opened over a
+  // .modal-scrim, which already covers the navbar): a language switch rebuilds the
+  // document in the new language (applyLang has run by now: it registered first).
+  window.addEventListener('carino:langchange',()=>{if(rp.cfg){rpLabels();rpBuild();}
+    if(!$('exportModal').classList.contains('hidden'))buildExportPreview();});
 
   // ======================= Settings =======================
   const SETTINGS_KEY='carino_retina_settings';
@@ -7160,19 +7319,47 @@
   }
 
   // ---------- Export modal (single Export → PDF preview + downloads) ----------
-  let exportPdfUrl=null;
+  // exportPdfBytes are the bytes on show: Download PDF writes them and Download DICOM
+  // wraps them, so neither can write a document other than the one previewed. Both stay
+  // disabled until a preview exists.
+  // exportPdfName is the file name taken when those bytes were built (same snapshot).
+  let exportPdfUrl=null,exportPdfBytes=null,exportPdfName='',exportSeq=0,exportBack=null;
+  // exportPrint prints the viewer of those bytes (printPdfFrame), so it needs a viewer too.
+  function setExportReady(ok){['exportPdf','exportDcm'].forEach(id=>{$(id).disabled=!ok;});
+    $('exportPrint').disabled=!(ok&&$('exportPreview').querySelector('iframe'));}
+  const exportOpen=()=>!$('exportModal').classList.contains('hidden');
   async function openExport(){
     if(!studyHasContent()){toast(t('Nothing to export yet — add data or an image'));return;}
+    exportBack=document.activeElement;
     $('exportModal').classList.remove('hidden');renderSendHint();
+    setTimeout(()=>{if(exportOpen())$('exportClose').focus();},0);
+    await buildExportPreview();
+  }
+  // (Re)builds the Study PDF on show. Called on open, after Send sets a patient ID and on
+  // a language switch, so the bytes Download PDF/DICOM write always match the study now.
+  async function buildExportPreview(){
+    const seq=++exportSeq;exportPdfBytes=null;exportPdfName='';setExportReady(false);
+    $('exportStatus').textContent='';$('exportName').textContent='';
     const prev=$('exportPreview');prev.innerHTML='<div class="ep-loading">'+t('Building preview…')+'</div>';
     try{
+      const name=fname('','pdf');
       const bytes=await generateStudyPdf();
+      if(seq!==exportSeq)return;
       if(exportPdfUrl)URL.revokeObjectURL(exportPdfUrl);
       exportPdfUrl=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
-      prev.innerHTML='<iframe title="'+escHtml(t('PDF preview'))+'" src="'+exportPdfUrl+'#toolbar=1&navpanes=0&view=Fit"></iframe>';
-    }catch(err){prev.innerHTML='<div class="ep-loading">'+t('Preview unavailable')+' — '+err.message+'</div>';}
+      exportPdfBytes=bytes;exportPdfName=name;
+      prev.innerHTML=RP.pdfStageHtml(exportPdfUrl,{title:t('PDF preview'),viewer:pdfViewer(),
+        noViewerText:t('This browser cannot show a PDF inside the page. Download it to read it.')});
+      const pf=prev.querySelector('iframe');if(pf)pf.classList.add('rpv-frame');
+      $('exportName').textContent=name;
+      setExportReady(true);
+      const n=await RP.pdfPageCount(bytes,window.PDFLib);
+      if(seq===exportSeq)$('exportStatus').textContent=rpPagesText(n);
+    }catch(err){if(seq!==exportSeq)return;prev.innerHTML='<div class="ep-loading">'+t('Preview unavailable')+' — '+escHtml(err.message)+'</div>';}
   }
-  function closeExport(){$('exportModal').classList.add('hidden');}
+  function closeExport(){exportSeq++;exportPdfBytes=null;exportPdfName='';setExportReady(false);$('exportModal').classList.add('hidden');
+    const back=exportBack;exportBack=null;try{if(back&&back.focus)back.focus();}catch(e){}}
+  $('exportPrint').addEventListener('click',()=>{if(exportPdfBytes&&!$('exportPrint').disabled)printPdfFrame($('exportPreview'));});
   $('exportOpen').addEventListener('click',openExport);
   $('exportClose').addEventListener('click',closeExport);
   $('exportModal').addEventListener('click',e=>{if(e.target.id==='exportModal')closeExport();});
@@ -7278,7 +7465,11 @@
     visitState:()=>({encId:encRec&&encRec.id,patientRef:encRec&&encRec.patientRef,relink:relink&&{kind:relink.kind,patient:relink.patient.id,snap:!!relink.snap},
       lockedOut,lastVisitChip,patient:patientCtx.patient&&patientCtx.patient.id,visits:patientCtx.visits.map(r=>r.id),prev:patientCtx.prev&&patientCtx.prev.id,createdHere}),
     evaluateLink,openPatients,openVisit,newVisit,deleteVisit,deletePatientAsk,restoreItem,purgeItem,assignVisit,exportBackup,importBackup,importStudyJson,
-    refreshPatientCtx,store:()=>({db,RS}),makeSampleFundus,switchEye,setTool,setMod,setExamTab,setEyeView,renderLensLayout,applyLang,openTest,openSettings,openExport,openCamera,openTestsModal,buildPresentHtml,E,eyeHasImaging,metricsFor,generateStudyPdf,generateRxPdf,generateOrderPdf,generateReferralPdf,generateAvisoPdf,openReferral,docDate,docLongDate,brand,renderEyePngBytes,
+    refreshPatientCtx,store:()=>({db,RS}),makeSampleFundus,switchEye,setTool,setMod,setExamTab,setEyeView,renderLensLayout,applyLang,openTest,openSettings,openExport,openCamera,openTestsModal,buildPresentHtml,E,eyeHasImaging,metricsFor,generateStudyPdf,generateRxPdf,generateOrderPdf,generateReferralPdf,generateAvisoPdf,openReferral,docDate,
+    preview:{open:openReportPreview,close:closeReportPreview,commit:rpCommit,
+      state:()=>({open:!!rp.cfg,doc:rp.cfg&&rp.cfg.doc,name:rp.cfg&&rp.cfg.name,kind:rp.cfg?(rp.cfg.pdf?'pdf':'html'):null,ready:!$('rpGo').disabled,
+        bytes:rp.bytes?rp.bytes.length:0,status:$('rpStatus').textContent}),
+      exportBytes:()=>exportPdfBytes?exportPdfBytes.length:0},docLongDate,brand,renderEyePngBytes,
     // item 3: DICOM objects, archive, outbox — headless tests drive these
     buildDicomObjects,downloadDicom,openSend,commitSend,sendPlan:()=>sendPlan,saveArchive,runArchTest,forgetArchToken,
     arch:()=>({base:archBase(),hasToken:archHasToken(),remember:arch.remember,device:arch.device,burnedIn:arch.burnedIn,needToken,csp:window.__retinaCsp||null,result:archResult}),

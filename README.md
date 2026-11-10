@@ -181,8 +181,19 @@ permission; without it the window opens on the current screen (drag it over and 
 for fullscreen).
 
 ## Export
-One **Export** button opens a dialog with a **live PDF preview** of the study report and a
-row of downloads:
+One **Export** button opens a dialog with a **live PDF preview** of the study report on the
+right and everything else in a column on the left: the page count, the other documents, the
+file name and, at the foot of the column, Send to archive, Download DICOM, Print and Download
+PDF. Print prints the previewed PDF itself. **Nothing is written without a preview first.** Download PDF writes the
+very bytes shown in the dialog and Download DICOM wraps those same bytes; both stay disabled
+until the preview exists. Every other document (Spectacle Rx, Lens order, Referral letter,
+the privacy-notice template and Print report) opens a **report preview** over the dialog: the
+produced PDF in the browser's own viewer with its page count, or, for Print, the printed
+report laid out on an A4 sheet (scaled, not reflowed, on a phone) with dashed lines where
+pages are expected to end. It uses the same layout: title, ✕, page count, file name and
+the Print/Download buttons in the left column. Download writes the same bytes and Print prints
+that frame; the ✕ (or Esc, or a click outside) drops it and saves nothing. A browser with no built-in PDF
+viewer says so in the preview instead of showing the pages (`retina-preview.js`).
 - **Study PDF** — the full encounter: both eyes with embedded annotated images, disc
   metrics, refraction, and a binocular dispensing summary.
 - **Download DICOM** — the visit as DICOM files, all in ONE study (same
