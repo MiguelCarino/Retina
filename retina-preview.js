@@ -15,6 +15,9 @@
      dashed line marks where each A4 page is expected to end.
    - pdfPageCount(): the page count of the produced PDF bytes, read
      with the vendored pdf-lib (passed in, so Node can stub it).
+   - pdfRecorder() / pdfTwinHtml(): the HTML version of every document
+     drawn with pdf-lib, written from the same draw calls as its PDF
+     (the PDF | HTML switch of the preview, carino-pdf.js).
 
    No translator is called here (tools/i18n-check.js forbids it in a
    retina-*.js file): every visible string arrives as an argument.
@@ -116,5 +119,144 @@
     return '<iframe title="' + escAttr(o.title || '') + '" src="' + escAttr(url) + '#toolbar=0&navpanes=0&view=Fit"></iframe>';
   }
 
-  return { PAGE, PX_PER_MM, SHEET_W, CONTENT_H, PAGE_PX, printDocHtml, fitScale, pageBreaks, pdfPageCount, pdfStageHtml };
+  // ---------- The HTML version of a drawn PDF ----------
+  // The Study PDF, the prescription, the lens order, the referral and the privacy notice
+  // are drawn with pdf-lib, vector text in embedded fonts. Their HTML version is not a
+  // second layout that could drift: pdfRecorder(doc) watches the very draw calls that make
+  // the PDF (text, rules, boxes, dots, pictures, page by page) and pdfTwinHtml() writes
+  // them out again as one SVG per page, so the HTML has the PDF's pages, positions,
+  // breaks, letterhead and footers. Each text run keeps the width the PDF's font gave it
+  // (textLength), so the layout holds even where the reader's font differs. The text is
+  // real text: it can be searched and copied.
+  //
+  // pdfRecorder(doc): wraps doc.addPage / embedPng / embedJpg / setTitle before any
+  //   drawing. rec.bold(font) names the bold face; rec.lang is the document's language.
+  // pdfTwinHtml(rec, o): o { head: extra <head> markup (the fonts), fontFamily }.
+  const rgbHex = c => {
+    if (!c || typeof c.red !== 'number') return '#000000';
+    const h = v => ('0' + Math.max(0, Math.min(255, Math.round(v * 255))).toString(16)).slice(-2);
+    return '#' + h(c.red) + h(c.green) + h(c.blue);
+  };
+  const num = v => String(Math.round((+v || 0) * 100) / 100);
+
+  function pdfRecorder(doc) {
+    const rec = { pages: [], title: '', lang: 'en', bolds: [], images: new Map() };
+    rec.bold = f => { if (f) rec.bolds.push(f); };
+    const wrapEmbed = (name, mime) => {
+      const orig = doc[name] && doc[name].bind(doc);
+      if (!orig) return;
+      doc[name] = async (bytes, ...rest) => {
+        const img = await orig(bytes, ...rest);
+        if (bytes instanceof Uint8Array || bytes instanceof ArrayBuffer) rec.images.set(img, { mime, bytes: new Uint8Array(bytes) });
+        return img;
+      };
+    };
+    wrapEmbed('embedPng', 'image/png');
+    wrapEmbed('embedJpg', 'image/jpeg');
+    const setTitle = doc.setTitle && doc.setTitle.bind(doc);
+    if (setTitle) doc.setTitle = (v, ...rest) => { rec.title = String(v == null ? '' : v); return setTitle(v, ...rest); };
+    const addPage = doc.addPage.bind(doc);
+    doc.addPage = (...args) => {
+      const page = addPage(...args);
+      const size = page.getSize();
+      const pg = { w: size.width, h: size.height, ops: [] };
+      rec.pages.push(pg);
+      const hook = (name, fn) => {
+        const orig = page[name].bind(page);
+        page[name] = (...a) => { try { fn(...a); } catch (e) { /* the PDF still draws */ } return orig(...a); };
+      };
+      hook('drawText', (text, o) => {
+        o = o || {};
+        const size2 = o.size || 24, str = String(text == null ? '' : text);
+        let width = 0;
+        try { width = o.font ? o.font.widthOfTextAtSize(str, size2) : 0; } catch (e) { width = 0; }
+        pg.ops.push({ t: 'text', x: o.x || 0, y: o.y || 0, size: size2, bold: rec.bolds.indexOf(o.font) >= 0,
+          color: rgbHex(o.color), text: str, width });
+      });
+      hook('drawLine', o => {
+        pg.ops.push({ t: 'line', x1: o.start.x, y1: o.start.y, x2: o.end.x, y2: o.end.y,
+          th: o.thickness == null ? 1 : o.thickness, color: rgbHex(o.color) });
+      });
+      hook('drawRectangle', o => {
+        const fill = ('color' in o) ? (o.color ? rgbHex(o.color) : null) : (('borderColor' in o) ? null : '#000000');
+        pg.ops.push({ t: 'rect', x: o.x || 0, y: o.y || 0, w: o.width || 0, h: o.height || 0, fill,
+          stroke: o.borderColor ? rgbHex(o.borderColor) : null, bw: o.borderWidth || 0 });
+      });
+      hook('drawCircle', o => {
+        const fill = ('color' in o) ? (o.color ? rgbHex(o.color) : null) : (('borderColor' in o) ? null : '#000000');
+        pg.ops.push({ t: 'circle', x: o.x || 0, y: o.y || 0, r: o.size == null ? 100 : o.size, fill,
+          stroke: o.borderColor ? rgbHex(o.borderColor) : null, bw: o.borderWidth || 0 });
+      });
+      hook('drawImage', (img, o) => {
+        o = o || {};
+        const src = rec.images.get(img);
+        if (!src) return;
+        pg.ops.push({ t: 'image', x: o.x || 0, y: o.y || 0, w: o.width != null ? o.width : img.width, h: o.height != null ? o.height : img.height, src });
+      });
+      return page;
+    };
+    return rec;
+  }
+
+  function b64(bytes) {
+    if (typeof Buffer !== 'undefined' && typeof btoa === 'undefined') return Buffer.from(bytes).toString('base64');
+    let s = '';
+    for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    return btoa(s);
+  }
+  const escText = s => String(s).replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c]);
+
+  function pdfTwinHtml(rec, o) {
+    o = o || {};
+    const pages = rec.pages.length ? rec.pages : [{ w: 595.28, h: 841.89, ops: [] }];
+    const W = pages[0].w, H = pages[0].h;
+    const font = String(o.fontFamily || "'IBM Plex Sans',sans-serif").replace(/[<>{};]/g, '');
+    const dataUrls = new Map();
+    const dataUrl = src => {
+      if (!dataUrls.has(src)) dataUrls.set(src, 'data:' + src.mime + ';base64,' + b64(src.bytes));
+      return dataUrls.get(src);
+    };
+    const svg = pages.map((pg, i) => {
+      const y = v => num(pg.h - v);
+      const body = pg.ops.map(op => {
+        switch (op.t) {
+          case 'text': {
+            if (!op.text) return '';
+            const fit = op.width > 0 && /\S/.test(op.text) ? ' textLength="' + num(op.width) + '" lengthAdjust="spacingAndGlyphs"' : '';
+            return '<text x="' + num(op.x) + '" y="' + y(op.y) + '" font-size="' + num(op.size) + '"' +
+              (op.bold ? ' font-weight="700"' : '') + ' fill="' + op.color + '"' + fit + '>' + escText(op.text) + '</text>';
+          }
+          case 'line':
+            return '<line x1="' + num(op.x1) + '" y1="' + y(op.y1) + '" x2="' + num(op.x2) + '" y2="' + y(op.y2) +
+              '" stroke="' + op.color + '" stroke-width="' + num(op.th) + '"/>';
+          case 'rect':
+            return '<rect x="' + num(op.x) + '" y="' + y(op.y + op.h) + '" width="' + num(op.w) + '" height="' + num(op.h) +
+              '" fill="' + (op.fill || 'none') + '"' + (op.stroke && op.bw > 0 ? ' stroke="' + op.stroke + '" stroke-width="' + num(op.bw) + '"' : '') + '/>';
+          case 'circle':
+            return '<circle cx="' + num(op.x) + '" cy="' + y(op.y) + '" r="' + num(op.r) + '" fill="' + (op.fill || 'none') + '"' +
+              (op.stroke && op.bw > 0 ? ' stroke="' + op.stroke + '" stroke-width="' + num(op.bw) + '"' : '') + '/>';
+          case 'image':
+            return '<image x="' + num(op.x) + '" y="' + y(op.y + op.h) + '" width="' + num(op.w) + '" height="' + num(op.h) +
+              '" preserveAspectRatio="none" href="' + dataUrl(op.src) + '"/>';
+          default: return '';
+        }
+      }).join('');
+      return '<svg class="pg" xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 ' + num(pg.w) + ' ' + num(pg.h) +
+        '" width="' + num(pg.w) + 'pt" height="' + num(pg.h) + 'pt" aria-label="' + escAttr((o.pageLabel || 'Page {n}').replace('{n}', i + 1)) + '">' +
+        body + '</svg>';
+    }).join('\n');
+    return '<!doctype html><html lang="' + escAttr(rec.lang || 'en') + '"><head><meta charset="utf-8">' +
+      '<meta name="viewport" content="width=device-width,initial-scale=1">' +
+      '<title>' + escAttr(rec.title || '') + '</title>' + (o.head || '') +
+      '<style>' +
+      '@page{size:' + num(W) + 'pt ' + num(H) + 'pt;margin:0}' +
+      'html{background:#d6d8dc;color:#000}' +
+      'body{margin:0;padding:16px 8px}' +
+      '.pg{display:block;width:' + num(W) + 'pt;max-width:100%;height:auto;margin:0 auto 16px;background:#fff;box-shadow:0 1px 6px rgba(0,0,0,.28)}' +
+      '.pg text{font-family:' + font + ';white-space:pre}' +
+      '@media print{html{background:#fff}body{padding:0}.pg{width:' + num(W) + 'pt;max-width:none;margin:0;box-shadow:none;break-after:page}.pg:last-child{break-after:auto}}' +
+      '</style></head><body>\n' + svg + '\n</body></html>';
+  }
+
+  return { PAGE, PX_PER_MM, SHEET_W, CONTENT_H, PAGE_PX, printDocHtml, fitScale, pageBreaks, pdfPageCount, pdfStageHtml, pdfRecorder, pdfTwinHtml };
 });

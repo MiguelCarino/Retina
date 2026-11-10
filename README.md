@@ -194,6 +194,17 @@ pages are expected to end. It uses the same layout: title, ✕, page count, file
 the Print/Download buttons in the left column. Download writes the same bytes and Print prints
 that frame; the ✕ (or Esc, or a click outside) drops it and saves nothing. A browser with no built-in PDF
 viewer says so in the preview instead of showing the pages (`retina-preview.js`).
+
+**PDF or HTML.** Both dialogs carry a **File PDF | HTML** switch above the file name
+(`carino-pdf.js`, shared by the fleet; the choice is remembered). Download follows it
+(Download PDF / Download HTML) and so do the file name and the stage. The documents drawn
+with pdf-lib (Study PDF, Spectacle Rx, Lens order, Referral letter, privacy notice) keep
+their vector PDF; their HTML version is written from the very draw calls that made that PDF
+(`pdfRecorder` / `pdfTwinHtml` in `retina-preview.js`): one SVG per page, the same
+positions, breaks, letterhead and footers, real text, the pictures and IBM Plex Sans written
+into the file, nothing fetched. The printed report's PDF is made from the previewed document
+by `carino-pdf.js` (each page a picture, as the preview looks); its HTML is that document as
+one standalone file. Send to archive and Download DICOM always carry the Study PDF.
 - **Study PDF** — the full encounter: both eyes with embedded annotated images, disc
   metrics, refraction, and a binocular dispensing summary.
 - **Download DICOM** — the visit as DICOM files, all in ONE study (same

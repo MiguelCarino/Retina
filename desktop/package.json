@@ -38,6 +38,8 @@
       { "from": "../retina-inbox.js", "to": "web/retina-inbox.js" },
       { "from": "../retina-aviso.js", "to": "web/retina-aviso.js" },
       { "from": "../retina-preview.js", "to": "web/retina-preview.js" },
+      { "from": "../carino-pdf.js", "to": "web/carino-pdf.js" },
+      { "from": "../carino-html2canvas.js", "to": "web/carino-html2canvas.js" },
       { "from": "../logo.webp", "to": "web/logo.webp" },
       { "from": "../logo.svg", "to": "web/logo.svg" },
       { "from": "../logo-color.svg", "to": "web/logo-color.svg" },

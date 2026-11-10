@@ -1265,6 +1265,59 @@ const b64 = bytes => 'data:image/jpeg;base64,' + Buffer.from(bytes).toString('ba
     assert.ok(!n.includes('<iframe') && n.includes('No &lt;viewer&gt;'), 'no viewer: says so instead of a blank frame');
   });
 
+  await test('preview: HTML version of a drawn PDF — same pages, positions and text as the PDF', async () => {
+    const PDFLib = require(path.resolve(__dirname, '..', 'vendor', 'pdf-lib.min.js'));
+    const { PDFDocument, StandardFonts, rgb } = PDFLib;
+    const doc = await PDFDocument.create();
+    const rec = RPV.pdfRecorder(doc);
+    const font = await doc.embedFont(StandardFonts.Helvetica), fontB = await doc.embedFont(StandardFonts.HelveticaBold);
+    rec.bold(fontB); rec.lang = 'es';
+    doc.setTitle('Receta <óptica> & "Rx"');
+    // A 1x1 PNG, as renderEyePngBytes and the logo hand over their pictures.
+    const png = Uint8Array.from(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64'));
+    const img = await doc.embedPng(png);
+    const p1 = doc.addPage([595.28, 841.89]);
+    p1.drawRectangle({ x: 0, y: 833.89, width: 595.28, height: 8, color: rgb(0.72, 0.53, 0.04) });
+    p1.drawText('Paciente  ·  <A&B>', { x: 48, y: 790, size: 10, font, color: rgb(0.1, 0.1, 0.1) });
+    p1.drawText('RECETA', { x: 48, y: 760, size: 18, font: fontB, color: rgb(0.42, 0.42, 0.42) });
+    p1.drawLine({ start: { x: 48, y: 750 }, end: { x: 547.28, y: 750 }, thickness: 0.5, color: rgb(0.8, 0.8, 0.8) });
+    p1.drawRectangle({ x: 48, y: 600, width: 100, height: 40, borderColor: rgb(0, 0, 0), borderWidth: 1.2 });
+    p1.drawCircle({ x: 56, y: 580, size: 1.4, color: rgb(0.1, 0.1, 0.1) });
+    p1.drawImage(img, { x: 100, y: 400, width: 200, height: 100 });
+    doc.addPage([595.28, 841.89]);
+    // The footer pass draws on doc.getPages(): the same page objects, so it is recorded too.
+    doc.getPages().forEach((pg, i) => pg.drawText('Página ' + (i + 1) + ' de 2', { x: 500, y: 32, size: 7.5, font }));
+    const bytes = await doc.save();
+    assert.strictEqual(await RPV.pdfPageCount(bytes, PDFLib), 2, 'recording does not change the PDF');
+    assert.strictEqual(rec.pages.length, 2);
+    assert.strictEqual(rec.pages[1].ops.length, 1, 'footer of page 2 recorded on page 2');
+    const html = RPV.pdfTwinHtml(rec, { head: '<style>/*fonts*/</style>', pageLabel: 'Página {n}', fontFamily: "'IBM Plex Sans',sans-serif" });
+    assert.ok(html.startsWith('<!doctype html><html lang="es"><head><meta charset="utf-8">'));
+    assert.ok(html.includes('<title>Receta &lt;óptica&gt; &amp; &quot;Rx&quot;</title>'), 'title from setTitle, escaped');
+    assert.ok(html.includes('<style>/*fonts*/</style>'), 'the fonts head goes in');
+    assert.strictEqual((html.match(/<svg class="pg"/g) || []).length, 2, 'one SVG per PDF page');
+    assert.ok(html.includes('aria-label="Página 2"'));
+    assert.ok(html.includes('@page{size:595.28pt 841.89pt;margin:0}'), 'the paper is the PDF\'s');
+    const w = Math.round(font.widthOfTextAtSize('Paciente  ·  <A&B>', 10) * 100) / 100;
+    assert.ok(html.includes('<text x="48" y="51.89" font-size="10" fill="#1a1a1a" textLength="' + w + '" lengthAdjust="spacingAndGlyphs">Paciente  ·  &lt;A&amp;B&gt;</text>'),
+      'text at the PDF baseline (y flipped), with the PDF font\'s width, escaped');
+    assert.ok(/<text x="48" y="81.89" font-size="18" font-weight="700" fill="#6b6b6b"[^>]*>RECETA<\/text>/.test(html), 'bold face recorded');
+    assert.ok(html.includes('<rect x="0" y="0" width="595.28" height="8" fill="#b8870a"/>'), 'letterhead band');
+    assert.ok(html.includes('<line x1="48" y1="91.89" x2="547.28" y2="91.89" stroke="#cccccc" stroke-width="0.5"/>'));
+    assert.ok(html.includes('<rect x="48" y="201.89" width="100" height="40" fill="none" stroke="#000000" stroke-width="1.2"/>'), 'a bordered box is not filled');
+    assert.ok(html.includes('<circle cx="56" cy="261.89" r="1.4" fill="#1a1a1a"/>'));
+    assert.ok(html.includes('<image x="100" y="341.89" width="200" height="100" preserveAspectRatio="none" href="data:image/png;base64,' + Buffer.from(png).toString('base64') + '"/>'), 'picture written in');
+    assert.ok(/white-space:pre/.test(html), 'double spaces kept');
+    assert.ok(/@media print\{[^]*break-after:page/.test(html), 'one printed page per PDF page');
+    assert.ok(!/<script/i.test(html), 'no script');
+    assert.ok(!/(?:src|href)="https?:/.test(html) && !/url\(\s*['"]?https?:/.test(html), 'asks no server for anything');
+    // Nothing recorded (no page): still a valid one-page document.
+    const empty = RPV.pdfTwinHtml({ pages: [], title: '', lang: 'en' });
+    assert.strictEqual((empty.match(/<svg class="pg"/g) || []).length, 1);
+    // A font family cannot close the style block.
+    assert.ok(!RPV.pdfTwinHtml(rec, { fontFamily: 'x;}</style><script>' }).includes('</style><script>'));
+  });
+
   console.log(`\n${passed} passed, ${failed} failed`);
   process.exit(failed ? 1 : 0);
 })();

@@ -93,6 +93,9 @@
   <script src="carino-lang.js" defer></script>
   <script src="i18n.js" defer></script>
   <script src="vendor/pdf-lib.min.js" defer></script>
+  <!-- PDF | HTML switch of every report preview, and the PDF of the printed report
+       (it loads carino-html2canvas.js beside it on the first such PDF). -->
+  <script src="carino-pdf.js" defer></script>
   <!-- Theme before first paint, so neither theme flashes the other:
        ?theme=gold|color (review links; not stored) > carino-theme cookie
        (shared across *.carino.systems) > localStorage > Gold & Black. -->
@@ -718,8 +721,9 @@
     .screen-item.main .use{color:#050505}
 
     /* ---------- Report previews: the Export modal (Study PDF) and #rpModal ----------
-       Both are the fleet's .rpv (carino-ui.css 18b): title, ✕, status, options, file name
-       and the Print/Download buttons in the left column, the document on the right.
+       Both are the fleet's .rpv (carino-ui.css 18b): title, ✕, status, options, the
+       File PDF | HTML switch (carino-pdf.js), file name and the Print/Download buttons in
+       the left column, the document on the right.
        Only what is Retina's own is here. */
     .ep-loading{margin:auto;color:var(--text-muted);font-family:var(--mono);font-size:var(--fs-sm);padding:20px;text-align:center}
     /* The PDF viewer and the scaled print sheet scroll inside their own frame; the stage
@@ -1675,12 +1679,15 @@
           <!-- State text (renderSendHint): why Send is unavailable, or where it sends. -->
           <p class="hint-line" id="sendHint"></p>
         </div>
+        <!-- The File PDF | HTML switch goes here, above the name (exportSwitch). Send and
+             Download DICOM always carry the Study PDF: an archive takes a PDF, not a page. -->
         <p class="rpv-name" id="exportName"></p>
         <div class="rpv-actions">
           <button class="btn" id="exportSend"><span class="i18n">Send to archive</span></button>
           <button class="btn" id="exportDcm"><span class="i18n">Download DICOM</span></button>
           <button class="btn" id="exportPrint" disabled><span class="i18n">Print</span></button>
-          <button class="btn btn-primary" id="exportPdf"><span class="i18n">Download PDF</span></button>
+          <!-- State text (exportLabels): Download PDF / Download HTML, as the switch says. -->
+          <button class="btn btn-primary" id="exportPdf"></button>
         </div>
       </aside>
       <div class="rpv-stage" id="exportPreview"><div class="ep-loading i18n">Building preview…</div></div>
@@ -1733,7 +1740,8 @@
        before anything is written. The stage holds the very bytes that get downloaded, or
        the very document that gets printed; the ✕ (or Esc) drops it and saves nothing. Below the
        pinned navbar, above the export, referral and settings modals. The title, status
-       and commit label are state text set by openReportPreview: no .i18n. -->
+       and Download label are state text set by openReportPreview: no .i18n. The File
+       PDF | HTML switch is put above the name by rpSwitch. -->
   <div class="rpv-scrim hidden" id="rpModal">
     <div class="rpv" role="dialog" aria-modal="true" aria-labelledby="rpTitle">
       <aside class="rpv-side">
@@ -1743,10 +1751,10 @@
         </div>
         <p class="rpv-status" id="rpStatus" role="status" aria-live="polite"></p>
         <p class="rpv-name" id="rpName"></p>
-        <!-- rpPrint prints a PDF preview's frame (the bytes Download writes); hidden for the
-             HTML report, whose commit button rpGo is itself Print. -->
+        <!-- rpPrint prints the stage's frame (the PDF viewer of the bytes Download writes, or
+             the HTML document); rpGo downloads the file in the format the switch shows. -->
         <div class="rpv-actions">
-          <button type="button" class="btn hidden" id="rpPrint" disabled><span class="i18n">Print</span></button>
+          <button type="button" class="btn" id="rpPrint" disabled><span class="i18n">Print</span></button>
           <button type="button" class="btn btn-primary" id="rpGo" disabled></button>
         </div>
       </aside>
@@ -4065,6 +4073,35 @@
   }
 
   let brandLogoWarned=false;   // module scope: once a session, not once an export
+  // The HTML version of each drawn PDF, by its bytes: the record of the draw calls that
+  // made them (newPdf), written out on demand by twinHtml. Bytes nobody holds drop theirs.
+  const docTwins=new WeakMap();
+  // The HTML version of the PDF `bytes`. On screen it links the site's fonts (the CSP
+  // allows only 'self' fonts in the preview frame); the file carries IBM Plex Sans in it,
+  // so it opens offline and asks no server for anything.
+  async function twinHtml(bytes,forFile){
+    const rec=bytes&&docTwins.get(bytes);if(!rec)throw new Error('no HTML version of this document');
+    const ja=rec.lang==='ja';
+    const head=forFile?(ja?'':await twinFontCss())
+      :'<link rel="stylesheet" href="'+new URL('fonts/carino-fonts.css',document.baseURI).href.replace(/"/g,'%22')+'">';
+    return window.RetinaPreview.pdfTwinHtml(rec,{head,pageLabel:t('Page {n}'),
+      fontFamily:ja?"'Noto Sans JP','Hiragino Sans','Yu Gothic','Meiryo',sans-serif":"'IBM Plex Sans','Liberation Sans',Arial,sans-serif"});
+  }
+  // IBM Plex Sans (one variable face: Latin, Latin Extended, Cyrillic) as data: URLs. A
+  // font that cannot be fetched (file://) is left out: the text keeps the PDF's widths.
+  let twinFontsPromise=null;
+  function twinFontCss(){
+    if(twinFontsPromise)return twinFontsPromise;
+    const faces=[['IBMPlexSans-400-latin.woff2','U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD'],
+      ['IBMPlexSans-400-latin-ext.woff2','U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF'],
+      ['IBMPlexSans-cyrillic.woff2','U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116']];
+    twinFontsPromise=Promise.all(faces.map(([f,range])=>fetch('fonts/'+f).then(r=>r.ok?r.blob():null)
+        .then(b=>b?new Promise(res=>{const fr=new FileReader();fr.onload=()=>res(String(fr.result));fr.onerror=()=>res(null);fr.readAsDataURL(b);}):null)
+        .then(u=>u?"@font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:100 700;src:url("+u.replace(/^data:[^;,]*/,'data:font/woff2')+") format('woff2');unicode-range:"+range+"}":'')
+        .catch(()=>'')))
+      .then(css=>{const c=css.join('');if(!c)twinFontsPromise=null;return c?'<style>'+c+'</style>':'';});
+    return twinFontsPromise;
+  }
   let fallbackWarned=false;
   // pdf-lib embeds PNG and JPEG and nothing else — drawSvgPath takes a `d` attribute, not
   // a document. The import pipeline already normalised every accepted format to one of the
@@ -4093,6 +4130,10 @@
     if(typeof PDFLib==='undefined')throw new Error('PDF library not loaded');
     const {PDFDocument,StandardFonts,rgb}=PDFLib;
     const doc=await PDFDocument.create();
+    // Every draw call below is also recorded, so the same document can be written out as
+    // HTML (pdfTwinHtml) with the PDF's pages, positions and text. Wrapped before anything
+    // is drawn or embedded.
+    const rec=window.RetinaPreview.pdfRecorder(doc);
     // Immutable, and there is no setting that hides them. Author is where a practice
     // name goes — that is what Author means; Producer and Creator say what wrote the file.
     doc.setTitle(title);doc.setProducer(DOC_THEME.brand);doc.setCreator(DOC_THEME.brand);
@@ -4103,6 +4144,7 @@
     // L is the only global the shell reads. It becomes an argument the day this moves out.
     const L=opts.lang||lang;
     const {font,fontB,strip,fold,unicode}=await docFontPack(doc,L,StandardFonts);
+    rec.bold(fontB);rec.lang=(unicode||opts.lang)?L:'en';
     const TH=DOC_THEME,W=TH.page.w,H=TH.page.h,M=TH.page.margin,CW=W-2*M,FLOOR=TH.page.floor;
     const brand=brandSnapshot();
     const accentHex=(brand.enabled&&brand.accent)||TH.accent;
@@ -4256,7 +4298,7 @@
     async function finish(){const pages=doc.getPages();
       pages.forEach((pg,i)=>drawFooter(pg,i+1,pages.length));
       doc.setModificationDate(new Date());
-      return await doc.save();}
+      const bytes=await doc.save();docTwins.set(bytes,rec);return bytes;}
     // Labels survive the Helvetica fallback because T() returns English there. DATA does
     // not: clean() drops whatever the font cannot draw, so a Cyrillic or Japanese practice
     // name silently becomes an empty string and the report prints a logo above a blank
@@ -6044,10 +6086,16 @@
   }
   // The export modal IS the Study PDF's preview: Download PDF writes the bytes shown there
   // (exportPdfBytes, set by openExport), never a second build that could differ from them.
-  $('exportPdf').addEventListener('click',()=>{
-    const bytes=exportPdfBytes;if(!bytes)return;
-    const doc=t('Study PDF');
-    download(exportPdfName||fname('','pdf'),new Blob([bytes],{type:'application/pdf'}));toast(tf('Exported: {doc}',{doc}));
+  // With HTML chosen it writes the HTML version of those same bytes (twinHtml).
+  $('exportPdf').addEventListener('click',async()=>{
+    const bytes=exportPdfBytes;if(!bytes||$('exportPdf').disabled)return;
+    if(exportFormat()==='pdf'){
+      download(exportPdfName||fname('','pdf'),new Blob([bytes],{type:'application/pdf'}));toast(tf('Exported: {doc}',{doc:t('Study PDF')}));
+      return;}
+    try{const html=await twinHtml(bytes,true);if(bytes!==exportPdfBytes)return;
+      const name=fileAs(exportPdfName||fname('','pdf'),'html');
+      download(name,new Blob([html],{type:'text/html;charset=utf-8'}));toast(tf('Exported: {doc}',{doc:name}));}
+    catch(err){console.error(err);toast(tf('{doc} failed',{doc:t('Study PDF')})+': '+err.message);}
   });
   // Every other document opens the report preview first; its own button downloads.
   $('exportRx').addEventListener('click',()=>{
@@ -6107,7 +6155,8 @@
   // ---------- Print ----------
   // Print previews the report in a frame and prints THAT frame (as Topo does). buildReport
   // still fills #printReport too, so a Ctrl+P on the page prints the same report.
-  $('printBtn').addEventListener('click',()=>{openReportPreview({doc:'Print preview',commit:'Print',html:buildReport});});
+  // Its file is made from that same document: PDF by carino-pdf.js, HTML standalone.
+  $('printBtn').addEventListener('click',()=>{openReportPreview({doc:'Print report',name:fname('report','pdf'),html:buildReport});});
   function buildReport(){
     const m=study.meta,b=brandSnapshot();
     // Print is a second, entirely separate document builder. Branding it in the same
@@ -6145,30 +6194,58 @@
   }
 
   // ---------- Report preview (#rpModal) ----------
-  // cfg: {doc: English name (title, toast), name: file name, commit?: English label
-  // (default 'Download PDF'), and either pdf: async()=>bytes or html: ()=>report HTML;
-  // after?: run once the PDF is written}. A PDF stage shows the produced bytes in the
-  // browser's own viewer, Download writes those same bytes and Print (rpPrint) prints that
-  // viewer; an HTML stage is the very document Print (rpGo) prints
-  // (frame.contentWindow.print()). The ✕ drops it; nothing is saved.
+  // cfg: {doc: English name (title, toast), name: file name (.pdf), and either
+  // pdf: async()=>bytes or html: ()=>report HTML; after?: run once the file is written}.
+  // The File PDF | HTML switch (carino-pdf.js) picks what the stage shows and what
+  // Download writes:
+  //   a drawn document (cfg.pdf)  PDF: the produced bytes in the browser's own viewer;
+  //                               HTML: the HTML version of those same bytes (twinHtml).
+  //   the printed report (html)   the very document Print prints, in a frame, in both;
+  //                               Download makes its PDF (CarinoPdf, pages drawn from
+  //                               it) or writes it as one standalone HTML file.
+  // Print prints the stage's frame. The ✕ drops it; nothing is saved.
   const RP=window.RetinaPreview;
-  const rp={seq:0,cfg:null,url:null,bytes:null,back:null};
+  const rp={seq:0,show:0,cfg:null,url:null,bytes:null,doc:null,pages:0,back:null};
+  // CarinoPdf is deferred and this script is not: it is looked up when used, and told
+  // which translator to use (t is this script's own, not window.t).
+  function pdfKit(){const k=window.CarinoPdf||null;if(k)k.t=t;return k;}
+  const fileAs=(name,fmt)=>{const k=pdfKit();return k?k.fileName(name,fmt):String(name||'').replace(/\.pdf$/i,'')+'.'+fmt;};
+  const dlLabel=fmt=>{const k=pdfKit();return k?k.label(fmt):t(fmt==='html'?'Download HTML':'Download PDF');};
+  // One switch per dialog, made on first use. Both remember the same choice (per site);
+  // each takes up the remembered one when its dialog opens.
+  let rpSw=null,exSw=null;
+  function makeSwitch(before,onChange){const k=pdfKit();if(!k)return null;
+    const sw=k.formatSwitch({onChange});$(before).before(sw.el);return sw;}
+  function rpSwitch(){if(!rpSw)rpSw=makeSwitch('rpName',()=>{rpLabels();rpShow();});
+    else{const k=pdfKit(),v=k&&k.remembered();if(v)rpSw.set(v);}
+    return rpSw;}
+  const rpFormat=()=>rpSw?rpSw.get():'pdf';
   function rpStatus(s){$('rpStatus').textContent=s||'';}
   function rpPagesText(n){return !n?'':n===1?t('1 page'):tf('{n} pages',{n});}
   function rpDropUrl(){if(rp.url){URL.revokeObjectURL(rp.url);rp.url=null;}}
   function rpFrame(){return $('rpStage').querySelector('iframe');}
-  // A PDF preview has no file of its own to print: Print prints the browser's viewer of the
-  // very bytes Download writes (no second build). Without an inline viewer there is nothing
-  // to print, so the button stays disabled and the note on the stage says to download.
+  // Print prints the frame on the stage: the browser's viewer of the very bytes Download
+  // writes (no second build), or the HTML document. Without an inline PDF viewer there is
+  // nothing to print, so the button stays disabled and the note on the stage says to download.
   const pdfViewer=()=>navigator.pdfViewerEnabled!==false;
   function printPdfFrame(stage){
     const fr=stage.querySelector('iframe');if(!fr)return;
     try{fr.contentWindow.focus();fr.contentWindow.print();}
     catch(e){console.warn('Print from the PDF preview failed.',e);toast(t('This browser cannot print the PDF from the preview. Download it and print it from there.'));}
   }
+  // Loads an HTML document into a new frame on `stage` (srcdoc before the frame is attached,
+  // so the only load event is this document's) and waits for its fonts and pictures.
+  async function htmlStage(stage,html,title){
+    const fr=document.createElement('iframe');fr.title=title;fr.className='rpv-frame';
+    await new Promise(done=>{let fin=false;const end=()=>{if(fin)return;fin=true;fr.onload=null;done();};
+      fr.onload=end;setTimeout(end,5000);fr.srcdoc=html;stage.replaceChildren(fr);});
+    try{const d=fr.contentDocument;if(d.fonts)await d.fonts.ready;
+      await Promise.all([...d.images].map(img=>img.complete?null:new Promise(r=>{img.onload=img.onerror=r;})));}catch(e){}
+    return fr;
+  }
   // A stage narrower than the sheet shows the sheet scaled down, as it will print, rather
-  // than the report reflowed to a phone's width. Only the HTML sheet needs it: the PDF
-  // viewer fits its own pages.
+  // than the report reflowed to a phone's width. Only the printed report's sheet needs it:
+  // the PDF viewer fits its own pages and the HTML version's pages fit the frame.
   function rpFit(){
     const fr=rpFrame(),stage=$('rpStage');if(!fr||!rp.cfg||rp.cfg.pdf)return;
     Object.assign(fr.style,{width:'',height:'',transform:'',transformOrigin:''});
@@ -6176,9 +6253,9 @@
     Object.assign(fr.style,{width:RP.PAGE_PX+'px',height:Math.round(stage.clientHeight/k)+'px',transform:'scale('+k+')',transformOrigin:'0 0'});
   }
   function rpLabels(){const c=rp.cfg;if(!c)return;
-    $('rpTitle').textContent=t(c.doc);$('rpName').textContent=c.name||'';$('rpGo').textContent=t(c.commit||'Download PDF');
-    $('rpPrint').classList.toggle('hidden',!c.pdf);}
+    $('rpTitle').textContent=t(c.doc);$('rpName').textContent=c.name?fileAs(c.name,rpFormat()):'';$('rpGo').textContent=dlLabel(rpFormat());}
   function openReportPreview(cfg){
+    rpSwitch();
     rp.cfg=cfg;rp.back=document.activeElement;rpLabels();
     $('rpModal').classList.toggle('rp-over-modal',!!document.querySelector('.modal-scrim:not(.hidden):not([hidden])'));
     $('rpModal').classList.remove('hidden');
@@ -6186,76 +6263,116 @@
     setTimeout(()=>{if(rp.cfg)$('rpX').focus();},0);
     return rpBuild();
   }
+  // Builds the document once (the PDF bytes, or the printed report's HTML), then shows it.
   async function rpBuild(){
     const seq=++rp.seq,cfg=rp.cfg,stage=$('rpStage');if(!cfg)return;
-    $('rpGo').disabled=true;$('rpPrint').disabled=true;rp.bytes=null;rpDropUrl();rpStatus('');
+    rp.show++;
+    $('rpGo').disabled=true;$('rpPrint').disabled=true;rp.bytes=null;rp.doc=null;rp.pages=0;rpDropUrl();rpStatus('');
     stage.innerHTML='<div class="ep-loading">'+escHtml(t('Building preview…'))+'</div>';
     try{
       if(cfg.pdf){
         const bytes=await cfg.pdf();
         if(seq!==rp.seq)return;
-        rp.bytes=bytes;rp.url=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
-        stage.innerHTML=RP.pdfStageHtml(rp.url,{title:t('PDF preview'),viewer:pdfViewer(),
-          noViewerText:t('This browser cannot show a PDF inside the page. Download it to read it.')});
-        const pf=rpFrame();if(pf)pf.classList.add('rpv-frame');
-        $('rpPrint').disabled=!pf;
         const n=await RP.pdfPageCount(bytes,window.PDFLib);
         if(seq!==rp.seq)return;
-        rpStatus(rpPagesText(n));
+        rp.bytes=bytes;rp.pages=n;
       }else{
-        const doc=RP.printDocHtml(cfg.html(),{fontsHref:new URL('fonts/carino-fonts.css',document.baseURI).href,
+        rp.doc=RP.printDocHtml(cfg.html(),{fontsHref:new URL('fonts/carino-fonts.css',document.baseURI).href,
           fontFamily:getComputedStyle(document.documentElement).getPropertyValue('--font').trim(),lang,title:'Carino Retina'});
-        const fr=document.createElement('iframe');fr.title=t('Print preview');fr.className='rpv-frame';
-        // srcdoc before the frame is attached, so the only load event is this document's.
-        await new Promise(done=>{let fin=false;const end=()=>{if(fin)return;fin=true;fr.onload=null;done();};
-          fr.onload=end;setTimeout(end,5000);fr.srcdoc=doc;stage.replaceChildren(fr);});
-        if(seq!==rp.seq)return;
-        let pages=0;
-        try{
-          const d=fr.contentDocument;if(d.fonts)await d.fonts.ready;
-          await Promise.all([...d.images].map(img=>img.complete?null:new Promise(r=>{img.onload=img.onerror=r;})));
-          if(seq!==rp.seq)return;
-          const pad=parseFloat(d.defaultView.getComputedStyle(d.body).paddingTop)||0;
-          const pb=RP.pageBreaks(d.getElementById('printReport').getBoundingClientRect().height);pages=pb.pages;
-          pb.breaks.forEach((y,i)=>{const line=d.createElement('div');line.className='rp-break';line.style.top=(pad+y)+'px';
-            const tag=d.createElement('span');tag.textContent=tf('Page {n}',{n:i+2});line.append(tag);d.body.append(line);});
-        }catch(e){console.warn('Report preview: could not measure the pages.',e);}
-        rpFit();rpStatus(rpPagesText(pages));
       }
-      $('rpGo').disabled=false;
+      await rpShow();
     }catch(err){
       if(seq!==rp.seq)return;console.error(err);
       stage.innerHTML='<div class="ep-loading">'+escHtml(t('Preview unavailable')+' — '+(err&&err.message||err))+'</div>';
     }
   }
+  // Puts the chosen format on the stage. Called after a build and on every switch change.
+  async function rpShow(){
+    const cfg=rp.cfg,stage=$('rpStage');if(!cfg||!(rp.bytes||rp.doc))return;
+    const show=++rp.show,alive=()=>show===rp.show&&rp.cfg===cfg;
+    $('rpGo').disabled=true;$('rpPrint').disabled=true;rpDropUrl();
+    try{
+      if(cfg.pdf&&rpFormat()==='pdf'){
+        rp.url=URL.createObjectURL(new Blob([rp.bytes],{type:'application/pdf'}));
+        stage.innerHTML=RP.pdfStageHtml(rp.url,{title:t('PDF preview'),viewer:pdfViewer(),
+          noViewerText:t('This browser cannot show a PDF inside the page. Download it to read it.')});
+        const pf=rpFrame();if(pf)pf.classList.add('rpv-frame');
+        $('rpPrint').disabled=!pf;rpStatus(rpPagesText(rp.pages));
+      }else if(cfg.pdf){
+        stage.innerHTML='<div class="ep-loading">'+escHtml(t('Building preview…'))+'</div>';
+        const html=await twinHtml(rp.bytes,false);if(!alive())return;
+        await htmlStage(stage,html,t('HTML preview'));if(!alive())return;
+        $('rpPrint').disabled=false;rpStatus(rpPagesText(rp.pages));
+      }else{
+        // The printed report is the same document in both formats: it is redrawn only when
+        // it is not on the stage yet (a switch change keeps the frame).
+        let fr=rpFrame();
+        if(!fr||fr.dataset.doc!==String(rp.seq)){
+          fr=await htmlStage(stage,rp.doc,t('Print preview'));if(!alive())return;
+          fr.dataset.doc=String(rp.seq);
+          let pages=0;
+          try{
+            const d=fr.contentDocument;
+            const pad=parseFloat(d.defaultView.getComputedStyle(d.body).paddingTop)||0;
+            const pb=RP.pageBreaks(d.getElementById('printReport').getBoundingClientRect().height);pages=pb.pages;
+            pb.breaks.forEach((y,i)=>{const line=d.createElement('div');line.className='rp-break';line.style.top=(pad+y)+'px';
+              const tag=d.createElement('span');tag.textContent=tf('Page {n}',{n:i+2});line.append(tag);d.body.append(line);});
+          }catch(e){console.warn('Report preview: could not measure the pages.',e);}
+          rp.pages=pages;rpFit();
+        }
+        $('rpPrint').disabled=false;rpStatus(rpPagesText(rp.pages));
+      }
+      $('rpGo').disabled=false;
+    }catch(err){
+      if(!alive())return;console.error(err);
+      stage.innerHTML='<div class="ep-loading">'+escHtml(t('Preview unavailable')+' — '+(err&&err.message||err))+'</div>';
+    }
+  }
   function closeReportPreview(){
-    rp.seq++;rp.cfg=null;rp.bytes=null;rpDropUrl();
+    rp.seq++;rp.show++;rp.cfg=null;rp.bytes=null;rp.doc=null;rpDropUrl();
     $('rpModal').classList.add('hidden');$('rpModal').classList.remove('rp-over-modal');$('rpStage').replaceChildren();rpStatus('');$('rpGo').disabled=true;$('rpPrint').disabled=true;
     document.removeEventListener('keydown',rpKey,true);
     const back=rp.back;rp.back=null;try{if(back&&back.focus)back.focus();}catch(e){}
   }
   // Capture phase on document: Escape closes only the preview, not the modal beneath it.
   function rpKey(e){if(e.key==='Escape'){e.preventDefault();e.stopPropagation();closeReportPreview();}}
-  function rpCommit(){
+  // Download: the file in the format the switch shows. The drawn documents' files exist
+  // already (the bytes, their HTML version); the printed report's PDF is made here, with
+  // Download disabled and the status saying so until it is written.
+  async function rpCommit(){
     const cfg=rp.cfg;if(!cfg||$('rpGo').disabled)return;
+    const fmt=rpFormat(),name=fileAs(cfg.name||fname('report','pdf'),fmt),seq=rp.seq;
+    const done=()=>{toast(tf('Exported: {doc}',{doc:t(cfg.doc)}));closeReportPreview();if(cfg.after)cfg.after();};
     if(cfg.pdf){
       const bytes=rp.bytes;if(!bytes)return;
-      download(cfg.name,new Blob([bytes],{type:'application/pdf'}));toast(tf('Exported: {doc}',{doc:t(cfg.doc)}));
-      closeReportPreview();if(cfg.after)cfg.after();
-    }else{
-      const fr=rpFrame();if(!fr||!fr.contentWindow)return;
-      fr.contentWindow.focus();fr.contentWindow.print();
+      if(fmt==='pdf'){download(name,new Blob([bytes],{type:'application/pdf'}));done();return;}
+      $('rpGo').disabled=true;
+      try{const html=await twinHtml(bytes,true);if(seq!==rp.seq||rp.cfg!==cfg)return;
+        download(name,new Blob([html],{type:'text/html;charset=utf-8'}));done();}
+      catch(err){if(rp.cfg!==cfg)return;console.error(err);$('rpGo').disabled=false;toast(tf('{doc} failed',{doc:t(cfg.doc)})+': '+err.message);}
+      return;
     }
+    const k=pdfKit(),docHtml=rp.doc;if(!docHtml)return;
+    $('rpGo').disabled=true;$('rpPrint').disabled=true;
+    if(fmt==='pdf')rpStatus(t('Creating the PDF…'));
+    const r=k?await k.download({html:docHtml,name,format:fmt,title:t(cfg.doc),producer:'Carino Retina'})
+      :{ok:false,error:'carino-pdf.js not loaded'};
+    if(seq!==rp.seq||rp.cfg!==cfg)return;
+    $('rpGo').disabled=false;$('rpPrint').disabled=!rpFrame();
+    if(r&&r.ok){rpStatus(rpPagesText(rp.pages));done();return;}
+    console.error('Report file not written:',r&&r.error);
+    rpStatus(fmt==='pdf'?t('Could not create the PDF.'):tf('{doc} failed',{doc:t(cfg.doc)}));
   }
   $('rpGo').addEventListener('click',rpCommit);
-  $('rpPrint').addEventListener('click',()=>{if(rp.cfg&&rp.cfg.pdf&&!$('rpPrint').disabled)printPdfFrame($('rpStage'));});
+  $('rpPrint').addEventListener('click',()=>{if(rp.cfg&&!$('rpPrint').disabled)printPdfFrame($('rpStage'));});
   $('rpX').addEventListener('click',closeReportPreview);
   $('rpModal').addEventListener('click',e=>{if(e.target.id==='rpModal')closeReportPreview();});
   window.addEventListener('resize',()=>{if(rp.cfg)rpFit();});
   // The navbar stays reachable above the preview (unless it was opened over a
   // .modal-scrim, which already covers the navbar): a language switch rebuilds the
   // document in the new language (applyLang has run by now: it registered first).
-  window.addEventListener('carino:langchange',()=>{if(rp.cfg){rpLabels();rpBuild();}
+  window.addEventListener('carino:langchange',()=>{if(rpSw)rpSw.relabel();if(exSw)exSw.relabel();exportLabels();
+    if(rp.cfg){rpLabels();rpBuild();}
     if(!$('exportModal').classList.contains('hidden'))buildExportPreview();});
 
   // ======================= Settings =======================
@@ -7323,14 +7440,23 @@
   // wraps them, so neither can write a document other than the one previewed. Both stay
   // disabled until a preview exists.
   // exportPdfName is the file name taken when those bytes were built (same snapshot).
-  let exportPdfUrl=null,exportPdfBytes=null,exportPdfName='',exportSeq=0,exportBack=null;
-  // exportPrint prints the viewer of those bytes (printPdfFrame), so it needs a viewer too.
+  let exportPdfUrl=null,exportPdfBytes=null,exportPdfName='',exportSeq=0,exportShow=0,exportBack=null;
+  // The File PDF | HTML switch: what the stage shows and what Download writes. Send and
+  // Download DICOM ignore it and always carry the PDF bytes (an Encapsulated PDF is a PDF).
+  function exportSwitch(){if(!exSw)exSw=makeSwitch('exportName',()=>{exportLabels();showExport();});
+    else{const k=pdfKit(),v=k&&k.remembered();if(v)exSw.set(v);}
+    return exSw;}
+  const exportFormat=()=>exSw?exSw.get():'pdf';
+  function exportLabels(){const f=exportFormat();$('exportPdf').textContent=dlLabel(f);
+    $('exportName').textContent=exportPdfName?fileAs(exportPdfName,f):'';}
+  // exportPrint prints the frame on the stage (printPdfFrame), so it needs one too.
   function setExportReady(ok){['exportPdf','exportDcm'].forEach(id=>{$(id).disabled=!ok;});
     $('exportPrint').disabled=!(ok&&$('exportPreview').querySelector('iframe'));}
   const exportOpen=()=>!$('exportModal').classList.contains('hidden');
   async function openExport(){
     if(!studyHasContent()){toast(t('Nothing to export yet — add data or an image'));return;}
     exportBack=document.activeElement;
+    exportSwitch();exportLabels();
     $('exportModal').classList.remove('hidden');renderSendHint();
     setTimeout(()=>{if(exportOpen())$('exportClose').focus();},0);
     await buildExportPreview();
@@ -7338,28 +7464,45 @@
   // (Re)builds the Study PDF on show. Called on open, after Send sets a patient ID and on
   // a language switch, so the bytes Download PDF/DICOM write always match the study now.
   async function buildExportPreview(){
-    const seq=++exportSeq;exportPdfBytes=null;exportPdfName='';setExportReady(false);
+    const seq=++exportSeq;exportShow++;exportPdfBytes=null;exportPdfName='';setExportReady(false);
     $('exportStatus').textContent='';$('exportName').textContent='';
     const prev=$('exportPreview');prev.innerHTML='<div class="ep-loading">'+t('Building preview…')+'</div>';
     try{
       const name=fname('','pdf');
       const bytes=await generateStudyPdf();
       if(seq!==exportSeq)return;
-      if(exportPdfUrl)URL.revokeObjectURL(exportPdfUrl);
-      exportPdfUrl=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
-      exportPdfBytes=bytes;exportPdfName=name;
-      prev.innerHTML=RP.pdfStageHtml(exportPdfUrl,{title:t('PDF preview'),viewer:pdfViewer(),
-        noViewerText:t('This browser cannot show a PDF inside the page. Download it to read it.')});
-      const pf=prev.querySelector('iframe');if(pf)pf.classList.add('rpv-frame');
-      $('exportName').textContent=name;
-      setExportReady(true);
+      exportPdfBytes=bytes;exportPdfName=name;exportLabels();
+      await showExport();
       const n=await RP.pdfPageCount(bytes,window.PDFLib);
       if(seq===exportSeq)$('exportStatus').textContent=rpPagesText(n);
     }catch(err){if(seq!==exportSeq)return;prev.innerHTML='<div class="ep-loading">'+t('Preview unavailable')+' — '+escHtml(err.message)+'</div>';}
   }
-  function closeExport(){exportSeq++;exportPdfBytes=null;exportPdfName='';setExportReady(false);$('exportModal').classList.add('hidden');
+  // The Study PDF in the browser's viewer, or its HTML version (twinHtml), as switched.
+  async function showExport(){
+    const bytes=exportPdfBytes,prev=$('exportPreview');if(!bytes)return;
+    const show=++exportShow,alive=()=>show===exportShow&&bytes===exportPdfBytes;
+    setExportReady(false);
+    if(exportPdfUrl){URL.revokeObjectURL(exportPdfUrl);exportPdfUrl=null;}
+    try{
+      if(exportFormat()==='pdf'){
+        exportPdfUrl=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
+        prev.innerHTML=RP.pdfStageHtml(exportPdfUrl,{title:t('PDF preview'),viewer:pdfViewer(),
+          noViewerText:t('This browser cannot show a PDF inside the page. Download it to read it.')});
+        const pf=prev.querySelector('iframe');if(pf)pf.classList.add('rpv-frame');
+      }else{
+        prev.innerHTML='<div class="ep-loading">'+escHtml(t('Building preview…'))+'</div>';
+        const html=await twinHtml(bytes,false);if(!alive())return;
+        await htmlStage(prev,html,t('HTML preview'));if(!alive())return;
+      }
+      setExportReady(true);
+    }catch(err){if(!alive())return;console.error(err);prev.innerHTML='<div class="ep-loading">'+t('Preview unavailable')+' — '+escHtml(err.message)+'</div>';
+      // The PDF bytes are still good: DICOM and Send do not depend on the HTML version.
+      $('exportDcm').disabled=false;}
+  }
+  function closeExport(){exportSeq++;exportShow++;exportPdfBytes=null;exportPdfName='';setExportReady(false);$('exportModal').classList.add('hidden');
     const back=exportBack;exportBack=null;try{if(back&&back.focus)back.focus();}catch(e){}}
   $('exportPrint').addEventListener('click',()=>{if(exportPdfBytes&&!$('exportPrint').disabled)printPdfFrame($('exportPreview'));});
+  exportLabels();
   $('exportOpen').addEventListener('click',openExport);
   $('exportClose').addEventListener('click',closeExport);
   $('exportModal').addEventListener('click',e=>{if(e.target.id==='exportModal')closeExport();});
@@ -7468,8 +7611,8 @@
     refreshPatientCtx,store:()=>({db,RS}),makeSampleFundus,switchEye,setTool,setMod,setExamTab,setEyeView,renderLensLayout,applyLang,openTest,openSettings,openExport,openCamera,openTestsModal,buildPresentHtml,E,eyeHasImaging,metricsFor,generateStudyPdf,generateRxPdf,generateOrderPdf,generateReferralPdf,generateAvisoPdf,openReferral,docDate,
     preview:{open:openReportPreview,close:closeReportPreview,commit:rpCommit,
       state:()=>({open:!!rp.cfg,doc:rp.cfg&&rp.cfg.doc,name:rp.cfg&&rp.cfg.name,kind:rp.cfg?(rp.cfg.pdf?'pdf':'html'):null,ready:!$('rpGo').disabled,
-        bytes:rp.bytes?rp.bytes.length:0,status:$('rpStatus').textContent}),
-      exportBytes:()=>exportPdfBytes?exportPdfBytes.length:0},docLongDate,brand,renderEyePngBytes,
+        bytes:rp.bytes?rp.bytes.length:0,status:$('rpStatus').textContent,format:rpFormat(),file:$('rpName').textContent,label:$('rpGo').textContent}),
+      exportBytes:()=>exportPdfBytes?exportPdfBytes.length:0,exportFormat,twinHtml},docLongDate,brand,renderEyePngBytes,
     // item 3: DICOM objects, archive, outbox — headless tests drive these
     buildDicomObjects,downloadDicom,openSend,commitSend,sendPlan:()=>sendPlan,saveArchive,runArchTest,forgetArchToken,
     arch:()=>({base:archBase(),hasToken:archHasToken(),remember:arch.remember,device:arch.device,burnedIn:arch.burnedIn,needToken,csp:window.__retinaCsp||null,result:archResult}),

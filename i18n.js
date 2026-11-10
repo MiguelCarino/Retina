@@ -731,7 +731,11 @@ const I18N = {
       'This browser cannot show a PDF inside the page. Download it to read it.':'Este navegador no puede mostrar un PDF dentro de la página. Descárguelo para leerlo.',
       'Other documents':'Otros documentos',
       'Print report':'Imprimir informe',
-      'This browser cannot print the PDF from the preview. Download it and print it from there.':'Este navegador no puede imprimir el PDF desde la vista previa. Descárguelo e imprímalo desde allí.'
+      'This browser cannot print the PDF from the preview. Download it and print it from there.':'Este navegador no puede imprimir el PDF desde la vista previa. Descárguelo e imprímalo desde allí.',
+      /* The File PDF | HTML switch of every report preview (carino-pdf.js). PDF and
+         HTML are format names and stay Latin in every language. */
+      'File':'Archivo','PDF':'PDF','HTML':'HTML',
+      'Download HTML':'Descargar HTML','Creating the PDF…':'Creando el PDF…','Could not create the PDF.':'No se pudo crear el PDF.','HTML preview':'Vista previa del HTML'
     },
     ja:{
       // Navbar greeting and overflow button (carino-navbar.js asks window.t)
@@ -1409,7 +1413,11 @@ const I18N = {
       'This browser cannot show a PDF inside the page. Download it to read it.':'このブラウザーではページ内にPDFを表示できません。保存してからご覧ください。',
       'Other documents':'その他の書類',
       'Print report':'報告書を印刷',
-      'This browser cannot print the PDF from the preview. Download it and print it from there.':'このブラウザーではプレビューからPDFを印刷できません。保存してから印刷してください。'
+      'This browser cannot print the PDF from the preview. Download it and print it from there.':'このブラウザーではプレビューからPDFを印刷できません。保存してから印刷してください。',
+      /* The File PDF | HTML switch of every report preview (carino-pdf.js). PDF and
+         HTML are format names and stay Latin in every language. */
+      'File':'ファイル','PDF':'PDF','HTML':'HTML',
+      'Download HTML':'HTMLを保存','Creating the PDF…':'PDFを作成中…','Could not create the PDF.':'PDFを作成できませんでした。','HTML preview':'HTMLプレビュー'
     }
     ,
     'pt-BR':{
@@ -2120,7 +2128,11 @@ const I18N = {
       'This browser cannot show a PDF inside the page. Download it to read it.':'Este navegador não consegue exibir um PDF dentro da página. Baixe-o para lê-lo.',
       'Other documents':'Outros documentos',
       'Print report':'Imprimir relatório',
-      'This browser cannot print the PDF from the preview. Download it and print it from there.':'Este navegador não consegue imprimir o PDF a partir da pré-visualização. Baixe-o e imprima a partir daí.'
+      'This browser cannot print the PDF from the preview. Download it and print it from there.':'Este navegador não consegue imprimir o PDF a partir da pré-visualização. Baixe-o e imprima a partir daí.',
+      /* The File PDF | HTML switch of every report preview (carino-pdf.js). PDF and
+         HTML are format names and stay Latin in every language. */
+      'File':'Arquivo','PDF':'PDF','HTML':'HTML',
+      'Download HTML':'Baixar HTML','Creating the PDF…':'Criando o PDF…','Could not create the PDF.':'Não foi possível criar o PDF.','HTML preview':'Pré-visualização do HTML'
     },
     ru:{
       // Navbar greeting and overflow button (carino-navbar.js asks window.t)
@@ -2831,7 +2843,11 @@ const I18N = {
       'This browser cannot show a PDF inside the page. Download it to read it.':'Этот браузер не может показать PDF на странице. Скачайте файл, чтобы прочитать его.',
       'Other documents':'Другие документы',
       'Print report':'Печать отчёта',
-      'This browser cannot print the PDF from the preview. Download it and print it from there.':'Этот браузер не может напечатать PDF из предпросмотра. Скачайте его и распечатайте оттуда.'
+      'This browser cannot print the PDF from the preview. Download it and print it from there.':'Этот браузер не может напечатать PDF из предпросмотра. Скачайте его и распечатайте оттуда.',
+      /* The File PDF | HTML switch of every report preview (carino-pdf.js). PDF and
+         HTML are format names and stay Latin in every language. */
+      'File':'Файл','PDF':'PDF','HTML':'HTML',
+      'Download HTML':'Скачать HTML','Creating the PDF…':'Создание PDF…','Could not create the PDF.':'Не удалось создать PDF.','HTML preview':'Предпросмотр HTML'
     }
 };
 window.I18N = I18N;
